@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Séquenceur Harmonique Curatif</title>
+  <script src="http://127.0.0.1:8080/ipfs/QmXpfqQNgk6g9BtcQMxHMGeSHqLqc9DJQu3MjMWRREp3Ui/p5.min.js"></script>
+  <script src="http://127.0.0.1:8080/ipfs/QmXpfqQNgk6g9BtcQMxHMGeSHqLqc9DJQu3MjMWRREp3Ui/p5.sound.min.js"></script>
+  <style>
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #121212; color: #eee; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+    #header { display: flex; align-items: center; padding: 10px; background: #1a1a1a; border-bottom: 2px solid #333; z-index: 20; }
+    #transport-controls { display: flex; gap: 5px; border-right: 1px solid #444; padding-right: 15px; margin-right: 15px; }
+    #transport-controls button { font-size: 16px; width: 40px; }
+    #visualizer-container { flex-grow: 1; height: 50px; }
+    #visualizer-controls { margin-left:15px; }
+    #controls-container { padding: 10px; background: #222; }
+    #main-container { display: flex; flex-grow: 1; }
+    #sequencer-container { flex-grow: 1; cursor: crosshair; }
+    details { border: 1px solid #444; border-radius: 4px; }
+    summary { font-weight: bold; cursor: pointer; padding: 10px; background-color: #2a2a2a; }
+    .accordion-content { padding: 10px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
+    label { font-size: 13px; display:flex; align-items:center; gap: 5px; }
+    button { padding: 8px 12px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
+    button:hover { background-color: #0056b3; }
+    #scan-status { color: #ffc107; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+  <div id="header">
+    <div id="transport-controls">
+      <button id="playBtn">▶</button>
+      <button id="stopBtn">■</button>
+    </div>
+    <div id="visualizer-container"></div>
+    <div id="visualizer-controls">
+        <label>Visu:
+            <select id="visuSelect">
+                <option value="oscilloscope">Oscilloscope</option>
+                <option value="spectrogram">Spectrogramme</option>
+            </select>
+        </label>
+    </div>
+  </div>
+
+  <div id="controls-container">
+    <details>
+      <summary>Génération, Réglages & Fichiers</summary>
+      <div class="accordion-content">
+        <div><label>Taille Gamme: <input type="number" id="scaleSize" value="24" min="8" max="72"></label></div>
+        <div><label>Cohérence Min: <input type="range" id="coherenceMin" min="0.5" max="0.99" step="0.01" value="0.8"></label></div>
+        <button id="generateBtn">Générer la Gamme</button>
+        <div><label>BPM: <span id="bpmVal">120</span><br><input type="range" id="bpmSlider" min="40" max="240" value="120"></label></div>
+        <div><label>Zoom X: <input type="range" id="zoomXSlider" min="5" max="100" value="20"></label></div>
+        <div><label>Zoom Y: <input type="range" id="zoomYSlider" min="10" max="80" value="30"></label></div>
+        <button id="saveBtn">Enregistrer</button>
+        <button id="loadBtn">Charger</button>
+        <input type="file" id="loadInput" style="display:none" accept=".json">
+        <label><input type="checkbox" id="quantizeToggle" checked> Quantiser</label>
+        <div id="scan-status">Générez une gamme pour commencer.</div>
+      </div>
+    </details>
+  </div>
+
+  <div id="main-container">
+    <div id="sequencer-container"></div>
+  </div>
+
+  <script>
+    const sequencerSketch = (p) => {
+      const phi = (1 + Math.sqrt(5)) / 2;
+      let pianoScale = [], sequence = [];
+      let isPlaying = false, playhead = 0, bpm = 120;
+      let ui, audio, interaction;
+
+      p.setup = () => {
+        let container = document.getElementById('sequencer-container');
+        let canvas = p.createCanvas(container.offsetWidth, container.offsetHeight);
+        canvas.parent(container);
+        p.frameRate(30); p.colorMode(p.HSB, 360, 100, 100);
+
+        ui = new UIHandler();
+        audio = new AudioHandler();
+        interaction = new InteractionHandler();
+        ui.init();
+      };
+
+      p.draw = () => {
+        p.background(20);
+        if (isPlaying) { let beatsPerSecond = bpm / 60; playhead += beatsPerSecond / p.frameRate(); audio.handlePlayback(playhead, sequence); }
+        ui.drawGrid(); ui.drawPianoKeys(audio.getPlayingIndices()); ui.drawNotes(); ui.drawPlayhead();
+      };
+
+      class UIHandler {
+        constructor() {
+          this.keyWidth = 120;
+          this.scaleSizeInput = p.select('#scaleSize'); this.coherenceMinSlider = p.select('#coherenceMin');
+          this.generateBtn = p.select('#generateBtn'); this.playBtn = p.select('#playBtn'); this.stopBtn = p.select('#stopBtn');
+          this.bpmSlider = p.select('#bpmSlider'); this.bpmVal = p.select('#bpmVal');
+          this.zoomXSlider = p.select('#zoomXSlider'); this.zoomYSlider = p.select('#zoomYSlider');
+          this.scanStatus = p.select('#scan-status'); this.saveBtn = p.select('#saveBtn');
+          this.loadBtn = p.select('#loadBtn'); this.loadInput = p.select('#loadInput');
+          this.quantizeToggle = p.select('#quantizeToggle');
+        }
+        init() {
+            this.generateBtn.mousePressed(this.generateHarmonicScale);
+            this.playBtn.mousePressed(() => { audio.userStartAudioOnce(); isPlaying = !isPlaying; this.playBtn.html(isPlaying ? '❚❚' : '▶'); });
+            this.stopBtn.mousePressed(() => { isPlaying = false; playhead = 0; audio.stopAllNotes(); this.playBtn.html('▶'); });
+            this.bpmSlider.input(() => { bpm = this.bpmSlider.value(); this.bpmVal.html(bpm); });
+            this.saveBtn.mousePressed(interaction.saveMelody);
+            this.loadBtn.mousePressed(() => this.loadInput.elt.click());
+            this.loadInput.changed(interaction.loadMelody);
+        }
+        drawGrid() { /* ... */
+            let cellWidth = this.zoomXSlider.value(); let cellHeight = this.zoomYSlider.value(); p.strokeWeight(1);
+            for (let i = 0; i < p.width / cellWidth; i++) { p.stroke(i % 4 === 0 ? 60 : 40); p.line(this.keyWidth + i * cellWidth, 0, this.keyWidth + i * cellWidth, p.height); }
+            for (let i = 0; i < pianoScale.length; i++) { p.stroke(40); p.line(this.keyWidth, i * cellHeight, p.width, i * cellHeight); }
+        }
+        drawPianoKeys(playingIndices) { /* ... */
+            if (pianoScale.length === 0) return; let cellHeight = this.zoomYSlider.value();
+            let minFLog = Math.log(pianoScale[0].fPhi); let maxFLog = Math.log(pianoScale[pianoScale.length - 1].fPhi);
+            for (let i = 0; i < pianoScale.length; i++) {
+                let y = i * cellHeight; let hue = p.map(Math.log(pianoScale[i].fPhi), minFLog, maxFLog, 0, 330);
+                let isPlaying = playingIndices.includes(i);
+                let isHovering = p.mouseX < this.keyWidth && p.mouseY > y && p.mouseY < y + cellHeight;
+                if (isHovering && !interaction.isDragging) { audio.playPreview(i); } else if (interaction.hoveredKey === i) { audio.stopPreview(); interaction.hoveredKey = -1; }
+                p.fill(hue, 80, isPlaying ? 80 : (isHovering ? 65 : 50));
+                p.noStroke(); p.rect(0, y, this.keyWidth, cellHeight);
+                p.fill(255); p.textSize(10); p.textAlign(p.LEFT, p.CENTER);
+                p.text(`n:${pianoScale[i].n.toFixed(1)},m:${pianoScale[i].m.toFixed(1)}`, 5, y + cellHeight/2);
+            }
+        }
+        drawNotes() { /* ... */
+            if (pianoScale.length === 0) return; let cellWidth = this.zoomXSlider.value(); let cellHeight = this.zoomYSlider.value();
+            let minFLog = Math.log(pianoScale[0].fPhi); let maxFLog = Math.log(pianoScale[pianoScale.length - 1].fPhi);
+            sequence.forEach(noteData => {
+                let note = pianoScale[noteData.noteIndex]; let x = this.keyWidth + noteData.startTime * cellWidth;
+                let y = noteData.noteIndex * cellHeight; let w = noteData.duration * cellWidth;
+                let hue = p.map(Math.log(note.fPhi), minFLog, maxFLog, 0, 330);
+                p.fill(hue, 100, 80); p.stroke(hue, 100, 100); p.rect(x, y, w, cellHeight, 4);
+            });
+        }
+        drawPlayhead() { /* ... */
+            let x = this.keyWidth + playhead * this.zoomXSlider.value();
+            p.stroke(255, 0, 100); p.strokeWeight(2); p.line(x, 0, x, p.height); p.strokeWeight(1);
+        }
+        generateHarmonicScale = () => { /* ... (code inchangé de la version précédente) ... */
+            this.scanStatus.html('Scan en cours...');
+            setTimeout(() => {
+                let allResults = []; let f0 = 1.0;
+                let minCoh = parseFloat(this.coherenceMinSlider.value());
+                let step = 0.02;
+                for (let n = -10; n <= 10; n += step) {
+                    for (let m = -10; m <= 10; m += step) {
+                        if (Math.abs(n) < 0.01 && Math.abs(m) < 0.01) continue;
+                        let coherence = Math.exp(-10 * Math.abs(n * Math.log(phi) - m * Math.log(2)));
+                        if (coherence > minCoh) { allResults.push({ n, m, coherence }); }
+                    }
+                }
+                allResults.sort((a, b) => b.coherence - a.coherence);
+                let finalScale = []; let desiredSize = parseInt(this.scaleSizeInput.value()); let minLogDist = 0.05;
+                if(allResults.length > 0) { finalScale.push(allResults.shift()); }
+                for(let candidate of allResults) {
+                  if(finalScale.length >= desiredSize) break;
+                  let isFarEnough = finalScale.every(accepted => Math.abs(candidate.n - accepted.n) * Math.log(phi) > minLogDist);
+                  if(isFarEnough) { finalScale.push(candidate); }
+                }
+                finalScale.forEach(note => { note.fPhi = f0 * Math.pow(phi, note.n); note.fTwo = f0 * Math.pow(2, note.m); });
+                finalScale.sort((a, b) => a.fPhi - b.fPhi); pianoScale = finalScale; sequence = [];
+                this.scanStatus.html(`Gamme générée: ${pianoScale.length} notes. Prêt à composer.`);
+            }, 50);
+        }
+      }
+
+      class AudioHandler {
+        constructor() { this.playingNotes = new Map(); this.previewOscillators = null; this.audioStarted = false; }
+        userStartAudioOnce() { if (!this.audioStarted) { p.userStartAudio(); this.audioStarted = true; } }
+        handlePlayback(currentPlayhead, currentSequence) { /* ... */
+            currentSequence.forEach((noteData, id) => {
+                const noteStartTimeBeats = noteData.startTime; const noteEndTimeBeats = noteData.startTime + noteData.duration;
+                const noteStarts = !this.playingNotes.has(id) && currentPlayhead >= noteStartTimeBeats && currentPlayhead < noteEndTimeBeats;
+                const noteEnds = this.playingNotes.has(id) && currentPlayhead >= noteEndTimeBeats;
+                if (noteStarts) { this.playNote(id, pianoScale[noteData.noteIndex], noteData.noteIndex); } else if (noteEnds) { this.stopNote(id); }
+            });
+        }
+        playHarmonicPair(note) { /* ... */
+            let audibleMin = 80, audibleMax = 1200;
+            let minFLog = Math.log(pianoScale[0].fPhi); let maxFLog = Math.log(pianoScale[pianoScale.length - 1].fPhi);
+            let audiblePhi = p.map(Math.log(note.fPhi), minFLog, maxFLog, audibleMin, audibleMax);
+            let audibleTwo = p.map(Math.log(note.fTwo), minFLog, maxFLog, audibleMin, audibleMax);
+            let oPhi = new p5.Oscillator('sine'), oTwo = new p5.Oscillator('sine');
+            oPhi.freq(audiblePhi); oTwo.freq(audibleTwo); oPhi.amp(0.15); oTwo.amp(0.15); oPhi.start(); oTwo.start();
+            return { oPhi, oTwo };
+        }
+        playNote(id, note, noteIndex) { this.playingNotes.set(id, { ...this.playHarmonicPair(note), noteIndex }); }
+        stopNote(id) { /* ... */
+            if (this.playingNotes.has(id)) {
+                let { oPhi, oTwo } = this.playingNotes.get(id);
+                oPhi.amp(0, 0.2); oTwo.amp(0, 0.2);
+                setTimeout(() => { oPhi.stop(); oTwo.stop(); }, 200);
+                this.playingNotes.delete(id);
+            }
+        }
+        playPreview(noteIndex) { /* ... */
+            if (interaction.hoveredKey === noteIndex) return; this.stopPreview();
+            interaction.hoveredKey = noteIndex;
+            this.previewOscillators = this.playHarmonicPair(pianoScale[noteIndex]);
+        }
+        stopPreview() { /* ... */
+            if (this.previewOscillators) {
+                this.previewOscillators.oPhi.amp(0, 0.2); this.previewOscillators.oTwo.amp(0, 0.2);
+                setTimeout(() => { this.previewOscillators.oPhi.stop(); this.previewOscillators.oTwo.stop(); }, 200);
+                this.previewOscillators = null;
+            }
+        }
+        stopAllNotes() { this.playingNotes.forEach((val, key) => this.stopNote(key)); this.playingNotes.clear(); }
+        getPlayingIndices() { return Array.from(this.playingNotes.values()).map(n => n.noteIndex); }
+      }
+
+      class InteractionHandler {
+        constructor() { this.isDragging = false; this.selectedNote = null; this.dragOffsetX = 0; this.hoveredKey = -1; }
+        handleMousePressed() {
+            if (p.mouseX < ui.keyWidth || p.mouseY < 0 || pianoScale.length === 0) return;
+            let cellWidth = ui.zoomXSlider.value(); let cellHeight = ui.zoomYSlider.value();
+            let timePos = (p.mouseX - ui.keyWidth) / cellWidth;
+            let gridY = Math.floor(p.mouseY / cellHeight);
+            if (gridY >= pianoScale.length) return;
+
+            this.selectedNote = sequence.find(n => gridY === n.noteIndex && timePos >= n.startTime && timePos < n.startTime + n.duration);
+            if (p.mouseButton === p.RIGHT) { if (this.selectedNote) { sequence = sequence.filter(n => n !== this.selectedNote); this.selectedNote = null; } return; }
+            if (this.selectedNote) { this.isDragging = true; this.dragOffsetX = timePos - this.selectedNote.startTime; }
+            else {
+                let note = pianoScale[gridY]; let beatsPerSecond = bpm / 60;
+                let beatFreq = Math.abs(note.fPhi - note.fTwo);
+                let cycleDurationSec = (beatFreq < 0.001) ? 64 / beatsPerSecond : 1 / beatFreq; // True duration
+                let durationInBeats = cycleDurationSec * beatsPerSecond;
+                let startTime = ui.quantizeToggle.checked() ? Math.floor(timePos) : timePos;
+                let newNote = { noteIndex: gridY, startTime: startTime, duration: durationInBeats };
+                sequence.push(newNote); this.selectedNote = newNote; this.isDragging = true; this.dragOffsetX = 0;
+            }
+        }
+        handleMouseDragged() {
+            if (this.isDragging && this.selectedNote) {
+                let timePos = (p.mouseX - ui.keyWidth) / ui.zoomXSlider.value();
+                let newGridY = Math.floor(p.mouseY / ui.zoomYSlider.value());
+                if(newGridY >= 0 && newGridY < pianoScale.length) { this.selectedNote.noteIndex = newGridY; }
+                let newStartTime = Math.max(0, timePos - this.dragOffsetX);
+                this.selectedNote.startTime = ui.quantizeToggle.checked() ? Math.round(newStartTime) : newStartTime;
+            }
+        }
+        saveMelody() { let session = { bpm: bpm, scale: pianoScale, melody: sequence }; p.saveJSON(session, 'mélodie-harmonique.json'); }
+        loadMelody(file) {
+            if (file.subtype === 'json') {
+                let data = JSON.parse(file.data); bpm = data.bpm || 120; pianoScale = data.scale || []; sequence = data.melody || [];
+                ui.bpmSlider.value(bpm); ui.bpmVal.html(bpm); ui.scanStatus.html(`Mélodie chargée: ${pianoScale.length} notes.`);
+            }
+        }
+      }
+
+      p.mousePressed = () => interaction.handleMousePressed();
+      p.mouseDragged = () => interaction.handleMouseDragged();
+      p.mouseReleased = () => { interaction.isDragging = false; interaction.selectedNote = null; audio.stopPreview(); };
+      p.windowResized = () => { let c = document.getElementById('sequencer-container'); p.resizeCanvas(c.offsetWidth, c.offsetHeight); };
+    };
+
+    const oscilloscopeSketch = (p) => {
+        let fft, visuSelect;
+        p.setup = () => {
+            let container = document.getElementById('visualizer-container');
+            let canvas = p.createCanvas(container.offsetWidth, container.offsetHeight);
+            canvas.parent(container);
+            fft = new p5.FFT(0.8, 1024);
+            visuSelect = p.select('#visuSelect');
+        };
+        p.draw = () => {
+            p.background(26);
+            if(visuSelect.value() === 'oscilloscope') {
+                let waveform = fft.waveform(); p.noFill(); p.beginShape(); p.stroke(0, 255, 150); p.strokeWeight(2);
+                for (let i = 0; i < waveform.length; i++) {
+                    let x = p.map(i, 0, waveform.length, 0, p.width); let y = p.map(waveform[i], -1, 1, 0, p.height); p.vertex(x, y);
+                } p.endShape();
+            } else {
+                let spectrum = fft.analyze(); p.noStroke();
+                for (let i = 0; i < spectrum.length; i++) {
+                    let x = p.map(p.log(i), 0, p.log(spectrum.length), 0, p.width);
+                    let h = -p.height + p.map(spectrum[i], 0, 255, p.height, 0);
+                    p.fill(p.map(i, 0, spectrum.length, 0, 360), 100, 100); p.rect(x, p.height, p.width / spectrum.length * 10, h);
+                }
+            }
+        };
+        p.windowResized = () => { let c = document.getElementById('visualizer-container'); p.resizeCanvas(c.offsetWidth, c.offsetHeight); }
+    };
+
+    new p5(sequencerSketch);
+    new p5(oscilloscopeSketch);
+  </script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Harmonic Atomic Fusion</title>
+  <script src="http://127.0.0.1:8080/ipfs/QmXpfqQNgk6g9BtcQMxHMGeSHqLqc9DJQu3MjMWRREp3Ui/p5.min.js"></script>
+  <script src="http://127.0.0.1:8080/ipfs/QmXpfqQNgk6g9BtcQMxHMGeSHqLqc9DJQu3MjMWRREp3Ui/p5.sound.min.js"></script>
+  <script src="http://127.0.0.1:8080/ipfs/QmXBJFD46q29fqkcKLWzPP2m2e9iX7LMTuqthob4LzJimw/gsap.min.js"></script>
+  <style>
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #0d1117; color: #c9d1d9; overflow: hidden; }
+    #main-container { display: flex; flex-direction: column; height: 100vh; }
+    #header { padding: 10px 20px; background: #161b22; border-bottom: 1px solid #30363d; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+    #mode-switcher { display: flex; align-items: center; gap: 8px; }
+    .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #30363d; transition: .4s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #238636; }
+    input:checked + .slider:before { transform: translateX(26px); }
+    #atom-palette { display: flex; gap: 10px; flex-wrap: wrap; transition: opacity 0.3s; }
+    .atom-source { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: bold; cursor: grab; user-select: none; border: 2px solid transparent; transition: all 0.3s ease; }
+    .atom-source.suggested { border-color: #2ea043; box-shadow: 0 0 15px #2ea043; transform: scale(1.1); }
+    #controls { display: flex; gap: 15px; align-items: center; }
+    #controls button { padding: 10px 15px; background-color: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
+    #controls button#resetBtn { background-color: #8b949e; }
+    #canvas-container { flex-grow: 1; position: relative; }
+    #result-display { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); text-align: center; font-size: 24px; font-weight: bold; color: #58a6ff; text-shadow: 0 0 8px #58a6ff44; pointer-events: none; }
+    #recipe-book-controls { display: flex; flex-direction: column; gap: 5px; transition: opacity 0.3s; }
+    #potential-display { text-align: center; font-size: 14px; min-width: 180px; }
+    #oscilloscope-container { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 300px; height: 60px; pointer-events: none; }
+    #hint-bar { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); font-size: 14px; color: #8b949e; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <div id="main-container">
+    <div id="header">
+      <div id="mode-switcher">
+        <span>Recette</span><label class="switch"><input type="checkbox" id="modeToggle"><span class="slider"></span></label><span>Bac à Sable</span>
+      </div>
+      <div id="recipe-book-controls"><label for="recipeSelect">Livre de Recettes:</label><select id="recipeSelect"></select></div>
+      <div id="potential-display">Potentiel Harmonique: <span id="potentialValue">0%</span></div>
+      <div id="atom-palette"></div>
+      <div id="controls"><button id="fuseBtn">Fusionner</button><button id="resetBtn">Réinitialiser</button></div>
+    </div>
+    <div id="canvas-container">
+      <div id="result-display"></div>
+      <div id="oscilloscope-container"></div>
+      <div id="hint-bar"></div>
+    </div>
+  </div>
+
+  <script>
+    const sketch = (p) => {
+      // --- Données et Variables ---
+      const ATOM_DATA = { 'H': { z: 1, a: 1, color: [0, 0, 95], radius: 15 }, 'C': { z: 6, a: 12, color: [0, 0, 20], radius: 25 }, 'N': { z: 7, a: 14, color: [240, 80, 70], radius: 28 }, 'O': { z: 8, a: 16, color: [0, 90, 80], radius: 30 }, 'S': { z: 16, a: 32, color: [60, 100, 80], radius: 33 }, 'Si': { z: 14, a: 28, color: [50, 40, 70], radius: 34 } };
+      let MOLECULE_RECIPES;
+      const FUSION_THRESHOLD = 0.15;
+
+      let atomsOnCanvas = [], animatingAtoms = [], draggingAtom = null;
+      let ui, audio, workbench, fft;
+      let currentMode = 'sandbox'; // Démarrage en mode Bac à Sable
+      let lastSuggestedAtom = null;
+
+      // --- Définition des Classes ---
+      class UIElements {
+        constructor() { this.resultDisplay = p.select('#result-display'); this.recipeControls = p.select('#recipe-book-controls'); this.recipeSelect = p.select('#recipeSelect'); this.potentialDisplay = p.select('#potential-display'); this.atomPalette = p.select('#atom-palette'); this.modeToggle = p.select('#modeToggle'); this.hintBar = p.select('#hint-bar'); }
+        populateUI() {
+            Object.keys(ATOM_DATA).forEach(el => { let atomSrc = p.createDiv(el); atomSrc.class('atom-source'); atomSrc.id(`atom-src-${el}`); let c = ATOM_DATA[el].color; atomSrc.style('background-color', `hsl(${c[0]}, ${c[1]}%, ${c[2]}%)`); atomSrc.style('color', c[2] > 60 ? 'black' : 'white'); atomSrc.parent(this.atomPalette); atomSrc.mousePressed(() => { if (currentMode === 'sandbox') createAtom(el, p.mouseX, p.mouseY); }); });
+            let defaultOption = p.createElement('option', "Sélectionnez une recette..."); defaultOption.attribute('value', ''); defaultOption.parent(this.recipeSelect);
+            for(let name in MOLECULE_RECIPES) { let opt = p.createElement('option', `${MOLECULE_RECIPES[name].name} (${name})`); opt.attribute('value', name); opt.parent(this.recipeSelect); }
+            this.recipeSelect.changed(() => { if (currentMode === 'recipe') populateWorkbenchForRecipe(this.recipeSelect.value()); });
+            this.modeToggle.checked(true); this.modeToggle.changed(this.toggleMode);
+            p.select('#fuseBtn').mousePressed(fuseAtoms); p.select('#resetBtn').mousePressed(reset);
+            this.updateModeUI();
+        }
+        toggleMode = () => { currentMode = this.modeToggle.checked() ? 'sandbox' : 'recipe'; reset(); this.updateModeUI(); }
+        updateModeUI = () => { this.potentialDisplay.style('display', currentMode === 'sandbox' ? 'block' : 'none'); this.hintBar.html(currentMode === 'sandbox' ? 'Astuce : Clic droit pour supprimer un atome.' : ''); if (currentMode === 'recipe') { this.recipeControls.style('opacity', '1'); this.recipeSelect.removeAttribute('disabled'); this.atomPalette.style('opacity', '0.5'); this.atomPalette.style('pointer-events', 'none'); } else { this.recipeControls.style('opacity', '0.5'); this.recipeSelect.attribute('disabled', ''); this.atomPalette.style('opacity', '1'); this.atomPalette.style('pointer-events', 'auto'); } }
+        updatePaletteOrder(suggestedEl) {
+            const palette = this.atomPalette.elt; const sources = Array.from(palette.children);
+            sources.forEach(s => s.classList.remove('suggested'));
+            if (suggestedEl) { const bestSource = sources.find(s => s.id === `atom-src-${suggestedEl}`); if (bestSource) { palette.prepend(bestSource); bestSource.classList.add('suggested'); } }
+        }
+      }
+      class Workbench {
+          constructor() { this.updateDimensions(); }
+          updateDimensions() { this.x = p.width * 0.1; this.y = p.height * 0.1; this.w = p.width * 0.8; this.h = p.height * 0.8; }
+          draw() { p.noFill(); p.stroke(48, 54, 61); p.strokeWeight(2); p.drawingContext.setLineDash([10, 10]); p.rect(this.x, this.y, this.w, this.h, 20); p.drawingContext.setLineDash([]); p.noStroke(); p.fill(139, 148, 158); p.textAlign(p.CENTER, p.TOP); p.textSize(14); p.text("Zone de Fusion Harmonique", this.x + this.w / 2, this.y - 25); }
+          contains(pos) { return pos.x > this.x && pos.x < this.x + this.w && pos.y > this.y && pos.y < this.y + this.h; }
+      }
+      class Atom {
+          constructor(el, x, y, dataOverride = null) {
+              this.el = el; this.pos = p.createVector(x, y);
+              this.data = dataOverride || ATOM_DATA[el] || {color:[0,0,50], z:1, a:1};
+              if (!this.data.totalZ) { this.data.totalZ = this.data.z; }
+              if (!this.data.totalA) { this.data.totalA = this.data.a; }
+              this.radius = this.data.radius || 20; this.isStatic = false;
+          }
+          draw() {
+              if (this.el === 'BOND') return; p.noStroke(); p.fill(this.data.color[0], this.data.color[1], this.data.color[2]);
+              p.ellipse(this.pos.x, this.pos.y, this.radius * 2);
+              p.fill(this.data.color[2] > 60 ? 0 : 100); p.textAlign(p.CENTER, p.CENTER);
+              p.textSize(this.radius * (this.el.length > 2 ? 0.4 : 0.8)); p.text(this.el, this.pos.x, this.pos.y);
+          }
+          isMouseOver() { return p.dist(p.mouseX, p.mouseY, this.pos.x, this.pos.y) < this.radius; }
+      }
+      class AudioHandler {
+          constructor() { this.audioStarted = false; this.f0 = 40; }
+          userStartAudioOnce() { if (!this.audioStarted) { p.userStartAudio().then(() => { this.audioStarted = true; }); } }
+          getAtomFrequencies(atomData) { const Z = atomData.totalZ; const N = atomData.totalA - Z; return { f_phi: this.f0 * Z, f_2: this.f0 * (N + 1) * 0.5 }; }
+          getMoleculeFrequencies(atoms) {
+              let total_f_phi_sum = 0;
+              let total_f_2_sum = 0;
+              atoms.forEach(atom => {
+                  const { f_phi, f_2 } = this.getAtomFrequencies(atom.data);
+                  total_f_phi_sum += f_phi;
+                  total_f_2_sum += f_2;
+              });
+              if (atoms.length === 0) return { f_phi_mol: 0, f_2_mol: 0 };
+              return { f_phi_mol: total_f_phi_sum / atoms.length, f_2_mol: total_f_2_sum };
+          }
+          playAtomSound(atomData) { const { f_phi, f_2 } = this.getAtomFrequencies(atomData); let oPhi = new p5.Oscillator('triangle'); oPhi.freq(f_phi); oPhi.connect(fft); let oTwo = new p5.Oscillator('sawtooth'); oTwo.freq(f_2); oTwo.connect(fft); let env = new p5.Envelope(0.01, 0.2, 0.3, 0.3); oPhi.amp(env); oTwo.amp(env); oPhi.start(); oTwo.start(); env.play(); setTimeout(() => { oPhi.disconnect(); oTwo.disconnect(); }, 800); }
+          playMoleculeChord(atoms) { const { f_phi_mol, f_2_mol } = this.getMoleculeFrequencies(atoms); let oPhi = new p5.Oscillator('sine'); oPhi.freq(f_phi_mol); oPhi.connect(fft); let oTwo = new p5.Oscillator('sine'); oTwo.freq(f_2_mol); oTwo.connect(fft); let env = new p5.Envelope(0.5, 0.2, 0.4, 1.0); oPhi.amp(env); oTwo.amp(env); oPhi.start(); oTwo.start(); env.play(); setTimeout(() => { oPhi.disconnect(); oTwo.disconnect(); }, 2500); }
+          playFusionSequence(atoms) { atoms.forEach((atom, i) => setTimeout(() => audio.playAtomSound(atom.data), i * 150)); setTimeout(() => audio.playMoleculeChord(atoms), atoms.length * 150 + 500); }
+          playPickupSound(atomData) { this.playAtomSound(atomData); }
+          playDiscordantSequence(atoms) { atoms.forEach((atom, i) => { setTimeout(() => this.playAtomSound(atom.data), i * 100); }); }
+      }
+
+      // --- Fonctions Principales du Sketch ---
+      function calculateFusionPotential(atoms) { if (atoms.length === 0) return 0; const { f_phi_mol, f_2_mol } = audio.getMoleculeFrequencies(atoms); if (f_phi_mol <= 0 || f_2_mol <= 0) return 0; const ratio = Math.max(f_phi_mol, f_2_mol) / Math.min(f_phi_mol, f_2_mol); const coherence = Math.exp(-0.5 * Math.abs(Math.log(ratio))); if (atoms.length < 2) return coherence; const essences = atoms.map(a => audio.getAtomFrequencies(a.data).f_phi); const minEssence = Math.min(...essences); const maxEssence = Math.max(...essences); const compatibility = Math.pow(minEssence / maxEssence, 0.5); return coherence * compatibility; }
+      function findBestNextAtom(currentAtoms) { if(currentAtoms.length === 0) return null; let bestPotential = -1; let bestAtomEl = null; for (const el in ATOM_DATA) { const testAtom = new Atom(el, 0, 0); const potential = calculateFusionPotential([...currentAtoms, testAtom]); if (potential > bestPotential) { bestPotential = potential; bestAtomEl = el; } } return bestPotential > FUSION_THRESHOLD ? bestAtomEl : null; }
+      function getChemicalFormula(atoms) { const counts = {}; atoms.forEach(atom => { counts[atom.el] = (counts[atom.el] || 0) + 1; }); return Object.entries(counts).sort((a,b) => a[0].localeCompare(b[0])).map(([el, count]) => el + (count > 1 ? count : '')).join(''); }
+      function createCompound(atoms, centerX, centerY) { const formula = getChemicalFormula(atoms); const totalZ = atoms.reduce((sum, a) => sum + a.data.totalZ, 0); const totalA = atoms.reduce((sum, a) => sum + a.data.totalA, 0); let newData = { color: [p.random(360), 50, 80], radius: 20 + atoms.length * 2, totalZ, totalA }; return new Atom(formula, centerX, centerY, newData); }
+      function reset() { atomsOnCanvas = []; animatingAtoms = []; if (ui) { ui.resultDisplay.html(''); ui.updatePaletteOrder(null); } if (currentMode === 'recipe' && ui) { ui.recipeSelect.selected(''); } }
+      function createAtom(el, x, y) { let newAtom = new Atom(el, x, y); atomsOnCanvas.push(newAtom); audio.userStartAudioOnce(); audio.playPickupSound(newAtom.data); return newAtom; }
+      function populateWorkbenchForRecipe(recipeKey) { reset(); const recipe = MOLECULE_RECIPES[recipeKey]; if (!recipe) return; const atomsToCreate = [...recipe.atoms]; atomsToCreate.forEach((el, index) => { setTimeout(() => { const startX = -50, startY = p.height / 2; const endX = workbench.x + p.random(50, workbench.w - 50); const endY = workbench.y + p.random(50, workbench.h - 50); let newAtom = createAtom(el, startX, startY); gsap.to(newAtom.pos, { x: endX, y: endY, duration: 0.8, ease: "back.out(1.7)" }); }, index * 300); }); }
+      function fuseAtoms() {
+          let atomsInWorkbench = atomsOnCanvas.filter(a => workbench.contains(a.pos) && !a.isStatic);
+          if (atomsInWorkbench.length === 1 && atomsInWorkbench[0].el.length > 1 && ATOM_DATA[atomsInWorkbench[0].el] === undefined) { audio.playMoleculeChord(atomsInWorkbench); return; }
+          if (atomsInWorkbench.length < 2) return;
+          const potential = calculateFusionPotential(atomsInWorkbench);
+          if (potential < FUSION_THRESHOLD) { audio.playDiscordantSequence(atomsInWorkbench); atomsInWorkbench.forEach(atom => { gsap.to(atom.pos, { x: `+=${p.random(-10, 10)}`, y: `+=${p.random(-10, 10)}`, duration: 0.1, yoyo: true, repeat: 5 }); }); return; }
+          audio.playFusionSequence(atomsInWorkbench);
+          animatingAtoms.push(...atomsInWorkbench);
+          atomsOnCanvas = atomsOnCanvas.filter(a => !atomsInWorkbench.includes(a));
+          const centerX = workbench.x + workbench.w / 2; const centerY = workbench.y + workbench.h / 2;
+          gsap.to(animatingAtoms.map(a => a.pos), { x: centerX, y: centerY, duration: 0.7, ease: "power2.in", stagger: 0.05,
+              onComplete: () => {
+                  let foundRecipeKey = Object.keys(MOLECULE_RECIPES).find(key => JSON.stringify([...MOLECULE_RECIPES[key].atoms].sort()) === JSON.stringify(atomsInWorkbench.map(a => a.el).sort()));
+                  if (foundRecipeKey) {
+                      let targets = MOLECULE_RECIPES[foundRecipeKey].structure;
+                      let finalAtoms = [];
+                      targets.forEach((targetPart) => { let newAtom = new Atom(targetPart.el, centerX, centerY); newAtom.isStatic = true; gsap.to(newAtom.pos, { x: centerX + targetPart.pos.x, y: centerY + targetPart.pos.y, duration: 1.5, ease: "elastic.out(1, 0.5)" }); finalAtoms.push(newAtom); });
+                      setTimeout(() => { atomsOnCanvas.push(...finalAtoms); drawBonds(MOLECULE_RECIPES[foundRecipeKey], centerX, centerY); ui.resultDisplay.html(`${MOLECULE_RECIPES[foundRecipeKey].name}`); }, 1600);
+                  } else {
+                      const compound = createCompound(animatingAtoms, centerX, centerY);
+                      atomsOnCanvas.push(compound);
+                      ui.resultDisplay.html(`Composé (${compound.el})`);
+                  }
+                  animatingAtoms = [];
+              }
+          });
+      }
+      function drawBonds(molecule, cx, cy) { let bondAtom = new Atom('BOND', cx, cy); bondAtom.draw = () => { p.stroke(100, 0, 50, 0.7); p.strokeWeight(3); if (!molecule.bonds) return; molecule.bonds.forEach(bond => { let struct1 = molecule.structure[bond[0]]; let struct2 = molecule.structure[bond[1]]; p.line(cx + struct1.pos.x, cy + struct1.pos.y, cx + struct2.pos.x, cy + struct2.pos.y); }); }; bondAtom.isStatic = true; atomsOnCanvas.unshift(bondAtom); }
+      function drawOscilloscope() { let oscilloDiv = document.getElementById('oscilloscope-container'); if (!oscilloDiv) return; const { x, y, width, height } = oscilloDiv.getBoundingClientRect(); p.push(); p.translate(x, y); p.fill(1, 4, 9); p.noStroke(); p.rect(0, 0, width, height, 4); let waveform = fft.waveform(); p.noFill(); p.beginShape(); p.stroke(46, 164, 79); p.strokeWeight(1.5); for (let i = 0; i < waveform.length; i++) { let wx = p.map(i, 0, waveform.length, 0, width); let wy = p.map(waveform[i], -1, 1, 0, height); p.vertex(wx, wy); } p.endShape(); p.pop(); }
+
+      // --- p5.js Fonctions de Cycle de Vie ---
+      p.setup = () => {
+        let container = p.select('#canvas-container');
+        let canvas = p.createCanvas(p.windowWidth, container.elt.clientHeight);
+        canvas.parent(container); p.colorMode(p.HSB, 360, 100, 100);
+        canvas.elt.oncontextmenu = () => false;
+        MOLECULE_RECIPES = { 'H₂': { name: "Dihydrogène", atoms: ['H', 'H'], structure: [{ el: 'H', pos: p.createVector(-20, 0) }, { el: 'H', pos: p.createVector(20, 0) }], bonds: [[0, 1]] }, 'O₂': { name: "Dioxygène", atoms: ['O', 'O'], structure: [{ el: 'O', pos: p.createVector(-30, 0) }, { el: 'O', pos: p.createVector(30, 0) }], bonds: [[0, 1]] }, 'H₂O': { name: "Eau", atoms: ['H', 'H', 'O'], structure: [{ el: 'O', pos: p.createVector(0, -15) }, { el: 'H', pos: p.createVector(-25*p.cos(p.radians(104.5/2)), 25*p.sin(p.radians(104.5/2))) }, { el: 'H', pos: p.createVector(25*p.cos(p.radians(104.5/2)), 25*p.sin(p.radians(104.5/2))) }], bonds: [[0, 1], [0, 2]] }, 'C₆H₆': { name: "Benzène", atoms: ['C','C','C','C','C','C','H','H','H','H','H','H'], structure: Array.from({length: 6}, (_, i) => ({el: 'C', pos: p.createVector(50*p.cos(i*p.PI/3), 50*p.sin(i*p.PI/3))})).concat(Array.from({length: 6}, (_, i) => ({el: 'H', pos: p.createVector(80*p.cos(i*p.PI/3), 80*p.sin(i*p.PI/3))}))), bonds: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[0,6],[1,7],[2,8],[3,9],[4,10],[5,11]]} };
+        audio = new AudioHandler(); fft = new p5.FFT(0.8, 256); workbench = new Workbench(); ui = new UIElements();
+        ui.populateUI();
+      };
+      p.draw = () => {
+        p.background(13, 17, 23); workbench.draw(); atomsOnCanvas.forEach(atom => atom.draw()); animatingAtoms.forEach(atom => atom.draw());
+        if (currentMode === 'sandbox' && p.frameCount % 30 === 0) {
+            let atomsForPotential = atomsOnCanvas.filter(a => workbench.contains(a.pos) && !a.isStatic);
+            let potential = calculateFusionPotential(atomsForPotential);
+            p.select('#potentialValue').html(`${(potential * 100).toFixed(1)}%`);
+            const suggestion = findBestNextAtom(atomsForPotential);
+            if(suggestion !== lastSuggestedAtom) { ui.updatePaletteOrder(suggestion); lastSuggestedAtom = suggestion; }
+        }
+        drawOscilloscope();
+      };
+      p.mousePressed = (event) => {
+          if (event.button === 2 && currentMode === 'sandbox') { for (let i = atomsOnCanvas.length - 1; i >= 0; i--) { if (atomsOnCanvas[i].isMouseOver()) { atomsOnCanvas.splice(i, 1); break; } } return; }
+          if (event.button === 0) { if (currentMode === 'sandbox' && !draggingAtom) { for (let i = atomsOnCanvas.length - 1; i >= 0; i--) { let atom = atomsOnCanvas[i]; if (!atom.isStatic && atom.isMouseOver()) { draggingAtom = atom; break; } } } }
+      };
+      p.mouseDragged = () => { if (draggingAtom) { draggingAtom.pos.x = p.mouseX; draggingAtom.pos.y = p.mouseY; } };
+      p.mouseReleased = () => { draggingAtom = null; };
+      p.windowResized = () => { let c = p.select('#canvas-container'); p.resizeCanvas(p.windowWidth, c.elt.clientHeight); if(workbench) workbench.updateDimensions(); };
+    };
+
+    new p5(sketch);
+  </script>
+</body>
+</html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miroir de Bio-résonance v3.0 (Évolutif)</title>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        :root {
+            --background-color: #00000a;
+            --text-color: #e0e0e0;
+            --accent-color: #ffc400;
+            --glow-color: rgba(255, 196, 0, 0.7);
+            --slider-track: #2a2a3a;
+            --slider-thumb: #ffc400;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        #app-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #controls {
+            position: absolute;
+            top: 3%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 25px 35px;
+            border-radius: 15px;
+            border: 1px solid var(--accent-color);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px var(--glow-color);
+            width: 90%;
+            max-width: 500px;
+            animation: fadeIn 1s ease-out;
+            transition: transform 0.5s ease-in-out, height 0.5s ease-in-out;
+        }
+        
+        /* Style pour le menu replié */
+        #controls:not(.expanded) {
+            transform: translate(-50%, -80%);
+        }
+        #controls:not(.expanded) > *:not(.toggle-btn) {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease-in-out;
+        }
+        
+        .toggle-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.1);
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 1.2em;
+            line-height: 28px;
+            padding: 0;
+            text-align: center;
+        }
+        
+        .control-content {
+             transition: opacity 0.5s ease-in-out 0.2s;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-weight: 400;
+            color: var(--accent-color);
+            text-shadow: 0 0 10px var(--glow-color);
+        }
+
+        p { margin-bottom: 20px; font-size: 0.9em; line-height: 1.5; }
+        .slider-container { display: flex; align-items: center; justify-content: center; gap: 15px; }
+
+        input[type="range"] { -webkit-appearance: none; flex-grow: 1; height: 4px; background: var(--slider-track); border-radius: 5px; outline: none; transition: background 0.3s; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; background: var(--slider-thumb); cursor: pointer; border-radius: 50%; border: 3px solid var(--background-color); box-shadow: 0 0 10px var(--glow-color); }
+
+        #bpm-display { font-size: 1.2em; font-weight: bold; color: var(--accent-color); min-width: 120px; }
+        #start-stop-btn { margin-top: 20px; padding: 12px 30px; font-size: 1.1em; color: var(--background-color); background-color: var(--accent-color); border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s; font-weight: bold; box-shadow: 0 0 15px var(--glow-color); }
+        #start-stop-btn:hover { background-color: #fff; box-shadow: 0 0 25px #fff; }
+        #start-stop-btn:active { transform: scale(0.97); }
+
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <canvas id="canvas"></canvas>
+        <div id="controls" class="expanded">
+             <button id="toggle-controls-btn" class="toggle-btn">[ - ]</button>
+             <div class="control-content">
+                <h1>Miroir de Bio-résonance</h1>
+                <p>Ajustez le curseur pour définir votre rythme vital. Observez l'univers visuel et sonore se synchroniser avec vous.</p>
+                <div class="slider-container">
+                    <input type="range" id="bpm-slider" min="4" max="180" value="60" step="1">
+                    <span id="bpm-display">Rythme: 60</span>
+                </div>
+                <button id="start-stop-btn">Démarrer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- ÉLÉMENTS DU DOM ---
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const slider = document.getElementById('bpm-slider');
+        const bpmDisplay = document.getElementById('bpm-display');
+        const startStopBtn = document.getElementById('start-stop-btn');
+        const toggleBtn = document.getElementById('toggle-controls-btn');
+        const controlsDiv = document.getElementById('controls');
+        
+        const PHI = 1.61803398875;
+        
+        // --- ÉTAT DE L'APPLICATION ---
+        let isPlaying = false;
+        let baseBPM = 60;
+        let animationFrameId;
+        
+        // --- AUDIO ---
+        let audioContext; let oscillators = []; let mainGain;
+
+        // --- VISUELS ---
+        let particles = []; let spirals = []; let lastParticleTime = 0;
+
+        // --- FONCTIONS UTILITAIRES ---
+        function mapRange(value, inMin, inMax, outMin, outMax) { return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin; }
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // --- MOTEUR AUDIO (inchangé) ---
+        function getAudibleFrequency(bpm) { return mapRange(bpm, 4, 180, 98.00, 277.18); }
+        function setupAudio() { audioContext = new (window.AudioContext || window.webkitAudioContext)(); mainGain = audioContext.createGain(); mainGain.gain.setValueAtTime(0, audioContext.currentTime); mainGain.connect(audioContext.destination); const baseFreq = getAudibleFrequency(baseBPM); const frequencies = [baseFreq / 2, baseFreq, baseFreq * 2]; const gains = [0.3, 0.5, 0.2]; oscillators = frequencies.map((freq, index) => { const osc = audioContext.createOscillator(); const g = audioContext.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(freq, audioContext.currentTime); g.gain.setValueAtTime(gains[index], audioContext.currentTime); osc.connect(g).connect(mainGain); return osc; }); }
+        function startAudio() { if (!audioContext) setupAudio(); if (audioContext.state === 'suspended') audioContext.resume(); oscillators.forEach(osc => osc.start()); mainGain.gain.setTargetAtTime(0.4, audioContext.currentTime, 0.5); }
+        function stopAudio() { if (audioContext) { mainGain.gain.setTargetAtTime(0, audioContext.currentTime, 0.5); setTimeout(() => { oscillators.forEach(osc => osc.stop()); audioContext.close().then(() => { audioContext = null; oscillators = []; }); }, 500); } }
+        function updateAudioFrequency() { if (!isPlaying || !audioContext) return; const baseFreq = getAudibleFrequency(baseBPM); const newFrequencies = [baseFreq / 2, baseFreq, baseFreq * 2]; oscillators.forEach((osc, index) => { osc.frequency.setTargetAtTime(newFrequencies[index], audioContext.currentTime, 0.1); }); }
+
+        // --- MOTEUR VISUEL ---
+        
+        // Classe pour les particules (inchangée)
+        class Particle {
+            constructor(x, y) { this.x = x; this.y = y; const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 2 + 1; this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed; this.lifespan = 100 + Math.random() * 50; this.initialLife = this.lifespan; this.size = 1 + Math.random() * 2; }
+            update() { this.x += this.vx; this.y += this.vy; this.lifespan--; }
+            draw() { const lifeRatio = this.lifespan / this.initialLife; const radius = Math.max(0, this.size * lifeRatio); ctx.beginPath(); ctx.arc(this.x, this.y, radius, 0, Math.PI * 2); ctx.fillStyle = `hsla(45, 100%, 70%, ${lifeRatio * 0.8})`; ctx.fill(); }
+        }
+
+        // NOUVEAU : Classe pour les spirales
+        class Spiral {
+            constructor() {
+                this.angleOffset = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.002;
+                this.colorOffset = Math.random() * 360;
+                this.lineWidth = 1 + Math.random() * 1.5;
+            }
+
+            update() {
+                this.angleOffset += this.rotationSpeed;
+            }
+
+            draw() {
+                ctx.beginPath();
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                
+                for (let i = 0; i < 200; i++) { // Dessine 200 segments
+                    const angle = (i / 50) * Math.PI; // angle pour la forme
+                    const radius = 0.5 * Math.pow(PHI, angle / Math.PI);
+
+                    // angle pour la rotation
+                    const rotationAngle = angle + this.angleOffset;
+
+                    const x = centerX + radius * Math.cos(rotationAngle);
+                    const y = centerY + radius * Math.sin(rotationAngle);
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                const hue = (performance.now() / 20 + this.colorOffset) % 360;
+                ctx.strokeStyle = `hsla(${hue}, 100%, 70%, 0.4)`;
+                ctx.lineWidth = this.lineWidth;
+                ctx.stroke();
+            }
+        }
+
+        function setupSpirals() {
+            for (let i = 0; i < 3; i++) {
+                spirals.push(new Spiral());
+            }
+        }
+        
+        function animationLoop(currentTime) {
+            ctx.fillStyle = 'rgba(0, 0, 10, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Gérer les spirales
+            spirals.forEach(s => { s.update(); s.draw(); });
+
+            // Gérer les particules
+            const beatInterval = 60000 / baseBPM;
+            if (currentTime - lastParticleTime > beatInterval) {
+                 const particleCount = Math.ceil(baseBPM / 40);
+                 for (let i = 0; i < particleCount; i++) { particles.push(new Particle(canvas.width / 2, canvas.height / 2)); }
+                 lastParticleTime = currentTime;
+            }
+            for (let i = particles.length - 1; i >= 0; i--) { const p = particles[i]; p.update(); p.draw(); if (p.lifespan <= 0) { particles.splice(i, 1); } }
+            
+            // Gérer le coeur pulsant
+            const timeInSeconds = currentTime / 1000;
+            const pulse = Math.abs(Math.sin(timeInSeconds * Math.PI * (baseBPM / 60)));
+            const coreSize = 10 + pulse * 10;
+            const glowSize = 20 + pulse * 30;
+            ctx.beginPath(); ctx.arc(canvas.width / 2, canvas.height / 2, coreSize, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255, 255, 255, 1)'; ctx.shadowColor = 'rgba(255, 196, 0, 1)'; ctx.shadowBlur = glowSize; ctx.fill(); ctx.shadowBlur = 0;
+
+            animationFrameId = requestAnimationFrame(animationLoop);
+        }
+
+        // --- CONTRÔLES ---
+        function togglePlayback() {
+            isPlaying = !isPlaying;
+            if (isPlaying) {
+                if(spirals.length === 0) setupSpirals();
+                startAudio();
+                lastParticleTime = performance.now();
+                animationFrameId = requestAnimationFrame(animationLoop);
+                startStopBtn.textContent = 'Arrêter';
+            } else {
+                stopAudio();
+                cancelAnimationFrame(animationFrameId);
+                startStopBtn.textContent = 'Démarrer';
+            }
+        }
+
+        function handleSliderChange() { baseBPM = parseInt(slider.value); bpmDisplay.textContent = `Rythme: ${baseBPM}`; updateAudioFrequency(); }
+
+        function toggleMenu() {
+            controlsDiv.classList.toggle('expanded');
+            toggleBtn.textContent = controlsDiv.classList.contains('expanded') ? '[ - ]' : '[ + ]';
+        }
+
+        startStopBtn.addEventListener('click', togglePlayback);
+        slider.addEventListener('input', handleSliderChange);
+        toggleBtn.addEventListener('click', toggleMenu);
+        
+        handleSliderChange();
+
+    </script>
+</body>
+</html>

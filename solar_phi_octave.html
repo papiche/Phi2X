@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Système Solaire - L'Horloge Harmonique</title>
+  <script src="http://127.0.0.1:8080/ipfs/QmXpfqQNgk6g9BtcQMxHMGeSHqLqc9DJQu3MjMWRREp3Ui/p5.min.js"></script>
+  <script src="http://127.0.0.1:8080/ipfs/QmXpfqQNgk6g9BtcQMxHMGeSHqLqc9DJQu3MjMWRREp3Ui/p5.sound.min.js"></script>
+  <style>
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #000; color: #eee; overflow: hidden; }
+    canvas { display: block; cursor: grab; }
+    canvas:active { cursor: grabbing; }
+    .overlay { position: absolute; z-index: 10; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); border-radius: 8px; }
+    #controls { top: 10px; left: 10px; padding: 0; width: 320px; }
+    #main-summary { font-weight: bold; cursor: pointer; padding: 15px; background-color: rgba(255,193,7,0.1); }
+    .main-content { padding: 15px; }
+    h3 { margin-top: 0; color: #ffc107; }
+    p { font-size: 13px; color: #ccc; line-height: 1.4; }
+    #info-panel { margin-top: 15px; min-height: 120px; }
+    #info-panel div { font-size: 14px; margin-bottom: 8px; }
+    .note { font-family: monospace; padding: 2px 5px; background: #333; border-radius: 3px; }
+    .control-group { margin-top: 20px; border-top: 1px solid #444; padding-top: 15px; }
+    label { font-size: 14px; font-weight: bold; }
+    select, input[type="range"] { width: 100%; margin-top: 5px; background: #333; color: white; border: 1px solid #555; padding: 5px; border-radius: 4px;}
+    .button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px;}
+    #time-controls-upper { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+    #play-pause-btn { padding: 8px 12px; font-size: 14px; background-color: #28a745; border-radius: 4px; border: none; color: white; cursor: pointer; flex-shrink: 0; }
+    #time-scale-label { font-size: 13px; color: #ffc107; text-align: center; margin-top: 5px; }
+    #zoom-controls { bottom: 20px; right: 20px; padding: 8px; display: flex; align-items: center; justify-content: center; }
+    .zoom-btn { width: 36px; height: 36px; font-size: 24px; line-height: 36px; text-align: center; background: #222; color: white; border: 1px solid #555; border-radius: 50%; cursor: pointer; user-select: none; }
+    #scale-container { margin: 0 15px; text-align: center; }
+    #scale-bar { height: 2px; background: white; border-left: 1px solid white; border-right: 1px solid white; margin: 0 auto 4px auto; }
+    #scale-label { font-size: 12px; color: #ccc; }
+  </style>
+</head>
+<body>
+  <details id="controls" class="overlay" open>
+    <summary id="main-summary">L'Horloge Harmonique</summary>
+    <div class="main-content">
+      <p id="explanation">Le système solaire vu comme un arrangement musical fractal. Les planètes sont des harmoniques du Soleil. Les lunes sont des sous-harmoniques de leur planète.</p>
+      <div class="control-group">
+        <label for="reference-selector">Référence Harmonique (f₀)</label>
+        <select id="reference-selector"></select>
+        <button id="reset-ref-btn" class="button" style="background-color: #6c757d; font-size: 14px;">Reset (Terre)</button>
+      </div>
+      <div id="info-panel"><p>Survolez un astre pour voir ses données. Cliquez pour jouer/arrêter sa note.</p></div>
+      <button id="view-toggle" class="button">Basculer vers la Vue Classique</button>
+      <div class="control-group" id="time-controls">
+          <div id="time-controls-upper">
+              <button id="play-pause-btn">Pause ⏸</button>
+              <input type="range" id="time-speed-slider" min="0" max="0.05" step="0.001" value="0.01">
+          </div>
+          <div id="time-scale-label"></div>
+      </div>
+    </div>
+  </details>
+  <div id="zoom-controls" class="overlay">
+    <button id="zoom-out-btn" class="zoom-btn">-</button>
+    <div id="scale-container"><div id="scale-bar"></div><span id="scale-label">1 AU</span></div>
+    <button id="zoom-in-btn" class="zoom-btn">+</button>
+  </div>
+
+  <script>
+    const phi = (1 + Math.sqrt(5)) / 2;
+    // Utiliser une copie profonde pour éviter de modifier les données originales
+    const originalPlanets = [
+      { name: "Mercure", color: [150, 150, 150], radius: 0.387, period: 0.241 },
+      { name: "Vénus", color: [211, 192, 133], radius: 0.723, period: 0.615 },
+      { name: "Terre", color: [100, 150, 255], radius: 1.000, period: 1.000, moons: [
+        { name: "Lune", color: [200, 200, 200], radius: 0.00257, period: 0.0748 }
+      ]},
+      { name: "Mars", color: [220, 100, 80], radius: 1.524, period: 1.881 },
+      { name: "Jupiter", color: [200, 180, 140], radius: 5.203, period: 11.86, moons: [
+        { name: "Io", color: [255, 255, 150], radius: 0.00282, period: 0.0048 },
+        { name: "Europe", color: [210, 200, 180], radius: 0.00448, period: 0.0097 },
+        { name: "Ganymède", color: [180, 170, 160], radius: 0.00715, period: 0.0196 },
+        { name: "Callisto", color: [150, 140, 130], radius: 0.0126, period: 0.0457 }
+      ]},
+      { name: "Saturne", color: [210, 190, 160], radius: 9.537, period: 29.45 },
+      { name: "Uranus", color: [180, 220, 220], radius: 19.19, period: 84.02 },
+      { name: "Neptune", color: [60, 80, 180], radius: 30.07, period: 164.8 },
+    ];
+    let planets = JSON.parse(JSON.stringify(originalPlanets)); // Créer une copie de travail
+    let time = 0, audioInitialized = false, isHarmonicView = true, isPlaying = true;
+    let oscN, oscM, env, zoomLevel = 1;
+    let hoveredBody = null, playingBody = null;
+
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      frameRate(30);
+      setupDOM();
+      setupAudio();
+      changeReference();
+    }
+
+    function setupDOM() {
+        let refSelector = select('#reference-selector');
+        refSelector.option('Soleil', -1);
+        planets.forEach((p, i) => refSelector.option(p.name, i));
+        refSelector.selected('2');
+
+        refSelector.changed(changeReference);
+        select('#reset-ref-btn').mousePressed(() => {
+            refSelector.selected('2');
+            changeReference();
+        });
+        select('#view-toggle').mousePressed(toggleView);
+        select('#zoom-in-btn').mousePressed(() => applyZoom(1.25));
+        select('#zoom-out-btn').mousePressed(() => applyZoom(0.8));
+        select('#play-pause-btn').mousePressed(togglePlayPause);
+        select('#time-speed-slider').input(updateTimeScaleLabel);
+        updateTimeScaleLabel();
+    }
+
+    function changeReference() {
+        let refIndex = parseInt(select('#reference-selector').value());
+        calculateHarmonics(refIndex);
+    }
+
+    function calculateHarmonics(referenceIndex) {
+        planets = JSON.parse(JSON.stringify(originalPlanets)); // Reset
+        let baseBody;
+        if (referenceIndex === -1) {
+            baseBody = { radius: 1, period: 1 }; // Le Soleil utilise la Terre comme base de calcul "absolu"
+        } else {
+            baseBody = planets[referenceIndex];
+        }
+
+        for (let p of planets) {
+            if (planets.indexOf(p) === referenceIndex) {
+                p.n = 1; p.m = 1; p.coherence = 1;
+            } else {
+                p.n = 1 + Math.log(p.radius / baseBody.radius) / Math.log(phi);
+                p.m = 1 + Math.log(p.period / baseBody.period) / Math.log(2);
+                p.coherence = Math.exp(-2 * Math.abs(Math.log(p.n / p.m)));
+            }
+            if (p.moons) {
+                const baseMoon = p.moons[0];
+                baseMoon.n_sub = 1; baseMoon.m_sub = 1; baseMoon.coherence = 1;
+                for (let m of p.moons) {
+                    if (m === baseMoon) continue;
+                    m.n_sub = 1 + Math.log(m.radius / baseMoon.radius) / Math.log(phi);
+                    m.m_sub = 1 + Math.log(m.period / baseMoon.period) / Math.log(2);
+                    m.coherence = Math.exp(-2 * Math.abs(Math.log(m.n_sub / m.m_sub)));
+                }
+            }
+        }
+    }
+
+    // --- FONCTION DE SON CORRIGÉE ---
+    function playSound(body) {
+        stopSound();
+        const ROOT_AUDIBLE_FREQ = 130.81; // C3
+
+        let n_val, m_val, baseFreq;
+
+        if (body.name === "Soleil") {
+            oscN.freq(55); oscM.freq(55);
+        } else if (body.hasOwnProperty('n_sub')) { // C'est une lune
+            n_val = body.n_sub;
+            m_val = body.m_sub;
+            // La note de la lune est relative à celle de sa planète.
+            // Pour le son, on va la jouer une octave plus haut que la fondamentale.
+            baseFreq = ROOT_AUDIBLE_FREQ * 2;
+            let freqN = baseFreq * Math.pow(phi, n_val - 1);
+            let freqM = baseFreq * Math.pow(2, m_val - 1);
+            oscN.freq(freqN); oscM.freq(freqM);
+        } else { // C'est une planète
+            n_val = body.n;
+            m_val = body.m;
+            // La note de la planète est relative à la référence choisie.
+            baseFreq = ROOT_AUDIBLE_FREQ;
+            let freqN = baseFreq * Math.pow(phi, n_val - 1);
+            let freqM = baseFreq * Math.pow(2, m_val - 1);
+            oscN.freq(freqN); oscM.freq(freqM);
+        }
+
+        env.triggerAttack(oscN);
+        env.triggerAttack(oscM);
+        playingBody = body;
+    }
+
+    // --- INCLURE TOUTES LES AUTRES FONCTIONS D'ASSISTANCE ICI ---
+    function setupAudio() { env = new p5.Envelope(); env.setADSR(0.1, 0.2, 0.5, 0.8); env.setRange(0.2, 0); oscN = new p5.Oscillator('triangle'); oscN.amp(env); oscM = new p5.Oscillator('sine'); oscM.amp(env); }
+    function mousePressed() { let clickedBody = hoveredBody; if (!clickedBody) return; if (!audioInitialized) { userStartAudio(); oscN.start(); oscM.start(); audioInitialized = true; } if (playingBody === clickedBody) { stopSound(); } else { playSound(clickedBody); } }
+    function draw() { background(5, 5, 10); translate(width / 2, height / 2); scale(zoomLevel); let worldMouseX = (mouseX - width / 2) / zoomLevel; let worldMouseY = (mouseY - height / 2) / zoomLevel; hoveredBody = null; let orbitScale = (min(width, height) / 2) / (planets[planets.length - 1].radius * 1.1); let sunRadius = 20 / zoomLevel; if (dist(worldMouseX, worldMouseY, 0, 0) < sunRadius) hoveredBody = {name: "Soleil"}; for (let p of planets) { let r = p.radius * orbitScale; drawOrbit(r); let planetAngle = time / p.period; let px = r * cos(planetAngle); let py = r * sin(planetAngle); let planetSize = (5 + Math.log(p.radius + 1) * 2) / zoomLevel; if (p.moons) { push(); translate(px, py); let moonOrbitScale = (planetSize * 5) / p.moons[p.moons.length-1].radius; for (let m of p.moons) { let mr = m.radius * moonOrbitScale; drawOrbit(mr, 20); let moonAngle = time * 5 / m.period; let mx = mr * cos(moonAngle); let my = mr * sin(moonAngle); let moonSize = max(1.5 / zoomLevel, 0.5); if (dist(worldMouseX, worldMouseY, px + mx, py + my) < moonSize * 2) hoveredBody = m; drawBody(mx, my, moonSize, m.color, m); } pop(); } if (dist(worldMouseX, worldMouseY, px, py) < planetSize * 1.5 && (!hoveredBody || !hoveredBody.hasOwnProperty('n_sub'))) hoveredBody = p; drawBody(px, py, planetSize, p.color, p); } drawBody(0, 0, sunRadius, [255, 204, 0], {name: "Soleil"}); updateUI(orbitScale); if (isPlaying) time += parseFloat(select('#time-speed-slider').value()); }
+    function drawBody(x, y, size, col, body) { if (playingBody === body) { let pulse = sin(frameCount * 0.1) * 0.2 + 0.8; fill(255, 220, 0, 100 * pulse); noStroke(); ellipse(x, y, size * 4, size * 4); } if (isHarmonicView && body.coherence) { fill(255, 255, 0, body.coherence * 150); noStroke(); ellipse(x, y, size * 2.5, size * 2.5); } fill(col); noStroke(); ellipse(x, y, size, size); }
+    function drawOrbit(radius, opacity = 50) { noFill(); strokeWeight(1 / zoomLevel); if (isHarmonicView) { stroke(255, 255, 255, opacity); drawingContext.setLineDash([]); } else { stroke(255, 255, 255, opacity + 30); drawingContext.setLineDash([5 / zoomLevel, 5 / zoomLevel]); } ellipse(0, 0, radius * 2, radius * 2); }
+    function stopSound() { if (playingBody) { env.triggerRelease(oscN); env.triggerRelease(oscM); playingBody = null; } }
+    function updateUI(orbitScale) { if (hoveredBody) updateInfoPanel(hoveredBody); else select('#info-panel').html("<p>Survolez un astre pour voir ses données. Cliquez pour jouer/arrêter sa note.</p>"); updateScaleBar(orbitScale); }
+    function updateScaleBar(orbitScale) { const targetPixelWidth = 100; const auPerPixel = 1 / (orbitScale * zoomLevel); let distInAU = targetPixelWidth * auPerPixel; const power = pow(10, floor(log(distInAU) / log(10))); let val = distInAU / power; if (val < 1.5) val = 1; else if (val < 3.5) val = 2; else if (val < 7.5) val = 5; else val = 10; let niceDistAU = val * power; let barWidth = niceDistAU / auPerPixel; select('#scale-bar').style('width', `${barWidth}px`); select('#scale-label').html(`${niceDistAU.toPrecision(2)} AU`); }
+    function updateInfoPanel(body) { let panel = select('#info-panel'); if (body.name === "Soleil") { panel.html(`<h3>Soleil</h3><div>Note Fondamentale du système.</div>`); return; } let html = `<h3>${body.name}</h3>`; if (body.hasOwnProperty('n_sub')) { if (isHarmonicView) { html += `<div>Sous-Note Spatiale (n'): <span class="note">${body.n_sub.toFixed(3)}</span></div><div>Sous-Note Temporelle (m'): <span class="note">${body.m_sub.toFixed(3)}</span></div><div>Cohérence Locale: <span class="note">${(body.coherence*100).toFixed(1)}%</span></div>`; } else { html += `<div>Distance (Planète): <span class="note">${(body.radius*149.6).toFixed(2)}M km</span></div><div>Période (Planète): <span class="note">${(body.period*365.25).toFixed(2)} jours</span></div>`; } } else if (body.hasOwnProperty('n')) { if (isHarmonicView) { html += `<div>Note Spatiale (n): <span class="note">${body.n.toFixed(3)}</span></div><div>Note Temporelle (m): <span class="note">${body.m.toFixed(3)}</span></div><div>Cohérence: <span class="note">${(body.coherence*100).toFixed(1)}%</span></div>`; } else { html += `<div>Distance: <span class="note">${body.radius.toFixed(3)} AU</span></div><div>Période: <span class="note">${body.period.toFixed(3)} ans</span></div>`; } } panel.html(html); }
+    function toggleView() { isHarmonicView = !isHarmonicView; select('#view-toggle').html(isHarmonicView ? "Basculer vers la Vue Classique" : "Basculer vers la Vue Harmonique"); select('#title').html(isHarmonicView ? "L'Horloge Harmonique" : "Vue Classique"); select('#explanation').html(isHarmonicView ? "Le système solaire vu comme un arrangement musical fractal. Les planètes sont des harmoniques du Soleil. Les lunes sont des sous-harmoniques de leur planète." : "Le système solaire selon les données orbitales mesurées. Les distances sont en Unités Astronomiques (AU) et les périodes en années terrestres."); }
+    function togglePlayPause() { isPlaying = !isPlaying; select('#play-pause-btn').html(isPlaying ? "Pause ⏸" : "Play ▶"); }
+    function updateTimeScaleLabel() { let speed = parseFloat(select('#time-speed-slider').value()); let yearsPerSecond = speed * 30; select('#time-scale-label').html(`1 seconde ≈ ${yearsPerSecond.toFixed(2)} ans`); }
+    function applyZoom(factor) { zoomLevel *= factor; zoomLevel = constrain(zoomLevel, 0.05, 15); }
+    function mouseWheel(event) { if (event.target.tagName !== 'CANVAS') return; let factor = pow(0.99, event.delta); applyZoom(factor); return false; }
+    function windowResized() { resizeCanvas(windowWidth, windowHeight); }
+  </script>
+</body>
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Φ-Muse - Compositeur Algorithmique</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #121212;
+            color: #E0E0E0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        #muse-container {
+            background-color: #1E1E1E;
+            padding: 30px 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            max-width: 500px;
+        }
+        h1 {
+            color: #BB86FC;
+            margin-top: 0;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        p {
+            font-size: 0.9em;
+            color: #B0B0B0;
+            line-height: 1.6;
+        }
+        .controls {
+            margin: 30px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .control-group {
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.8em;
+            color: #BB86FC;
+        }
+        input[type="range"], select {
+            width: 100%;
+            background: #333;
+            border: 1px solid #555;
+            color: #E0E0E0;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        button {
+            background-color: #6200EE;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        button:hover {
+            background-color: #3700B3;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        button#stopBtn {
+            background-color: #CF6679;
+        }
+        button#stopBtn:hover {
+            background-color: #B00020;
+        }
+        button:disabled {
+            background-color: #444;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 20px;
+            font-style: italic;
+            color: #03DAC6;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="muse-container">
+    <h1>Φ-Muse</h1>
+    <p>
+        Un compositeur basé sur la résonance entre la <strong>structure (rythme binaire)</strong>
+        et la <strong>croissance (mélodie basée sur le nombre d'or Φ)</strong>.
+    </p>
+
+    <div class="controls">
+        <div class="control-group">
+            <label for="tempo">Tempo (BPM)</label>
+            <input type="range" id="tempo" min="60" max="180" value="120">
+        </div>
+        <div class="control-group">
+            <label for="measures">Nombre de Mesures</label>
+            <input type="range" id="measures" min="4" max="32" value="16">
+        </div>
+        <div class="control-group">
+            <label for="rootNote">Note de Base</label>
+            <select id="rootNote">
+                <option value="440">A4</option>
+                <option value="261.63">C4</option>
+                <option value="329.63">E4</option>
+                <option value="392.00">G4</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label for="scale">Gamme</label>
+            <select id="scale">
+                <option value="pentatonic">Pentatonique (Sûr)</option>
+                <option value="minor">Mineure (Mélancolique)</option>
+                <option value="major">Majeure (Joyeux)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button id="playBtn">Générer & Jouer</button>
+        <button id="stopBtn">Stop</button>
+    </div>
+
+    <div id="status"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM Elements ---
+    const playBtn = document.getElementById('playBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const tempoSlider = document.getElementById('tempo');
+    const measuresSlider = document.getElementById('measures');
+    const rootNoteSelect = document.getElementById('rootNote');
+    const scaleSelect = document.getElementById('scale');
+    const statusDiv = document.getElementById('status');
+
+    // --- Web Audio API Setup ---
+    let audioContext;
+    let mainGainNode;
+    let isPlaying = false;
+
+    function initAudio() {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            mainGainNode = audioContext.createGain();
+            mainGainNode.connect(audioContext.destination);
+        }
+    }
+
+    // --- Music & Algorithmic Constants ---
+    const SCALES = {
+        pentatonic: [0, 3, 5, 7, 10], // Pentatonique mineure
+        minor: [0, 2, 3, 5, 7, 8, 10],
+        major: [0, 2, 4, 5, 7, 9, 11]
+    };
+    const FIBONACCI_JUMPS = [1, 2, 3, 5]; // Sauts mélodiques (en degrés de la gamme)
+    const JUMP_PROBABILITY = [0.4, 0.3, 0.2, 0.1]; // Probabilité de chaque saut
+
+    // --- Helper Functions ---
+    function noteToFreq(note) {
+        return 440 * Math.pow(2, (note - 69) / 12);
+    }
+    
+    function freqToMidi(freq) {
+        return 69 + 12 * Math.log2(freq / 440);
+    }
+
+    function getWeightedRandom(items, weights) {
+        let i;
+        let sum = 0;
+        let r = Math.random();
+        for (i in weights) {
+            sum += weights[i];
+            if (r <= sum) return items[i];
+        }
+    }
+
+    // --- Core Logic ---
+    function generateMusicSequence() {
+        const tempo = parseInt(tempoSlider.value);
+        const numMeasures = parseInt(measuresSlider.value);
+        const rootFreq = parseFloat(rootNoteSelect.value);
+        const scaleName = scaleSelect.value;
+        const scale = SCALES[scaleName];
+
+        const beatDuration = 60.0 / tempo; // Durée d'une noire
+        const sequence = [];
+        let currentTime = 0;
+
+        // 1. ONDE SONORE (Structure 2) -> Le Rythme
+        // Rythme simple avec des noires (1) et des croches (0.5)
+        const rhythmicPattern = [1, 0.5, 0.5, 1, 0.5, 0.5]; // 4 temps
+        for (let i = 0; i < numMeasures; i++) {
+            for (const durationFactor of rhythmicPattern) {
+                sequence.push({ duration: durationFactor * beatDuration });
+            }
+        }
+
+        // 2. ONDE LUMINEUSE (Croissance Φ) -> La Mélodie
+        let currentMidi = freqToMidi(rootFreq);
+        let currentScaleIndex = 0;
+
+        for (const note of sequence) {
+            // Déterminer la prochaine note
+            const jump = getWeightedRandom(FIBONACCI_JUMPS, JUMP_PROBABILITY);
+            const direction = Math.random() < 0.5 ? 1 : -1;
+            
+            // On reste dans les limites de la gamme
+            currentScaleIndex = (currentScaleIndex + (jump * direction) + scale.length * 5) % scale.length;
+            
+            // Calculer la note MIDI exacte
+            const rootMidi = Math.round(freqToMidi(rootFreq));
+            const midiNote = rootMidi + scale[currentScaleIndex];
+            
+            note.freq = noteToFreq(midiNote);
+        }
+        
+        return sequence;
+    }
+
+    function playSequence(sequence) {
+        initAudio();
+        const startTime = audioContext.currentTime + 0.1;
+        let currentTime = 0;
+
+        // Volume Envelope (Φ-like)
+        mainGainNode.gain.setValueAtTime(0.001, startTime);
+        mainGainNode.gain.exponentialRampToValueAtTime(0.5, startTime + sequence.length * 0.1 * sequence[0].duration);
+        mainGainNode.gain.exponentialRampToValueAtTime(0.001, startTime + sequence.length * sequence[0].duration);
+
+        sequence.forEach(note => {
+            const osc = audioContext.createOscillator();
+            const noteGain = audioContext.createGain();
+
+            osc.type = 'sine'; // Son pur et doux
+            osc.frequency.setValueAtTime(note.freq, startTime + currentTime);
+            
+            // Enveloppe ADSR simple pour chaque note
+            noteGain.gain.setValueAtTime(0, startTime + currentTime);
+            noteGain.gain.linearRampToValueAtTime(1, startTime + currentTime + 0.05);
+            noteGain.gain.linearRampToValueAtTime(0, startTime + currentTime + note.duration - 0.01);
+
+            osc.connect(noteGain);
+            noteGain.connect(mainGainNode);
+            
+            osc.start(startTime + currentTime);
+            osc.stop(startTime + currentTime + note.duration);
+            
+            currentTime += note.duration;
+        });
+
+        // Gérer la fin de la lecture
+        setTimeout(() => {
+            if(isPlaying) {
+                stopMusic();
+            }
+        }, currentTime * 1000 + 200);
+    }
+    
+    function stopMusic() {
+        if (audioContext && mainGainNode) {
+            // On coupe le son brutalement mais proprement
+            mainGainNode.gain.cancelScheduledValues(audioContext.currentTime);
+            mainGainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        }
+        isPlaying = false;
+        statusDiv.textContent = "";
+        playBtn.disabled = false;
+    }
+
+    // --- Event Listeners ---
+    playBtn.addEventListener('click', () => {
+        if (isPlaying) return;
+        
+        isPlaying = true;
+        playBtn.disabled = true;
+        statusDiv.textContent = "Génération de la séquence...";
+
+        setTimeout(() => {
+            const sequence = generateMusicSequence();
+            statusDiv.textContent = "Lecture en cours...";
+            playSequence(sequence);
+        }, 50); // Petit délai pour l'UI
+    });
+    
+    stopBtn.addEventListener('click', stopMusic);
+});
+</script>
+
+</body>
+</html>
