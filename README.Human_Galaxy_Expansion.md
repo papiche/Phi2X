@@ -46,40 +46,40 @@ Le tableau ci-dessous met en parallèle la croissance humaine et le voyage cosmi
 - **Conscience collective** : Fusion des individualités, réseau de consciences interconnectées
 - **Transcendance digitale** : Existence post-biologique, conscience pure
 
-### Système Solaire Étendu : Transition Post-Humaine
+### Échelle Interstellaire : Transition Post-Humaine
 
 | Âge Théorique (Octave) | Concept d'Existence | Distance Cosmique | Région Atteinte |
 | :--- | :--- | :--- | :--- |
-| **64 ans (2⁶)** | Conscience Augmentée | ~29 UA (Φ⁷) | Nuage de **Oort** interne |
-| **128 ans (2⁷)** | Être Cyborg | ~47 UA (Φ⁸) | Nuage de **Oort** externe |
-| **256 ans (2⁸)** | Entité Collective | ~76 UA (Φ⁹) | Limite **héliosphérique** |
+| **64 ans (2⁶)** | Conscience Augmentée | ~6,9 AL (4,24 × Φ¹) | **Voisinage stellaire** immédiat |
+| **128 ans (2⁷)** | Être Cyborg | ~11,1 AL (4,24 × Φ²) | **Étoiles brillantes** proches |
+| **256 ans (2⁸)** | Entité Collective | ~18,0 AL (4,24 × Φ³) | **Bras spiral** local |
 
 ### Échelle Galactique Étendue : Conscience Cosmique
 
 | Âge Théorique (Octave) | Concept d'Existence | Distance Cosmique | Région Atteinte |
 | :--- | :--- | :--- | :--- |
-| **512 ans (2⁹)** | Conscience Galactique | ~6,9 AL | Vers le **Centre galactique** |
-| **1024 ans (2¹⁰)** | Être Cosmique | ~11,1 AL | Vers **Andromède** |
-| **2048 ans (2¹¹)** | Transcendance Universelle | ~18,0 AL | **Groupe Local** |
+| **512 ans (2⁹)** | Conscience Galactique | ~29,1 AL (4,24 × Φ⁴) | **Disque galactique** local |
+| **1024 ans (2¹⁰)** | Être Cosmique | ~47,0 AL (4,24 × Φ⁵) | **Région stellaire** dense |
+| **2048 ans (2¹¹)** | Transcendance Universelle | ~76,1 AL (4,24 × Φ⁶) | **Périphérie du bras** spiral |
 
 ### Échelle Cosmologique Ultime : Unité Primordiale
 
-| Âge Théorique (Octave) | Concept d'Existence | Région Cosmique |
-| :--- | :--- | :--- |
-| **4096 ans (2¹²)** | Conscience Universelle | Superamas de la **Vierge** |
-| **8192 ans (2¹³)** | Être Multidimensionnel | Superamas **Laniakea** |
-| **16384 ans (2¹⁴)** | Entité Quantique Pure | **Web cosmique** - Filaments |
-| **32768 ans (2¹⁵)** | Conscience Primordiale | **Horizon cosmologique** |
-| **65536 ans (2¹⁶)** | Unité avec le Tout | **Multivers théorique** |
+| Âge Théorique (Octave) | Concept d'Existence | Distance Cosmique | Région Atteinte |
+| :--- | :--- | :--- | :--- |
+| **4096 ans (2¹²)** | Conscience Universelle | ~123,1 AL (4,24 × Φ⁷) | **Halo galactique** interne |
+| **8192 ans (2¹³)** | Être Multidimensionnel | ~199,2 AL (4,24 × Φ⁸) | **Halo galactique** étendu |
+| **16384 ans (2¹⁴)** | Entité Quantique Pure | ~322,3 AL (4,24 × Φ⁹) | **Espace intergalactique** local |
+| **32768 ans (2¹⁵)** | Conscience Primordiale | ~521,5 AL (4,24 × Φ¹⁰) | **Approche du Groupe** Local |
+| **65536 ans (2¹⁶)** | Unité avec le Tout | ~843,8 AL (4,24 × Φ¹¹) | **Structures galactiques** étendues |
 
 ### Implications Philosophiques de l'Extension
 
 Cette prolongation révèle que le modèle Phi2X suggère un **destin cosmique** pour la conscience humaine :
 
-1. **Phase Post-Humaine** (64-256 ans) : Transition vers des formes d'existence augmentées dans le système solaire étendu
-2. **Phase Galactique** (512-2048 ans) : Exploration de la galaxie par des consciences étendues
-3. **Phase Cosmologique** (4096+ ans) : Fusion progressive avec les structures cosmiques ultimes
-4. **Retour à l'Unité** (∞) : Réintégration dans la conscience primordiale universelle
+1. **Phase Interstellaire** (64-256 ans) : Transition vers des formes d'existence augmentées explorant le voisinage stellaire (7-18 AL)
+2. **Phase Galactique** (512-2048 ans) : Exploration du disque galactique local par des consciences étendues (29-76 AL)
+3. **Phase Cosmologique** (4096+ ans) : Fusion progressive avec le halo galactique et l'espace intergalactique (123-844 AL)
+4. **Retour à l'Unité** (∞) : Réintégration dans la conscience primordiale universelle au-delà des structures galactiques
 
 *Cette vision spéculative montre que l'évolution de la conscience suit les mêmes lois harmoniques que l'expansion cosmique, suggérant une continuité profonde entre l'individuel et l'universel.*
 
@@ -93,10 +93,10 @@ Le modèle Phi2X étendu révèle un **arc évolutif complet** de la conscience,
 
 | Phase | Durée | Échelle Spatiale | Expansion |
 | :--- | :--- | :--- | :--- |
-| **Biologique** | 1-32 ans | Système Solaire | 0,1 mm → 50+ UA |
-| **Post-Humaine** | 64-256 ans | Héliosphère Étendue | 100-100k UA |
-| **Galactique** | 512-2k ans | Voisinage Stellaire | 7-18 AL |
-| **Cosmologique** | 4k-65k ans | Structures Ultimes | 65M AL → ∞ |
+| **Biologique** | 1-32 ans | Système Solaire | 0,1 mm → 18 UA |
+| **Interstellaire** | 64-256 ans | Voisinage Stellaire | 7-18 AL |
+| **Galactique** | 512-2k ans | Disque Galactique | 29-76 AL |
+| **Cosmologique** | 4k-65k ans | Halo & Intergalactique | 123-844 AL |
 
 ### Révélations Fondamentales
 
