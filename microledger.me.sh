@@ -208,7 +208,7 @@ select_multipass() {
     return 0
 }
 
-# Fonction pour envoyer l'événement NOSTR via nostr_send_event.py
+# Fonction pour envoyer l'événement NOSTR via script automatisé
 send_nostr_capsule_event() {
     local cid="$1"
     local project_name="$2"
@@ -219,30 +219,14 @@ send_nostr_capsule_event() {
         return 1
     fi
     
-    # Vérifier si nostr_send_event.py est disponible
-    local nostr_script=""
-    local possible_paths=(
-        "$HOME/.zen/Astroport.ONE/tools/nostr_send_event.py"
-        "./tools/nostr_send_event.py"
-        "../Astroport.ONE/tools/nostr_send_event.py"
-        "../tools/nostr_send_event.py"
-        "./nostr_send_event.py"
-    )
-    
-    for path in "${possible_paths[@]}"; do
-        if [[ -f "$path" ]]; then
-            nostr_script="$path"
-            break
-        fi
-    done
-    
-    if [[ -z "$nostr_script" ]]; then
-        echo "❌ Script nostr_send_event.py non trouvé"
-        echo "   Chemins vérifiés: ${possible_paths[*]}"
+    # Vérifier si le script automatisé est disponible
+    local nostr_script="${MY_PATH}/nostr_auto_send.py"
+    if [[ ! -f "$nostr_script" ]]; then
+        echo "❌ Script nostr_auto_send.py non trouvé: $nostr_script"
         return 1
     fi
     
-    echo "📡 Envoi de l'événement NOSTR via $nostr_script"
+    echo "📡 Envoi de l'événement NOSTR via script automatisé"
     
     # Lire la clé nsec
     local nsec_content=""
@@ -263,31 +247,17 @@ send_nostr_capsule_event() {
 
 #frd #FRD #ipfs #knowledge #git #nostr #multipass"
     
-    # Créer un fichier temporaire pour l'automatisation
-    local temp_input=$(mktemp)
-    cat > "$temp_input" << EOF
-${nsec_content}
-o
-n
-1
-${nostr_message}
-n
-q
-EOF
-    
     echo "📤 Publication de la capsule sur NOSTR..."
     echo "   Signataire: $SELECTED_MULTIPASS"
     echo "   CID: $cid"
     echo "   Évolution: #$evolution_count"
     
-    # Exécuter le script avec l'input automatisé
-    if python3 "$nostr_script" < "$temp_input"; then
+    # Exécuter le script automatisé
+    if python3 "$nostr_script" --nsec "$nsec_content" --content "$nostr_message"; then
         echo "✅ Événement NOSTR publié avec succès"
-        rm -f "$temp_input"
         return 0
     else
         echo "❌ Échec de la publication NOSTR"
-        rm -f "$temp_input"
         return 1
     fi
 }
@@ -1998,7 +1968,7 @@ fi
 
 # Afficher les signatures existantes
 if [[ -f "${MY_PATH}/.chain.signatures" ]]; then
-    local sig_count=$(grep -v "^#" "${MY_PATH}/.chain.signatures" 2>/dev/null | wc -l)
+    sig_count=$(grep -v "^#" "${MY_PATH}/.chain.signatures" 2>/dev/null | wc -l)
     if [[ $sig_count -gt 0 ]]; then
         echo "📜 Historique des signatures ($sig_count):"
         tail -n 5 "${MY_PATH}/.chain.signatures" | grep -v "^#" | while IFS='|' read -r timestamp cid signer action; do
