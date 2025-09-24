@@ -101,6 +101,7 @@ generate_index_html() {
     <link rel="stylesheet" href="frd/katex.min.css">
     <script defer src="frd/katex.min.js"></script>
     <script defer src="frd/auto-render.min.js"></script>
+    <script src="frd/nostr.bundle.js"></script>
     <style>
         :root { --bg: #0d1117; --fg: #f0f6fc; --accent: #ffd700; --blue: #58a6ff; --border: #30363d; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -122,6 +123,12 @@ generate_index_html() {
         .nav-dropdown a:last-child { border-bottom: none; }
         .nav-menu-btn { background: none; border: none; color: var(--blue); cursor: pointer; font-size: 0.8rem; padding: 2px 6px; border-radius: 3px; }
         .nav-menu-btn:hover { background: #30363d; }
+        .connect-btn { background: linear-gradient(45deg, #9c27b0, #7b1fa2); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; text-decoration: none; transition: all 0.2s; }
+        .connect-btn:hover { background: linear-gradient(45deg, #7b1fa2, #6a1b9a); text-decoration: none; color: white; }
+        .connect-btn.connected { background: linear-gradient(45deg, #4CAF50, #45a049); }
+        .copy-btn { background: linear-gradient(45deg, #ff6b6b, #ff5252); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; text-decoration: none; transition: all 0.2s; margin-left: 8px; }
+        .copy-btn:hover { background: linear-gradient(45deg, #ff5252, #f44336); text-decoration: none; color: white; }
+        .copy-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         body { padding-top: 60px; }
         .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
         .markdown-content { background: var(--bg); }
@@ -166,7 +173,8 @@ generate_index_html() {
                 </div>
             </div>
             <div class="header-center">
-                <h1>📡 FRD</h1>
+                <button id="connectBtn" class="connect-btn" onclick="connectToNostr()">🔗 Connect</button>
+                <button id="copyBtn" class="copy-btn" onclick="copyToUDrive()" disabled>📋 Copier</button>
             </div>
             <div class="header-right">
                 <span style="font-size: 0.7rem; color: #6e7681;">GENERATION_DATE_PLACEHOLDER</span>
@@ -586,6 +594,167 @@ generate_index_html() {
             return false;
         }
         
+            // Variables globales pour Nostr
+            let nostrConnected = false;
+            let userPublicKey = null;
+            let userPrivateKey = null;
+            
+            // Fonction pour se connecter à Nostr
+            async function connectToNostr() {
+                const connectBtn = document.getElementById('connectBtn');
+                const copyBtn = document.getElementById('copyBtn');
+                
+                try {
+                    connectBtn.textContent = '🔄 Connexion...';
+                    connectBtn.disabled = true;
+                    
+                    // Essayer d'utiliser l'extension Nostr (NIP-07)
+                    if (window.nostr) {
+                        console.log('Extension Nostr détectée');
+                        userPublicKey = await window.nostr.getPublicKey();
+                        nostrConnected = true;
+                        
+                        connectBtn.textContent = '✅ Connecté';
+                        connectBtn.classList.add('connected');
+                        copyBtn.disabled = false;
+                        
+                        console.log('Connecté avec la clé publique:', userPublicKey);
+                    } else {
+                        // Fallback: demander une clé nsec
+                        const nsec = prompt('Entrez votre clé nsec (ou installez une extension Nostr):');
+                        if (nsec && nsec.startsWith('nsec1')) {
+                            try {
+                                const decoded = NostrTools.nip19.decode(nsec);
+                                userPrivateKey = decoded.data;
+                                userPublicKey = NostrTools.getPublicKey(userPrivateKey);
+                                nostrConnected = true;
+                                
+                                connectBtn.textContent = '✅ Connecté';
+                                connectBtn.classList.add('connected');
+                                copyBtn.disabled = false;
+                                
+                                console.log('Connecté avec clé manuelle, clé publique:', userPublicKey);
+                            } catch (error) {
+                                throw new Error('Clé nsec invalide');
+                            }
+                        } else {
+                            throw new Error('Aucune clé fournie');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erreur de connexion Nostr:', error);
+                    connectBtn.textContent = '❌ Erreur';
+                    setTimeout(() => {
+                        connectBtn.textContent = '🔗 Connect';
+                        connectBtn.disabled = false;
+                    }, 2000);
+                    alert('Erreur de connexion Nostr: ' + error.message);
+                }
+            }
+            
+            // Fonction pour copier le projet vers uDRIVE
+            async function copyToUDrive() {
+                if (!nostrConnected || !userPublicKey) {
+                    alert('Veuillez vous connecter à Nostr d\'abord');
+                    return;
+                }
+                
+                const copyBtn = document.getElementById('copyBtn');
+                const originalText = copyBtn.textContent;
+                
+                try {
+                    copyBtn.textContent = '⏳ Copie...';
+                    copyBtn.disabled = true;
+                    
+                    // Détecter l'URL de l'API UPlanet
+                    const currentURL = new URL(window.location.href);
+                    const hostname = currentURL.hostname;
+                    const protocol = currentURL.protocol;
+                    let port = currentURL.port;
+                    
+                    if (port === "8080") {
+                        port = "54321";
+                    }
+                    
+                    const uHost = hostname.replace("ipfs", "u");
+                    const apiUrl = protocol + "//" + uHost + (port ? ":" + port : "");
+                    
+                    console.log('API UPlanet détectée:', apiUrl);
+                    
+                    // Obtenir le CID actuel du projet
+                    const currentCID = getCurrentProjectCID();
+                    if (!currentCID) {
+                        throw new Error('Impossible de déterminer le CID du projet');
+                    }
+                    
+                    console.log('CID du projet à copier:', currentCID);
+                    
+                    // Préparer les données pour l'API
+                    const copyData = {
+                        source_cid: currentCID,
+                        npub: userPublicKey,
+                        project_name: getProjectName()
+                    };
+                    
+                    console.log('Données de copie:', copyData);
+                    
+                    // Appeler l'API de copie
+                    const response = await fetch(apiUrl + '/api/copy_project', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(copyData)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.detail || 'Erreur de copie');
+                    }
+                    
+                    const result = await response.json();
+                    console.log('Résultat de la copie:', result);
+                    
+                    copyBtn.textContent = '✅ Copié!';
+                    
+                    // Rediriger vers le nouveau CID si disponible
+                    if (result.new_cid) {
+                        setTimeout(() => {
+                            const newUrl = protocol + "//" + hostname + (currentURL.port ? ":" + currentURL.port : "") + "/ipfs/" + result.new_cid + "/";
+                            console.log('Redirection vers:', newUrl);
+                            window.location.href = newUrl;
+                        }, 1500);
+                    } else {
+                        setTimeout(() => {
+                            copyBtn.textContent = originalText;
+                            copyBtn.disabled = false;
+                        }, 2000);
+                    }
+                    
+                } catch (error) {
+                    console.error('Erreur de copie:', error);
+                    copyBtn.textContent = '❌ Erreur';
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                        copyBtn.disabled = false;
+                    }, 2000);
+                    alert('Erreur de copie: ' + error.message);
+                }
+            }
+            
+            // Fonction utilitaire pour obtenir le CID actuel
+            function getCurrentProjectCID() {
+                const url = window.location.href;
+                const ipfsMatch = url.match(/\/ipfs\/([a-zA-Z0-9]+)/);
+                return ipfsMatch ? ipfsMatch[1] : null;
+            }
+            
+            // Fonction utilitaire pour obtenir le nom du projet
+            function getProjectName() {
+                const title = document.title;
+                return title.replace(/[^a-zA-Z0-9\s]/g, '').trim() || 'Projet-FRD';
+            }
+            
             // Charger README.md au démarrage ou le fichier spécifié dans l'URL
             document.addEventListener('DOMContentLoaded', () => {
                 // Populer le menu de navigation
