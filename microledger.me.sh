@@ -5,9 +5,26 @@
 # Version: 1.0 - Generalist Knowledge Capsule System
 # License: AGPL-3.0 (https://choosealicense.com/licenses/agpl-3.0/)
 # Tags: #frd #FRD #ipfs #nostr #knowledge #git
+#
+# Usage:
+#   ./microledger.me.sh                # Publication normale
+#   ./microledger.me.sh --reset        # Réinitialisation complète de la chaîne (avec confirmation)
+#   ./microledger.me.sh --force-reset  # Réinitialisation forcée (sans confirmation)
 ################################################################################
 MY_PATH="`dirname \"$0\"`"
 MY_PATH="`( cd \"$MY_PATH\" && pwd )`"
+
+# Gestion des paramètres
+RESET_CHAIN=false
+FORCE_RESET=false
+if [[ "$1" == "--reset" ]]; then
+    RESET_CHAIN=true
+    echo "🔄 Mode RESET activé - Réinitialisation de la chaîne"
+elif [[ "$1" == "--force-reset" ]]; then
+    RESET_CHAIN=true
+    FORCE_RESET=true
+    echo "⚡ Mode FORCE-RESET activé - Réinitialisation sans confirmation"
+fi
 
 echo '
 ############################################################### ipfs
@@ -450,6 +467,36 @@ HTMLEOF
     fi
 }
 
+# Fonction de reset de la chaîne
+reset_chain() {
+    echo "⚠️  ATTENTION: Cette opération va supprimer toute l'historique de la chaîne !"
+    echo "📋 Fichiers qui seront supprimés:"
+    ls -la ${MY_PATH}/.chain* ${MY_PATH}/.moats 2>/dev/null || echo "   (Aucun fichier de chaîne trouvé)"
+    echo ""
+    
+    if [[ "$FORCE_RESET" == "false" ]]; then
+        read -p "🤔 Êtes-vous sûr de vouloir réinitialiser ? (oui/non): " confirm
+        
+        if [[ "$confirm" != "oui" && "$confirm" != "o" && "$confirm" != "yes" && "$confirm" != "y" ]]; then
+            echo "❌ Reset annulé"
+            exit 0
+        fi
+    else
+        echo "⚡ Mode forcé - Pas de confirmation demandée"
+    fi
+    
+    echo "🗑️  Suppression des fichiers de chaîne existants..."
+    rm -f ${MY_PATH}/.chain*
+    rm -f ${MY_PATH}/.moats
+    echo "✅ Chaîne réinitialisée - Prochaine publication sera une nouvelle Genesis"
+    echo "🌱 Nouveau départ : Evolution #0"
+}
+
+# Gestion du reset si demandé
+if [[ "$RESET_CHAIN" == "true" ]]; then
+    reset_chain
+fi
+
 OLD=$(cat ${MY_PATH}/.chain 2>/dev/null)
 [[ -z ${OLD} ]] && init_capsule
 
@@ -512,8 +559,6 @@ else
 fi
 
 echo "## README UPGRADE ${OLD}~${IPFSME}"
-# Note: Les liens IPFS sont maintenant gérés dans index.html
-# Plus besoin de modifier README.md automatiquement
 
 echo "## INDEX.HTML UPDATE"
 # L'index.html est déjà généré avec les bons CIDs, pas besoin de mise à jour supplémentaire
