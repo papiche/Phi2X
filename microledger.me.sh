@@ -390,9 +390,9 @@ echo "## TIMESTAMP CHAIN SHIFTING"
 cp ${MY_PATH}/.chain \
         ${MY_PATH}/.chain.$(cat ${MY_PATH}/.moats)
 
-# Nettoyage des anciens fichiers .chain (ne garde que les 2 plus récents)
+# Nettoyage des anciens fichiers .chain (ne garde que les 2 plus récents, mais préserve genesis et n)
 echo "## CLEANING OLD CHAIN FILES"
-ls -t ${MY_PATH}/.chain* | tail -n +3 | xargs rm -f 2>/dev/null || true
+ls -t ${MY_PATH}/.chain.* 2>/dev/null | grep -v ".chain.genesis" | grep -v ".chain.n" | tail -n +3 | xargs rm -f 2>/dev/null || true
 
 echo "## INDEX.HTML PRE-GENERATION"
 # Toujours créer/recréer l'index.html AVANT la génération IPFS
