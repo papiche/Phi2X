@@ -124,51 +124,43 @@ Où le **facteur harmonique** dépend des rapports Φⁿ/2ᵐ et la **correction
 ---
 
 ### **1. Hypothèses de Base**
-#### **a) Onde Lumineuse (optique, nombre d’or)**
-- Fréquences harmoniques : \( f_n = f_0 \cdot \Phi^n \)
-  où \( \Phi = \frac{1 + \sqrt{5}}{2} \approx 1,618 \) (nombre d’or).
-- Longueur d’onde associée : \( \lambda_n = \frac{c}{f_n} \)
+#### **a) Onde Lumineuse (optique, nombre d'or)**
+- Fréquences harmoniques : $f_n = f_0 \cdot \Phi^n$
+  où $\Phi = \frac{1 + \sqrt{5}}{2} \approx 1.618$ (nombre d'or).
+- Longueur d'onde associée : $\lambda_n = \frac{c}{f_n}$
 
 #### **b) Onde Sonore (acoustique, octave 2)**
-- Fréquences harmoniques : \( f_m = f_0' \cdot 2^m \)
+- Fréquences harmoniques : $f_m = f_0' \cdot 2^m$
   (comme en musique, chaque octave double la fréquence).
 
 #### **c) Interférence des deux ondes**
 - La **réalité perçue** émerge de leur produit :
-  \[
-  \Psi(x,t) = \Psi_{\text{light}}(x,t) \cdot \Psi_{\text{sound}}(x,t)
-  \]
-  où \( \Psi_{\text{light}} \) et \( \Psi_{\text{sound}} \) sont des ondes sinusoïdales modulées.
+  $$\Psi(x,t) = \Psi_{\text{light}}(x,t) \cdot \Psi_{\text{sound}}(x,t)$$
+  où $\Psi_{\text{light}}$ et $\Psi_{\text{sound}}$ sont des ondes sinusoïdales modulées.
 
 ---
 
-### **2. Émergence de la Vitesse de la Lumière \( c \)**
+### **2. Émergence de la Vitesse de la Lumière c**
 #### **a) Effet Doppler Relativiste + Gravité**
-Si une année solaire (\( T \)) ajoute une vitesse \( v \) telle que \( v > c \), mais que la perception reste limitée à \( c \), cela suggère un **redressement relativiste** (comme en relativité restreinte, où \( c \) est une limite invariante).
+Si une année solaire ($T$) ajoute une vitesse $v$ telle que $v > c$, mais que la perception reste limitée à $c$, cela suggère un **redressement relativiste** (comme en relativité restreinte, où $c$ est une limite invariante).
 
-- **Relation avec \( g = 9,81 \, \text{m/s}^2 \) :**
-  Si la Terre accélère à \( g \), alors sur un temps \( T \), la vitesse atteinte serait :
-  \[
-  v = g \cdot T \approx 9,81 \times 31 557 600 \approx 3,1 \times 10^8 \, \text{m/s} \quad (\text{proche de } c)
-  \]
-  Mais puisque \( c \) est perçue comme constante, cela implique un **facteur de correction** (peut-être lié à \( \Phi \) ou à l’interférence des ondes).
+- **Relation avec $g = 9.81 \, \text{m/s}^2$ :**
+  Si la Terre accélère à $g$, alors sur un temps $T$, la vitesse atteinte serait :
+  $$v = g \cdot T \approx 9.81 \times 31557600 \approx 3.1 \times 10^8 \, \text{m/s} \quad \text{(proche de } c\text{)}$$
+  Mais puisque $c$ est perçue comme constante, cela implique un **facteur de correction** (peut-être lié à $\Phi$ ou à l'interférence des ondes).
 
-#### **b) Lien avec l’Interférence des Ondes**
-Si \( c \) émerge comme la **vitesse de phase** de l’onde résultante, alors :
-\[
-c = \frac{\omega}{k}
-\]
-où \( \omega \) est la fréquence angulaire et \( k \) le nombre d’onde.
+#### **b) Lien avec l'Interférence des Ondes**
+Si $c$ émerge comme la **vitesse de phase** de l'onde résultante, alors :
+$$c = \frac{\omega}{k}$$
+où $\omega$ est la fréquence angulaire et $k$ le nombre d'onde.
 
-En supposant que l’interférence crée une **relation de dispersion** :
-\[
-\omega = \sqrt{( \Phi \cdot \omega_0 )^2 + (2 \cdot \omega_0')^2 }
-\]
-alors \( c \) pourrait être déterminée par le rapport entre ces deux fréquences fondamentales.
+En supposant que l'interférence crée une **relation de dispersion** :
+$$\omega = \sqrt{( \Phi \cdot \omega_0 )^2 + (2 \cdot \omega_0')^2 }$$
+alors $c$ pourrait être déterminée par le rapport entre ces deux fréquences fondamentales.
 
 ---
 
-### **3. Émergence de la Constante de Planck \( h \)**
+### **3. Émergence de la Constante de Planck h**
 #### **a) Quantification via Nombre d’Or**
 Si les niveaux d’énergie sont des multiples de \( \Phi \), alors l’énergie d’un photon pourrait s’écrire :
 \[
