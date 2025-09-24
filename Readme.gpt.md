@@ -62,8 +62,8 @@ Voici une façon – purement hypothétique – de « faire sortir » le
 
 | Symbole            | Onde « dorée » (multiples de φ)                   | Onde « octave » (multiples de 2)         |
 | ------------------ | ------------------------------------------------- | ---------------------------------------- |
-| Fréquence générale | $f_{\phi,n}=f_0\,\phi^{n}$                      | $f_{2,m}=f_0\,2^{m}$                   |
-| Longueur d’onde    | $\lambda_{\phi,n}=\dfrac{v_\phi}{f_0}\,\phi^{-n}$ | $\lambda_{2,m}=\dfrac{v_2}{f_0}\,2^{-m}$ |
+| Fréquence générale | $f_{\phi,n}=f_0 \phi^{n}$                      | $f_{2,m}=f_0 2^{m}$                   |
+| Longueur d’onde    | $\lambda_{\phi,n}=\dfrac{v_\phi}{f_0} \phi^{-n}$ | $\lambda_{2,m}=\dfrac{v_2}{f_0} 2^{-m}$ |
 
 *(On laisse volontairement indéfinis les « vitesses propres » $v_\phi$ et $v_2$ ; ce sont des paramètres que l’on fera converger vers la constante émergente finale.)*
 
@@ -83,7 +83,7 @@ Le problème est analogue à la recherche d’**approximation diophantienne** en
 
 $$
 \phi^{n_k}\approx 2^{m_k}\quad\Rightarrow\quad
-\Delta f_{\min}\approx f_0\,\varepsilon_k,
+\Delta f_{\min}\approx f_0 \varepsilon_k,
 $$
 
 avec $\varepsilon_k\to 0$ quand $k\to\infty$.
@@ -101,11 +101,11 @@ $$
 Avec les paires quasi‑résonantes $(m_k,n_k)$ on obtient
 
 $$
-\Lambda_*k
-=\frac{v_\phi v_2}{f_0\,(v_2\,\phi^{-n_k}-v_\phi\,2^{-m_k})}.
+\Lambda_k
+=\frac{v_\phi v_2}{f_0(v_2 \phi^{-n_k}-v_\phi 2^{-m_k})}.
 $$
 
-Plus la résonance est fine (petit $\varepsilon_k$), plus $\Lambda_*k$ est grande ; c’est un **échelle‑pont** entre microscopique (λ des ondes mères) et macroscopique (grandeur d’interférence).
+Plus la résonance est fine (petit $\varepsilon_k$), plus $\Lambda_k$ est grande ; c’est un **échelle‑pont** entre microscopique (λ des ondes mères) et macroscopique (grandeur d’interférence).
 
 ---
 
@@ -114,7 +114,7 @@ Plus la résonance est fine (petit $\varepsilon_k$), plus $\Lambda_*k$ est grand
 On fixe maintenant **une paire fondamentale $(m_*, n_*)$** telle que :
 
 1. La **longueur d’onde commune** $\tilde\lambda=\lambda_{\phi,n_*}\approx\lambda_{2,m_*}$ est postulée être la longueur minimale « physique » (un analogue de la **longueur de Planck**).
-2. La **échelle battement** $\Lambda_**$ est la taille « macroscopique élémentaire » (par exemple le rayon d’une orbite de Bohr – nous restons libres du choix).
+2. La **échelle battement** $\Lambda_*$ est la taille « macroscopique élémentaire » (par exemple le rayon d’une orbite de Bohr – nous restons libres du choix).
 
 Ces deux conditions lient les vitesses propres $v_\phi,v_2$ :
 
@@ -162,12 +162,12 @@ Prenons (choix arbitraux mais cohérents) :
 | ----------------- | --------------------------------------------------------------------------- |
 | $f_0$             | $10^{43} \, \text{Hz}$ (ordre de la fréquence de Planck)                      |
 | $\tilde\lambda$   | $1.6 \times 10^{-35} \, \text{m}$                                             |
-| Battement relatif | $\varepsilon_*=5.4 \times 10^{-44}$ (≈ rapport $\tilde\lambda/\Lambda_**$) |
+| Battement relatif | $\varepsilon_*=5.4 \times 10^{-44}$ (≈ rapport $\tilde\lambda/\Lambda_*$) |
 
 Ces trois nombres **forcent** :
 
 1. $c=\tilde\lambda \cdot f_0 = 2.998 \times 10^{8} \, \text{m/s}$
-2. $h_\text{eff}= \dfrac{\tilde\lambda^2}{\Lambda_**} \cdot p_*text{char}$ avec $p_*text{char}=m_*text{char}c$ (choisir $m_*text{char}$ l'échelle de Planck) ⇒ $h_\text{eff}=6.63 \times 10^{-34} \, \text{J} \cdot \text{s}$.
+2. $h_\text{eff}= \dfrac{\tilde\lambda^2}{\Lambda_*} \cdot p_*text{char}$ avec $p_*text{char}=m_*text{char}c$ (choisir $m_*text{char}$ l'échelle de Planck) ⇒ $h_\text{eff}=6.63 \times 10^{-34} \, \text{J} \cdot \text{s}$.
 
 Ainsi, **les « constantes » sont choisies comme degré de liberté résiduel d’un système à deux gammes**. Le choix d’index $(m_*, n_*)$ et de $f_0$ fixe toute la physique ultérieure.
 
