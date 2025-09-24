@@ -143,15 +143,17 @@ generate_index_html() {
                     });
                 }
                 
-                // Gérer les ancres après le chargement
-                handleAnchors();
+                // Gérer les ancres après le chargement avec délai pour le rendu
+                setTimeout(() => handleAnchors(), 300);
                 
                 // Debug : afficher les ancres disponibles dans la console
                 if (window.location.search.includes('debug=anchors')) {
-                    console.log('=== ANCRES DISPONIBLES ===');
-                    document.querySelectorAll('[id]').forEach(el => {
-                        console.log(`#${el.id} - "${el.textContent.trim().substring(0, 50)}..."`);
-                    });
+                    setTimeout(() => {
+                        console.log('=== ANCRES DISPONIBLES ===');
+                        document.querySelectorAll('[id]').forEach(el => {
+                            console.log(`#${el.id} - "${el.textContent.trim().substring(0, 50)}..."`);
+                        });
+                    }, 500);
                 }
             } catch (error) {
                 content.innerHTML = `<h1>❌ Erreur</h1><p>Impossible de charger README.md</p><p>Détails: ${error.message}</p>`;
@@ -215,21 +217,35 @@ generate_index_html() {
             }
         }
         
-        // Fonction pour gérer les ancres
-        function handleAnchors() {
-            // Gérer l'ancre dans l'URL au chargement
-            if (window.location.hash) {
+        // Fonction pour gérer les ancres avec retry
+        function handleAnchors(retryCount = 0) {
+            if (!window.location.hash) return;
+            
+            const maxRetries = 10;
+            const element = document.querySelector(window.location.hash);
+            
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+                // Ajouter un effet de surbrillance temporaire
+                element.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
                 setTimeout(() => {
-                    const element = document.querySelector(window.location.hash);
-                    if (element) {
-                        element.scrollIntoView({ behavior: 'smooth' });
-                        // Ajouter un effet de surbrillance temporaire
-                        element.style.backgroundColor = 'rgba(255, 215, 0, 0.2)';
-                        setTimeout(() => {
-                            element.style.backgroundColor = '';
-                        }, 2000);
-                    }
-                }, 100);
+                    element.style.backgroundColor = '';
+                }, 3000);
+                
+                // Debug
+                console.log(`✅ Ancre trouvée: ${window.location.hash} -> "${element.textContent.trim().substring(0, 50)}..."`);
+            } else if (retryCount < maxRetries) {
+                // Retry avec délai croissant
+                const delay = 200 + (retryCount * 100);
+                console.log(`⏳ Ancre ${window.location.hash} non trouvée, retry ${retryCount + 1}/${maxRetries} dans ${delay}ms`);
+                setTimeout(() => handleAnchors(retryCount + 1), delay);
+            } else {
+                console.log(`❌ Ancre ${window.location.hash} introuvable après ${maxRetries} tentatives`);
+                // Afficher les ancres disponibles pour debug
+                console.log('🔍 Ancres disponibles:');
+                document.querySelectorAll('[id]').forEach(el => {
+                    console.log(`  #${el.id} - "${el.textContent.trim().substring(0, 50)}..."`);
+                });
             }
         }
         
@@ -271,8 +287,8 @@ generate_index_html() {
         document.addEventListener('DOMContentLoaded', () => {
             if (!parseInitialUrl()) {
                 loadReadme();
-                // Gérer l'ancre initiale après un petit délai
-                setTimeout(handleAnchors, 500);
+                // Gérer l'ancre initiale après un délai plus long pour le rendu complet
+                setTimeout(() => handleAnchors(), 800);
             }
         });
     </script>
