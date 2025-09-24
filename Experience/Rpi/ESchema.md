@@ -161,9 +161,7 @@ Les **bobines pancake (ou spirales planes)** ne sont pas anodines : elles ont de
    * 🌀 En conservant un **espacement constant** entre chaque spire, ou mieux :
    * 🧬 En utilisant un **espacement logarithmique** inspiré du nombre d’or :
 
-     $$
-     r_n = r_0 \cdot \Phi^{n}
-     $$
+     $$r_n = r_0 \cdot \Phi^{n}$$
 3. Fixe la bobine avec colle ou scotch résistant.
 4. Laisse deux extrémités libres (départ et retour).
 
