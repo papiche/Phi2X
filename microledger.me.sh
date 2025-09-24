@@ -45,8 +45,8 @@ init_capsule() {
     # Récupération des bibliothèques FRD si nécessaire
     if [[ ! -d "${MY_PATH}/frd" ]]; then
         echo "📦 Téléchargement des bibliothèques FRD..."
-        ipfs get QmUtWzpp1pmkBVeeLWJPMhx6ieBZriQd6PhLF4GKSomruJ -o ${MY_PATH}/
-        mv ${MY_PATH}/QmUtWzpp1pmkBVeeLWJPMhx6ieBZriQd6PhLF4GKSomruJ ${MY_PATH}/frd
+        ipfs get QmSSrUxNPnC8G5q8waMtaBzQMUCxSex23QfJKizZW1DARU -o ${MY_PATH}/
+        mv ${MY_PATH}/QmSSrUxNPnC8G5q8waMtaBzQMUCxSex23QfJKizZW1DARU ${MY_PATH}/frd
     fi
     
     # Génération de l'index.html si absent
@@ -220,7 +220,7 @@ send_nostr_capsule_event() {
     fi
     
     # Vérifier si le script strfry est disponible
-    local nostr_script="${MY_PATH}/nostr_strfry_send.py"
+    local nostr_script="${MY_PATH}/frd/nostr_strfry_send.py"
     if [[ ! -f "$nostr_script" ]]; then
         echo "❌ Script nostr_strfry_send.py non trouvé: $nostr_script"
         return 1

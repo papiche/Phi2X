@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Script simplifié pour envoyer des événements NOSTR vers strfry
-Utilise websockets directement pour éviter les conflits d'event loop
+Script simplifié pour envoyer des événements NOSTR vers strfry local 7777
 """
 import sys
 import json
