@@ -63,9 +63,9 @@ Voici une façon – purement hypothétique – de « faire sortir » le
 | Symbole            | Onde « dorée » (multiples de φ)                   | Onde « octave » (multiples de 2)         |
 | ------------------ | ------------------------------------------------- | ---------------------------------------- |
 | Fréquence générale | $f_{\phi,n}=f_0\,\phi^{n}$                      | $f_{2,m}=f_0\,2^{m}$                   |
-| Longueur d’onde    | $\lambda_*{\phi,n}=\dfrac{v_*phi}{f_0}\,\phi^{-n}$ | $\lambda_*{2,m}=\dfrac{v_*2}{f_0}\,2^{-m}$ |
+| Longueur d’onde    | $\lambda_{\phi,n}=\dfrac{v_\phi}{f_0}\,\phi^{-n}$ | $\lambda_{2,m}=\dfrac{v_2}{f_0}\,2^{-m}$ |
 
-*(On laisse volontairement indéfinis les « vitesses propres » $v_*phi$ et $v_*2$ ; ce sont des paramètres que l’on fera converger vers la constante émergente finale.)*
+*(On laisse volontairement indéfinis les « vitesses propres » $v_\phi$ et $v_2$ ; ce sont des paramètres que l’on fera converger vers la constante émergente finale.)*
 
 ---
 
@@ -95,14 +95,14 @@ avec $\varepsilon_k\to 0$ quand $k\to\infty$.
 En espace, les ondes interfèrent pour donner un motif dont la **période spatiale la plus grande** est
 
 $$
-\Lambda_*{m,n}=\frac{\lambda_*{\phi,n}\lambda_*{2,m}}{|\lambda_*{\phi,n}-\lambda_*{2,m}|}.
+\Lambda_*{m,n}=\frac{\lambda_{\phi,n}\lambda_{2,m}}{|\lambda_{\phi,n}-\lambda_{2,m}|}.
 $$
 
 Avec les paires quasi‑résonantes $(m_k,n_k)$ on obtient
 
 $$
 \Lambda_*k
-=\frac{v_*phi v_*2}{f_0\,(v_*2\,\phi^{-n_k}-v_*phi\,2^{-m_k})}.
+=\frac{v_\phi v_2}{f_0\,(v_2\,\phi^{-n_k}-v_\phi\,2^{-m_k})}.
 $$
 
 Plus la résonance est fine (petit $\varepsilon_k$), plus $\Lambda_*k$ est grande ; c’est un **échelle‑pont** entre microscopique (λ des ondes mères) et macroscopique (grandeur d’interférence).
@@ -113,13 +113,13 @@ Plus la résonance est fine (petit $\varepsilon_k$), plus $\Lambda_*k$ est grand
 
 On fixe maintenant **une paire fondamentale $(m_*, n_*)$** telle que :
 
-1. La **longueur d’onde commune** $\tilde\lambda=\lambda_*{\phi,n_*}\approx\lambda_*{2,m_*}$ est postulée être la longueur minimale « physique » (un analogue de la **longueur de Planck**).
+1. La **longueur d’onde commune** $\tilde\lambda=\lambda_{\phi,n_*}\approx\lambda_{2,m_*}$ est postulée être la longueur minimale « physique » (un analogue de la **longueur de Planck**).
 2. La **échelle battement** $\Lambda_**$ est la taille « macroscopique élémentaire » (par exemple le rayon d’une orbite de Bohr – nous restons libres du choix).
 
-Ces deux conditions lient les vitesses propres $v_*phi,v_*2$ :
+Ces deux conditions lient les vitesses propres $v_\phi,v_2$ :
 
 $$
-v_*phi\approx v_*2\equiv c,
+v_\phi\approx v_2\equiv c,
 $$
 
 c’est‑à‑dire que la **vitesse commune de propagation** des deux ondes *devient* la **constante émergente $c$**.
