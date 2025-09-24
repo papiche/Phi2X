@@ -15,6 +15,11 @@ from pynostr.key import PrivateKey
 def create_nostr_event(private_key_nsec: str, content: str):
     """Crée un événement NOSTR signé"""
     try:
+        # Nettoyer la clé privée (enlever NSEC= si présent)
+        if private_key_nsec.startswith('NSEC='):
+            private_key_nsec = private_key_nsec[5:]
+        private_key_nsec = private_key_nsec.strip()
+        
         # Créer la clé privée
         priv_key_obj = PrivateKey.from_nsec(private_key_nsec)
         
