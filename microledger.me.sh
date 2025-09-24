@@ -281,6 +281,16 @@ add_signature_to_chain() {
     echo "${timestamp}|${cid}|${signer_email}|${action}" >> "$signatures_file"
     
     echo "✍️ Signature ajoutée: $signer_email ($action) - $timestamp"
+    
+    # Copier la clé publique du signataire si elle existe et n'est pas déjà copiée
+    if [[ "$action" == "publish" && -n "$MULTIPASS_NPUB_FILE" && -f "$MULTIPASS_NPUB_FILE" ]]; then
+        local npub_dest="${MY_PATH}/frd/multipass/${signer_email}.npub"
+        if [[ ! -f "$npub_dest" ]]; then
+            mkdir -p "${MY_PATH}/frd/multipass"
+            cp "$MULTIPASS_NPUB_FILE" "$npub_dest" 2>/dev/null && \
+                echo "🔑 Clé publique copiée pour $signer_email"
+        fi
+    fi
 }
 
 # Fonction pour copier automatiquement dans l'uDRIVE du signataire
@@ -1628,18 +1638,28 @@ generate_index_html() {
                     
                     console.log(`👨‍✈️ Dernier signataire: ${signer}`);
                     
-                    // Essayer de charger le profil NOSTR du signataire
-                    // Pour cela, nous devons d'abord obtenir sa clé publique
-                    // Nous allons simuler un profil basique pour l'instant
+                    // Essayer de charger la clé publique NOSTR du signataire
+                    let signerPubkey = null;
+                    try {
+                        const npubResponse = await fetch(`frd/multipass/${signer}.npub`);
+                        if (npubResponse.ok) {
+                            signerPubkey = await npubResponse.text();
+                            signerPubkey = signerPubkey.trim();
+                        }
+                    } catch (e) {
+                        console.log(`⚠️ Impossible de charger la clé publique pour ${signer}`);
+                    }
+                    
+                    // Créer un profil basique avec les informations disponibles
                     const profileData = {
                         name: signer.split('@')[0], // Utiliser la partie avant @ comme nom
-                        display_name: signer,
-                        about: `Signataire MULTIPASS Astroport.ONE - ${signer}`,
+                        display_name: `${signer.split('@')[0]} (${signer})`,
+                        about: `✍️ Signataire MULTIPASS Astroport.ONE\n📧 ${signer}\n🕐 Dernière publication: ${new Date(timestamp).toLocaleString('fr-FR')}`,
                         picture: null
                     };
                     
                     // Afficher le profil dans le footer
-                    displayUserProfile(profileData, 'multipass_' + signer.replace(/[^a-zA-Z0-9]/g, '_'));
+                    displayUserProfile(profileData, signerPubkey || 'multipass_' + signer.replace(/[^a-zA-Z0-9]/g, '_'));
                     
                 } catch (error) {
                     console.error('❌ Erreur lors du chargement du profil du signataire:', error);
