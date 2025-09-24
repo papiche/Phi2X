@@ -138,11 +138,7 @@ generate_index_html() {
         </div>
     </div>
     <div class="footer" style="border-top: 1px solid var(--border); padding: 20px; text-align: center; font-size: 0.8rem; color: #6e7681; margin-top: 40px;">
-        <div>🌟 FRD Knowledge Capsule - Distributed via IPFS+Git+Nostr</div>
-        <div style="margin-top: 10px;" id="previous-version-link">
-            <span>📜 Previous version: </span>
-            <a href="/ipfs/OLD_CID_PLACEHOLDER/" style="color: #58a6ff;">OLD_CID_PLACEHOLDER</a>
-        </div>
+
     </div>
     <script>
             marked.setOptions({ 
