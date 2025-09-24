@@ -644,6 +644,29 @@ generate_index_html() {
             text-shadow: none;
             border: 1px solid rgba(255, 215, 0, 0.3);
         }
+        .profile-link {
+            background: linear-gradient(135deg, var(--blue), #4a9eff);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-decoration: none;
+            margin-left: 8px;
+            border: 1px solid rgba(88, 166, 255, 0.3);
+            transition: all 0.2s ease;
+        }
+        .profile-link:hover {
+            background: linear-gradient(135deg, #4a9eff, var(--blue));
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(88, 166, 255, 0.3);
+        }
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
         .nav-menu-btn { background: none; border: none; color: var(--blue); cursor: pointer; font-size: 0.8rem; padding: 2px 6px; border-radius: 3px; }
         .nav-menu-btn:hover { background: #30363d; }
         .connect-btn { 
@@ -1457,6 +1480,9 @@ generate_index_html() {
                     const displayPubkey = pubkey || userPublicKey || 'unknown';
                     const pubkeyShort = displayPubkey.substring(0, 8) + '...' + displayPubkey.substring(displayPubkey.length - 8);
                     
+                    // Construire l'URL du profil complet
+                    const profileViewerUrl = `/ipns/copylaradio.com/nostr_profile_viewer.html?hex=${displayPubkey}&origin=${displayPubkey}`;
+                    
                     let profileHTML = `
                         <div class="user-profile-footer">
                             <div class="user-profile-info">
@@ -1469,6 +1495,9 @@ generate_index_html() {
                             </div>
                             <div class="user-actions">
                                 <span class="signer-badge">✍️ Dernier signataire</span>
+                                <a href="${profileViewerUrl}" target="_blank" class="profile-link" title="Voir le profil complet">
+                                    👁️ Profil
+                                </a>
                             </div>
                         </div>
                     `;
