@@ -102,6 +102,7 @@ generate_index_html() {
     <script defer src="frd/katex.min.js"></script>
     <script defer src="frd/auto-render.min.js"></script>
     <script src="frd/nostr.bundle.js"></script>
+    <script src="frd/mermaid.min.js"></script>
     <style>
         :root { --bg: #0d1117; --fg: #f0f6fc; --accent: #ffd700; --blue: #58a6ff; --border: #30363d; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -365,6 +366,14 @@ generate_index_html() {
                 // Mettre à jour la navigation
                 updateNavigation('README.md', '');
                 
+                // Rendre les diagrammes Mermaid
+                try {
+                    await renderMermaidDiagrams();
+                    console.log('✅ Diagrammes Mermaid traités dans README');
+                } catch (error) {
+                    console.error('❌ Erreur Mermaid dans README:', error);
+                }
+                
                 // Rendu des formules mathématiques
                 if (window.renderMathInElement) {
                     renderMathInElement(content, { 
@@ -434,6 +443,14 @@ generate_index_html() {
                 });
                 
                 content.innerHTML = html;
+                
+                // Rendre les diagrammes Mermaid
+                try {
+                    await renderMermaidDiagrams();
+                    console.log(`✅ Diagrammes Mermaid traités dans ${filename}`);
+                } catch (error) {
+                    console.error(`❌ Erreur Mermaid dans ${filename}:`, error);
+                }
                 
                 if (window.renderMathInElement) {
                     renderMathInElement(content, { 
@@ -755,8 +772,100 @@ generate_index_html() {
                 return title.replace(/[^a-zA-Z0-9\s]/g, '').trim() || 'Projet-FRD';
             }
             
+            // Initialiser Mermaid
+            function initializeMermaid() {
+                if (typeof mermaid !== 'undefined') {
+                    mermaid.initialize({
+                        startOnLoad: false,
+                        theme: 'dark',
+                        themeVariables: {
+                            primaryColor: '#58a6ff',
+                            primaryTextColor: '#f0f6fc',
+                            primaryBorderColor: '#30363d',
+                            lineColor: '#8b949e',
+                            secondaryColor: '#21262d',
+                            tertiaryColor: '#161b22',
+                            background: '#0d1117',
+                            mainBkg: '#21262d',
+                            secondBkg: '#161b22',
+                            tertiaryBkg: '#0d1117'
+                        },
+                        flowchart: {
+                            useMaxWidth: true,
+                            htmlLabels: true
+                        },
+                        sequence: {
+                            useMaxWidth: true,
+                            wrap: true
+                        },
+                        gantt: {
+                            useMaxWidth: true
+                        }
+                    });
+                    console.log('✅ Mermaid initialisé avec le thème sombre');
+                } else {
+                    console.warn('⚠️ Mermaid.js non disponible');
+                }
+            }
+            
+            // Fonction pour rendre les diagrammes Mermaid
+            async function renderMermaidDiagrams() {
+                if (typeof mermaid === 'undefined') {
+                    console.warn('⚠️ Mermaid.js non chargé, saut du rendu des diagrammes');
+                    return;
+                }
+                
+                try {
+                    // Trouver tous les blocs de code mermaid
+                    const mermaidBlocks = document.querySelectorAll('pre code.language-mermaid, pre code.mermaid');
+                    console.log(`🔍 ${mermaidBlocks.length} diagramme(s) Mermaid trouvé(s)`);
+                    
+                    for (let i = 0; i < mermaidBlocks.length; i++) {
+                        const block = mermaidBlocks[i];
+                        const mermaidCode = block.textContent;
+                        const diagramId = `mermaid-diagram-${Date.now()}-${i}`;
+                        
+                        // Créer un conteneur pour le diagramme
+                        const diagramContainer = document.createElement('div');
+                        diagramContainer.className = 'mermaid-container';
+                        diagramContainer.style.cssText = 'margin: 20px 0; padding: 20px; background: #161b22; border-radius: 8px; border: 1px solid #30363d; text-align: center;';
+                        
+                        try {
+                            // Rendre le diagramme Mermaid
+                            const { svg } = await mermaid.render(diagramId, mermaidCode);
+                            diagramContainer.innerHTML = svg;
+                            
+                            // Remplacer le bloc de code par le diagramme rendu
+                            block.parentElement.parentElement.replaceChild(diagramContainer, block.parentElement);
+                            
+                            console.log(`✅ Diagramme Mermaid ${i + 1} rendu avec succès`);
+                        } catch (error) {
+                            console.error(`❌ Erreur rendu diagramme Mermaid ${i + 1}:`, error);
+                            
+                            // En cas d'erreur, afficher le code avec un message d'erreur
+                            diagramContainer.innerHTML = `
+                                <div style="color: #f85149; font-family: monospace; font-size: 0.9em;">
+                                    <strong>❌ Erreur rendu Mermaid:</strong><br>
+                                    ${error.message || 'Erreur inconnue'}<br><br>
+                                    <details style="text-align: left;">
+                                        <summary>Code source:</summary>
+                                        <pre style="background: #0d1117; padding: 10px; border-radius: 4px; margin-top: 10px;">${mermaidCode}</pre>
+                                    </details>
+                                </div>
+                            `;
+                            block.parentElement.parentElement.replaceChild(diagramContainer, block.parentElement);
+                        }
+                    }
+                } catch (error) {
+                    console.error('❌ Erreur générale lors du rendu Mermaid:', error);
+                }
+            }
+            
             // Charger README.md au démarrage ou le fichier spécifié dans l'URL
             document.addEventListener('DOMContentLoaded', () => {
+                // Initialiser Mermaid
+                initializeMermaid();
+                
                 // Populer le menu de navigation
                 populateNavMenu();
                 
