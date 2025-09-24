@@ -307,11 +307,11 @@
                 <button id="copyBtn" class="copy-btn" onclick="copyToUDrive()" disabled>📋 Copier</button>
             </div>
             <div class="header-right">
-                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 21:50:35 UTC</span>
+                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 22:03:06 UTC</span>
                 <a href="/ipns/12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu" class="header-icon" title="IPFS Node: 12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu">🌐</a>
-                <a href="/ipfs/QmWJNr8B4em9jce6iFPyz9kdbf5smm37nZqrdCZgBhWC2x/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
+                <a href="/ipfs/QmR1MHwPoVzA3fVwojyCPu9iq6eK939PKcm1Gj4MXCvL7C/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
                 <a href="/ipfs/QmRGzTfxiX1mKyBCj8dshzfJ3BVdAqxoW12gBNvPar5qvS/" class="header-icon" id="genesisBtn" title="Version Genesis">🌱</a>
-                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 4</span>
+                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 5</span>
                 <a href="#" onclick="showSignatures()" class="header-icon" id="signaturesBtn" title="Signatures de la chaîne">✍️</a>
             </div>
         </div>
@@ -1245,13 +1245,22 @@
                     
                     console.log(`👨‍✈️ Dernier signataire: ${signer}`);
                     
-                    // Essayer de charger la clé publique NOSTR du signataire
+                    // Essayer de charger la clé HEX du signataire (vraie clé du système)
                     let signerPubkey = null;
                     try {
-                        const npubResponse = await fetch(`frd/multipass/${signer}.npub`);
-                        if (npubResponse.ok) {
-                            signerPubkey = await npubResponse.text();
+                        const hexResponse = await fetch(`frd/multipass/${signer}.hex`);
+                        if (hexResponse.ok) {
+                            signerPubkey = await hexResponse.text();
                             signerPubkey = signerPubkey.trim();
+                            console.log(`🔑 Clé HEX du signataire: ${signerPubkey}`);
+                        } else {
+                            // Fallback: essayer avec .npub si .hex n'existe pas
+                            const npubResponse = await fetch(`frd/multipass/${signer}.npub`);
+                            if (npubResponse.ok) {
+                                signerPubkey = await npubResponse.text();
+                                signerPubkey = signerPubkey.trim();
+                                console.log(`📝 NPUB du signataire: ${signerPubkey}`);
+                            }
                         }
                     } catch (e) {
                         console.log(`⚠️ Impossible de charger la clé publique pour ${signer}`);

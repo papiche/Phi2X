@@ -280,6 +280,26 @@ add_signature_to_chain() {
     # Ajouter la signature
     echo "${timestamp}|${cid}|${signer_email}|${action}" >> "$signatures_file"
     
+    # Copier les fichiers MULTIPASS pour le profil (seulement pour les publications)
+    if [[ "$action" == "publish" ]]; then
+        local multipass_dir="${MY_PATH}/frd/multipass"
+        mkdir -p "$multipass_dir"
+        
+        # Copier la clé HEX (priorité)
+        local hex_file="$HOME/.zen/game/nostr/${signer_email}/HEX"
+        if [[ -f "$hex_file" ]]; then
+            cp "$hex_file" "${multipass_dir}/${signer_email}.hex" 2>/dev/null && \
+                echo "🔑 Clé HEX copiée pour $signer_email"
+        fi
+        
+        # Copier aussi la NPUB (fallback)
+        local npub_file="$HOME/.zen/game/nostr/${signer_email}/NPUB"
+        if [[ -f "$npub_file" ]]; then
+            cp "$npub_file" "${multipass_dir}/${signer_email}.npub" 2>/dev/null && \
+                echo "📝 NPUB copiée pour $signer_email"
+        fi
+    fi
+    
     echo "✍️ Signature ajoutée: $signer_email ($action) - $timestamp"
 }
 
@@ -1712,13 +1732,22 @@ generate_index_html() {
                     
                     console.log(`👨‍✈️ Dernier signataire: ${signer}`);
                     
-                    // Essayer de charger la clé publique NOSTR du signataire
+                    // Essayer de charger la clé HEX du signataire (vraie clé du système)
                     let signerPubkey = null;
                     try {
-                        const npubResponse = await fetch(`frd/multipass/${signer}.npub`);
-                        if (npubResponse.ok) {
-                            signerPubkey = await npubResponse.text();
+                        const hexResponse = await fetch(`frd/multipass/${signer}.hex`);
+                        if (hexResponse.ok) {
+                            signerPubkey = await hexResponse.text();
                             signerPubkey = signerPubkey.trim();
+                            console.log(`🔑 Clé HEX du signataire: ${signerPubkey}`);
+                        } else {
+                            // Fallback: essayer avec .npub si .hex n'existe pas
+                            const npubResponse = await fetch(`frd/multipass/${signer}.npub`);
+                            if (npubResponse.ok) {
+                                signerPubkey = await npubResponse.text();
+                                signerPubkey = signerPubkey.trim();
+                                console.log(`📝 NPUB du signataire: ${signerPubkey}`);
+                            }
                         }
                     } catch (e) {
                         console.log(`⚠️ Impossible de charger la clé publique pour ${signer}`);
