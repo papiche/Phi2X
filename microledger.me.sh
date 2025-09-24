@@ -28,8 +28,8 @@ init_capsule() {
     # Récupération des bibliothèques FRD si nécessaire
     if [[ ! -d "${MY_PATH}/frd" ]]; then
         echo "📦 Téléchargement des bibliothèques FRD..."
-        ipfs get QmUov88xQSGxK34SWqT6V8bz3hkEgMw6WHEuNWWTssyvWi -o ${MY_PATH}/
-        mv ${MY_PATH}/QmUov88xQSGxK34SWqT6V8bz3hkEgMw6WHEuNWWTssyvWi ${MY_PATH}/frd
+        ipfs get QmYLBpxWsXxYhoxomQTMMyZbnZas63Jpb8P6xdaGZzGwan -o ${MY_PATH}/
+        mv ${MY_PATH}/QmYLBpxWsXxYhoxomQTMMyZbnZas63Jpb8P6xdaGZzGwan ${MY_PATH}/frd
     fi
     
     # Génération de l'index.html si absent
