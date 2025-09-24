@@ -206,6 +206,9 @@ generate_index_html() {
                 
                 // Liste des fichiers .md disponibles (détection automatique)
                 let availableMarkdownFiles = [];
+                let filesDiscoveryCache = null;
+                let lastDiscoveryTime = 0;
+                const DISCOVERY_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
                 
                 // Fonction pour extraire le titre d'un fichier markdown
                 async function extractMarkdownTitle(filePath) {
@@ -248,39 +251,140 @@ generate_index_html() {
                     }
                 }
                 
-                // Fonction pour détecter automatiquement les fichiers .md avec leurs titres
+                // Fonction pour découvrir dynamiquement tous les fichiers .md
                 async function discoverMarkdownFiles() {
-                    const knownFiles = [
-                        'README.md',
-                        'INTRODUCTION.md',
-                        'GLOSSAIRE.md',
-                        'Readme.gpt.md',
-                        'Readme.Deepseek.md',
-                        'Readme.Gemini.md',
-                        'README.Human_Galaxy_Expansion.md',
-                        'IPFS_GUIDE.md',
-                        'Experience/MoteurElectroAcoustique.md',
-                        'Experience/Ex.1.md',
-                        'Experience/Rpi/ESchema.md',
-                        'TEST_MERMAID.md'
-                    ];
-                    
                     availableMarkdownFiles = [];
+                    const discoveredFiles = new Set();
                     
-                    // Tester chaque fichier connu et extraire son titre
-                    for (const file of knownFiles) {
+                    console.log('🔍 Découverte dynamique des fichiers .md...');
+                    
+                    // Fonction récursive pour explorer les répertoires
+                    async function exploreDirectory(basePath = '') {
                         try {
-                            const response = await fetch(file, { method: 'HEAD' });
+                            // Essayer de récupérer un listing de répertoire via une requête spéciale
+                            // En IPFS, on peut parfois lister le contenu d'un répertoire
+                            const response = await fetch(basePath || './', { method: 'GET' });
                             if (response.ok) {
-                                const title = await extractMarkdownTitle(file);
-                                availableMarkdownFiles.push({
-                                    path: file,
-                                    title: title,
-                                    directory: file.includes('/') ? file.substring(0, file.lastIndexOf('/')) : null
-                                });
+                                const html = await response.text();
+                                
+                                // Parser le HTML pour extraire les liens vers les fichiers .md
+                                const parser = new DOMParser();
+                                const doc = parser.parseFromString(html, 'text/html');
+                                const links = doc.querySelectorAll('a[href]');
+                                
+                                for (const link of links) {
+                                    const href = link.getAttribute('href');
+                                    if (href && !href.startsWith('http') && !href.startsWith('#')) {
+                                        const fullPath = basePath ? `${basePath}/${href}` : href;
+                                        
+                                        if (href.endsWith('.md')) {
+                                            discoveredFiles.add(fullPath);
+                                        } else if (!href.includes('.') && !href.endsWith('/')) {
+                                            // Potentiel répertoire, explorer récursivement
+                                            await exploreDirectory(fullPath);
+                                        }
+                                    }
+                                }
                             }
                         } catch (e) {
-                            // Fichier non accessible, on l'ignore
+                            // Méthode de listing échouée, utiliser une approche par tentatives
+                        }
+                    }
+                    
+                    // Fonction alternative : tester des fichiers et répertoires communs
+                    async function discoverByTesting() {
+                        const commonPaths = [
+                            // Fichiers racine
+                            'README.md', 'INTRODUCTION.md', 'GLOSSAIRE.md', 'INDEX.md',
+                            'CHANGELOG.md', 'LICENSE.md', 'CONTRIBUTING.md',
+                            
+                            // Patterns de nommage IA
+                            'Readme.gpt.md', 'Readme.deepseek.md', 'Readme.claude.md', 
+                            'Readme.gemini.md', 'Readme.mistral.md', 'Readme.llama.md',
+                            
+                            // Patterns avec préfixes
+                            'README.Human_Galaxy_Expansion.md', 'README.Theory.md',
+                            'IPFS_GUIDE.md', 'NOSTR_GUIDE.md', 'API_GUIDE.md',
+                            
+                            // Répertoires communs
+                            'docs/', 'doc/', 'documentation/', 'guide/', 'guides/',
+                            'examples/', 'example/', 'demo/', 'demos/',
+                            'experience/', 'experiments/', 'test/', 'tests/',
+                            'src/', 'lib/', 'tools/', 'scripts/',
+                            'research/', 'theory/', 'simulation/', 'simulations/'
+                        ];
+                        
+                        // Tester les fichiers directs
+                        for (const path of commonPaths) {
+                            if (path.endsWith('.md')) {
+                                try {
+                                    const response = await fetch(path, { method: 'HEAD' });
+                                    if (response.ok) {
+                                        discoveredFiles.add(path);
+                                    }
+                                } catch (e) {
+                                    // Fichier non accessible
+                                }
+                            }
+                        }
+                        
+                        // Tester les répertoires
+                        for (const dir of commonPaths.filter(p => p.endsWith('/'))) {
+                            const dirPath = dir.slice(0, -1); // Enlever le slash final
+                            
+                            // Tester quelques fichiers communs dans ce répertoire
+                            const commonFiles = [
+                                'README.md', 'index.md', 'INDEX.md', 'main.md',
+                                'introduction.md', 'overview.md', 'guide.md'
+                            ];
+                            
+                            for (const file of commonFiles) {
+                                try {
+                                    const fullPath = `${dirPath}/${file}`;
+                                    const response = await fetch(fullPath, { method: 'HEAD' });
+                                    if (response.ok) {
+                                        discoveredFiles.add(fullPath);
+                                    }
+                                } catch (e) {
+                                    // Fichier non accessible
+                                }
+                            }
+                            
+                            // Tester des patterns de nommage dans les répertoires
+                            const patterns = ['Ex.1.md', 'Ex.2.md', 'Ex.3.md', 'ESchema.md', 'Setup.md'];
+                            for (const pattern of patterns) {
+                                try {
+                                    const fullPath = `${dirPath}/${pattern}`;
+                                    const response = await fetch(fullPath, { method: 'HEAD' });
+                                    if (response.ok) {
+                                        discoveredFiles.add(fullPath);
+                                    }
+                                } catch (e) {
+                                    // Fichier non accessible
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Essayer d'abord l'exploration de répertoire
+                    await exploreDirectory();
+                    
+                    // Compléter avec la méthode de test
+                    await discoverByTesting();
+                    
+                    console.log(`📁 ${discoveredFiles.size} fichiers .md découverts dynamiquement`);
+                    
+                    // Traiter tous les fichiers découverts
+                    for (const file of discoveredFiles) {
+                        try {
+                            const title = await extractMarkdownTitle(file);
+                            availableMarkdownFiles.push({
+                                path: file,
+                                title: title,
+                                directory: file.includes('/') ? file.substring(0, file.lastIndexOf('/')) : null
+                            });
+                        } catch (e) {
+                            console.warn(`⚠️ Erreur lors du traitement de ${file}:`, e);
                         }
                     }
                     
@@ -298,6 +402,8 @@ generate_index_html() {
                         
                         return a.title.localeCompare(b.title);
                     });
+                    
+                    console.log(`✅ Navigation générée avec ${availableMarkdownFiles.length} fichiers`);
                 }
                 
                 // Fonction pour basculer l'affichage du menu
@@ -317,8 +423,18 @@ generate_index_html() {
                 
                 // Populer le menu de navigation
                 async function populateNavMenu() {
-                    // D'abord découvrir les fichiers disponibles
-                    await discoverMarkdownFiles();
+                    // Vérifier le cache avant de redécouvrir
+                    const now = Date.now();
+                    if (filesDiscoveryCache && (now - lastDiscoveryTime) < DISCOVERY_CACHE_DURATION) {
+                        console.log('📋 Utilisation du cache de découverte des fichiers');
+                        availableMarkdownFiles = filesDiscoveryCache;
+                    } else {
+                        // D'abord découvrir les fichiers disponibles
+                        await discoverMarkdownFiles();
+                        // Mettre en cache
+                        filesDiscoveryCache = [...availableMarkdownFiles];
+                        lastDiscoveryTime = now;
+                    }
                     
                     const dropdown = document.getElementById('navDropdown');
                     dropdown.innerHTML = '';
