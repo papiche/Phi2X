@@ -22,3 +22,6 @@ node_modules/
 # Fichiers de sauvegarde
 *.bak
 *.backup
+
+# Tests FRD
+/tmp/test_frd_capsule_*
