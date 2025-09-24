@@ -314,12 +314,7 @@ generate_index_html() {
                     setTimeout(() => {
                         const element = document.querySelector(targetAnchor);
                         if (element) {
-                            element.scrollIntoView({ behavior: 'smooth' });
-                            // Effet de surbrillance
-                            element.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
-                            setTimeout(() => {
-                                element.style.backgroundColor = '';
-                            }, 3000);
+                            scrollToElementWithOffset(element);
                         }
                     }, 200);
                 } else if (window.location.hash) {
@@ -330,6 +325,25 @@ generate_index_html() {
             } catch (error) {
                 content.innerHTML = `<h1>❌ Erreur</h1><p>Impossible de charger ${filename}</p><p>Détails: ${error.message}</p>`;
             }
+        }
+        
+        // Fonction utilitaire pour scroll vers un élément avec offset header
+        function scrollToElementWithOffset(element) {
+            const header = document.querySelector('.header');
+            const headerHeight = header ? header.offsetHeight + 10 : 70; // +10px de marge
+            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition - headerHeight;
+            
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+            
+            // Effet de surbrillance
+            element.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
+            setTimeout(() => {
+                element.style.backgroundColor = '';
+            }, 3000);
         }
         
         // Fonction pour gérer les ancres avec retry
@@ -375,13 +389,7 @@ generate_index_html() {
             }
             
             if (element) {
-                element.scrollIntoView({ behavior: 'smooth' });
-                // Ajouter un effet de surbrillance temporaire
-                element.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
-                setTimeout(() => {
-                    element.style.backgroundColor = '';
-                }, 3000);
-                
+                scrollToElementWithOffset(element);
                 console.log(`✅ Ancre trouvée: ${targetHash} -> "${element.textContent.trim().substring(0, 50)}..."`);
             } else if (retryCount < maxRetries) {
                 // Retry avec délai croissant

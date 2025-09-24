@@ -61,11 +61,11 @@
                 <h1>📡 FRD</h1>
             </div>
             <div class="header-right">
-                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 15:40:05 UTC</span>
+                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 15:44:53 UTC</span>
                 <a href="/ipns/12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu" class="header-icon" title="IPFS Node: 12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu">🌐</a>
-                <a href="/ipfs/QmTVJu1MqNsqRLtSAUYGKxSugvWHMaUWMeBmLeEEWH9zu3/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
+                <a href="/ipfs/QmT9ERy21UjRP3c4vxR2kzvVfpq5dGCRtnGANXCXfFpCvQ/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
                 <a href="/ipfs/QmfUjEtdMfyYyBaV2JEXVcuidSLiFZuLK5sAhACo93g5Pj/" class="header-icon" id="genesisBtn" title="Version Genesis">🌱</a>
-                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 12</span>
+                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 13</span>
             </div>
         </div>
     </div>
@@ -234,12 +234,7 @@
                     setTimeout(() => {
                         const element = document.querySelector(targetAnchor);
                         if (element) {
-                            element.scrollIntoView({ behavior: 'smooth' });
-                            // Effet de surbrillance
-                            element.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
-                            setTimeout(() => {
-                                element.style.backgroundColor = '';
-                            }, 3000);
+                            scrollToElementWithOffset(element);
                         }
                     }, 200);
                 } else if (window.location.hash) {
@@ -250,6 +245,25 @@
             } catch (error) {
                 content.innerHTML = `<h1>❌ Erreur</h1><p>Impossible de charger ${filename}</p><p>Détails: ${error.message}</p>`;
             }
+        }
+        
+        // Fonction utilitaire pour scroll vers un élément avec offset header
+        function scrollToElementWithOffset(element) {
+            const header = document.querySelector('.header');
+            const headerHeight = header ? header.offsetHeight + 10 : 70; // +10px de marge
+            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition - headerHeight;
+            
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+            
+            // Effet de surbrillance
+            element.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
+            setTimeout(() => {
+                element.style.backgroundColor = '';
+            }, 3000);
         }
         
         // Fonction pour gérer les ancres avec retry
@@ -295,13 +309,7 @@
             }
             
             if (element) {
-                element.scrollIntoView({ behavior: 'smooth' });
-                // Ajouter un effet de surbrillance temporaire
-                element.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
-                setTimeout(() => {
-                    element.style.backgroundColor = '';
-                }, 3000);
-                
+                scrollToElementWithOffset(element);
                 console.log(`✅ Ancre trouvée: ${targetHash} -> "${element.textContent.trim().substring(0, 50)}..."`);
             } else if (retryCount < maxRetries) {
                 // Retry avec délai croissant
