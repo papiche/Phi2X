@@ -667,6 +667,22 @@ generate_index_html() {
             gap: 8px;
             margin-top: 8px;
         }
+        .cli-info {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            font-weight: bold;
+            cursor: help;
+            border: 1px solid rgba(108, 117, 125, 0.3);
+            transition: all 0.2s ease;
+        }
+        .cli-info:hover {
+            background: linear-gradient(135deg, #495057, #6c757d);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+        }
         .nav-menu-btn { background: none; border: none; color: var(--blue); cursor: pointer; font-size: 0.8rem; padding: 2px 6px; border-radius: 3px; }
         .nav-menu-btn:hover { background: #30363d; }
         .connect-btn { 
@@ -955,24 +971,20 @@ generate_index_html() {
                 // Gérer les ancres après le chargement avec délai pour le rendu
                 setTimeout(() => handleAnchors(), 300);
                 
-                // Debug : afficher les ancres disponibles dans la console
-                setTimeout(() => {
-                    console.log('=== ANCRES DISPONIBLES APRÈS RENDU ===');
-                    document.querySelectorAll('[id]').forEach(el => {
-                        console.log(`#${el.id} - "${el.textContent.trim().substring(0, 50)}..."`);
-                    });
-                    
-                    // Debug spécial pour les titres
-                    console.log('=== TITRES H1-H6 ===');
-                    document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(el => {
-                        console.log(`${el.tagName} id="${el.id}" - "${el.textContent.trim()}"`);
-                    });
-                }, 800);
-                
+                // Debug : afficher les ancres disponibles dans la console (mode debug seulement)
                 if (window.location.search.includes('debug=anchors')) {
                     setTimeout(() => {
-                        console.log('=== MODE DEBUG ANCHORS ACTIVÉ ===');
-                    }, 500);
+                        console.log('=== ANCRES DISPONIBLES APRÈS RENDU ===');
+                        document.querySelectorAll('[id]').forEach(el => {
+                            console.log(`#${el.id} - "${el.textContent.trim().substring(0, 50)}..."`);
+                        });
+                        
+                        // Debug spécial pour les titres
+                        console.log('=== TITRES H1-H6 ===');
+                        document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(el => {
+                            console.log(`${el.tagName} id="${el.id}" - "${el.textContent.trim()}"`);
+                        });
+                    }, 800);
                 }
             } catch (error) {
                 content.innerHTML = `<h1>❌ Erreur</h1><p>Impossible de charger README.md</p><p>Détails: ${error.message}</p>`;
@@ -1128,11 +1140,14 @@ generate_index_html() {
                 setTimeout(() => handleAnchors(retryCount + 1), delay);
             } else {
                 console.log(`❌ Ancre ${targetHash} introuvable après ${maxRetries} tentatives`);
-                // Afficher les ancres disponibles pour debug
-                console.log('🔍 Ancres disponibles:');
-                document.querySelectorAll('[id]').forEach(el => {
-                    console.log(`  #${el.id} - "${el.textContent.trim().substring(0, 50)}..."`);
-                });
+                // Afficher seulement le nombre d'ancres disponibles
+                const anchorsCount = document.querySelectorAll('[id]').length;
+                console.log(`🔍 ${anchorsCount} ancres disponibles (ajoutez ?debug=anchors pour les voir)`);
+                if (window.location.search.includes('debug=anchors')) {
+                    document.querySelectorAll('[id]').forEach(el => {
+                        console.log(`  #${el.id} - "${el.textContent.trim().substring(0, 50)}..."`);
+                    });
+                }
             }
         }
         
@@ -1331,12 +1346,12 @@ generate_index_html() {
                         // Timeout de sécurité
                         setTimeout(() => {
                             if (!authCompleted) {
-                                console.log('⏰ Timeout authentification NIP42 - pas de challenge reçu');
+                                console.log('ℹ️ Pas de challenge NIP42 - authentification optionnelle sur ce relai');
                                 relay.close();
                                 // Si pas de challenge reçu, on considère que l'auth n'est pas requise
                                 resolve(true);
                             }
-                        }, 10000);
+                        }, 5000);
                         
                     } catch (error) {
                         console.error('❌ Erreur générale NIP42:', error);
@@ -1498,6 +1513,9 @@ generate_index_html() {
                                 <a href="${profileViewerUrl}" target="_blank" class="profile-link" title="Voir le profil complet">
                                     👁️ Profil
                                 </a>
+                                <div class="cli-info" title="Copie CLI disponible dans ~/.zen/game/nostr/\${CAPTAINEMAIL}/APP/uDRIVE/Apps">
+                                    💻 CLI
+                                </div>
                             </div>
                         </div>
                     `;
