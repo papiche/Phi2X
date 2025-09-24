@@ -145,28 +145,32 @@ generate_index_html() {
         </div>
     </div>
     <script>
-            // Configuration de marked avec génération automatique d'IDs
-            marked.use({
-                renderer: {
-                    heading(text, level) {
-                        // Générer un ID à partir du texte du titre
-                        const id = text
-                            .toLowerCase()
-                            .replace(/[^\w\s-]/g, '') // Supprimer caractères spéciaux
-                            .replace(/\s+/g, '-')     // Remplacer espaces par tirets
-                            .replace(/-+/g, '-')      // Éviter tirets multiples
-                            .replace(/^-|-$/g, '');   // Supprimer tirets en début/fin
-                        
-                        return `<h${level} id="${id}">${text}</h${level}>`;
-                    }
-                }
-            });
-            
             marked.setOptions({ 
                 highlight: (code, lang) => lang && hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value, 
                 breaks: true, 
                 gfm: true 
             });
+            
+            // Fonction pour générer des IDs après le rendu
+            function addHeadingIds(html) {
+                return html.replace(/<h([1-6])([^>]*)>(.*?)<\/h[1-6]>/gi, function(match, level, attrs, text) {
+                    // Vérifier si l'ID existe déjà
+                    if (attrs.includes('id=')) {
+                        return match;
+                    }
+                    
+                    // Générer un ID à partir du texte
+                    const cleanText = text.replace(/<[^>]*>/g, ''); // Supprimer HTML
+                    const id = cleanText
+                        .toLowerCase()
+                        .replace(/[^\w\s-]/g, '') // Supprimer caractères spéciaux
+                        .replace(/\s+/g, '-')     // Remplacer espaces par tirets
+                        .replace(/-+/g, '-')      // Éviter tirets multiples
+                        .replace(/^-|-$/g, '');   // Supprimer tirets en début/fin
+                    
+                    return `<h${level}${attrs} id="${id}">${text}</h${level}>`;
+                });
+            }
         
         // Fonction pour mettre à jour la navigation (breadcrumb et bouton retour)
         function updateNavigation(filename, anchor) {
@@ -192,6 +196,9 @@ generate_index_html() {
                 
                 // Parser le markdown
                 let html = marked.parse(markdown);
+                
+                // Ajouter les IDs aux titres
+                html = addHeadingIds(html);
                 
                 // Transformer les liens .md en liens qui rechargent dans la même page
                 // Gérer les liens avec ancres : fichier.md#ancre
@@ -253,6 +260,9 @@ generate_index_html() {
                 const markdown = await response.text();
                 
                 let html = marked.parse(markdown);
+                
+                // Ajouter les IDs aux titres
+                html = addHeadingIds(html);
                 
                 // Mettre à jour la navigation
                 updateNavigation(filename, targetAnchor);

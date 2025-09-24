@@ -61,11 +61,11 @@
                 <h1>📡 FRD</h1>
             </div>
             <div class="header-right">
-                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 15:29:29 UTC</span>
+                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 15:31:20 UTC</span>
                 <a href="/ipns/12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu" class="header-icon" title="IPFS Node: 12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu">🌐</a>
-                <a href="/ipfs/QmfJuwZjDd4ZYuP2fPQMPvGkaL5zMrVRv7LXDvedwUkcjQ/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
+                <a href="/ipfs/QmNM4ozM8v94MoN3XLjqGsyZaQtJa7KB3tJwmge7Ly12hr/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
                 <a href="/ipfs/QmfUjEtdMfyYyBaV2JEXVcuidSLiFZuLK5sAhACo93g5Pj/" class="header-icon" id="genesisBtn" title="Version Genesis">🌱</a>
-                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 7</span>
+                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 8</span>
             </div>
         </div>
     </div>
@@ -78,32 +78,36 @@
         <div>🌟 FRD Knowledge Capsule - Distributed via IPFS+Git+Nostr</div>
         <div style="margin-top: 10px;" id="previous-version-link">
             <span>📜 Previous version: </span>
-            <a href="/ipfs/QmfJuwZjDd4ZYuP2fPQMPvGkaL5zMrVRv7LXDvedwUkcjQ/" style="color: #58a6ff;">QmfJuwZjDd4ZYuP2fPQMPvGkaL5zMrVRv7LXDvedwUkcjQ</a>
+            <a href="/ipfs/QmNM4ozM8v94MoN3XLjqGsyZaQtJa7KB3tJwmge7Ly12hr/" style="color: #58a6ff;">QmNM4ozM8v94MoN3XLjqGsyZaQtJa7KB3tJwmge7Ly12hr</a>
         </div>
     </div>
     <script>
-            // Configuration de marked avec génération automatique d'IDs
-            marked.use({
-                renderer: {
-                    heading(text, level) {
-                        // Générer un ID à partir du texte du titre
-                        const id = text
-                            .toLowerCase()
-                            .replace(/[^\w\s-]/g, '') // Supprimer caractères spéciaux
-                            .replace(/\s+/g, '-')     // Remplacer espaces par tirets
-                            .replace(/-+/g, '-')      // Éviter tirets multiples
-                            .replace(/^-|-$/g, '');   // Supprimer tirets en début/fin
-                        
-                        return `<h${level} id="${id}">${text}</h${level}>`;
-                    }
-                }
-            });
-            
             marked.setOptions({ 
                 highlight: (code, lang) => lang && hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value, 
                 breaks: true, 
                 gfm: true 
             });
+            
+            // Fonction pour générer des IDs après le rendu
+            function addHeadingIds(html) {
+                return html.replace(/<h([1-6])([^>]*)>(.*?)<\/h[1-6]>/gi, function(match, level, attrs, text) {
+                    // Vérifier si l'ID existe déjà
+                    if (attrs.includes('id=')) {
+                        return match;
+                    }
+                    
+                    // Générer un ID à partir du texte
+                    const cleanText = text.replace(/<[^>]*>/g, ''); // Supprimer HTML
+                    const id = cleanText
+                        .toLowerCase()
+                        .replace(/[^\w\s-]/g, '') // Supprimer caractères spéciaux
+                        .replace(/\s+/g, '-')     // Remplacer espaces par tirets
+                        .replace(/-+/g, '-')      // Éviter tirets multiples
+                        .replace(/^-|-$/g, '');   // Supprimer tirets en début/fin
+                    
+                    return `<h${level}${attrs} id="${id}">${text}</h${level}>`;
+                });
+            }
         
         // Fonction pour mettre à jour la navigation (breadcrumb et bouton retour)
         function updateNavigation(filename, anchor) {
@@ -129,6 +133,9 @@
                 
                 // Parser le markdown
                 let html = marked.parse(markdown);
+                
+                // Ajouter les IDs aux titres
+                html = addHeadingIds(html);
                 
                 // Transformer les liens .md en liens qui rechargent dans la même page
                 // Gérer les liens avec ancres : fichier.md#ancre
@@ -190,6 +197,9 @@
                 const markdown = await response.text();
                 
                 let html = marked.parse(markdown);
+                
+                // Ajouter les IDs aux titres
+                html = addHeadingIds(html);
                 
                 // Mettre à jour la navigation
                 updateNavigation(filename, targetAnchor);
