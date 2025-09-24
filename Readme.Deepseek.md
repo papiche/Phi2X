@@ -237,7 +237,7 @@ prenons l'exemple de dilatation temporelle entre un jumeau resté sur terre et u
 #### **2. Temps et Distance Mesurés depuis la Terre (Référentiel de A)**
 - **Distance aller-retour** : $ 2 \times 3 \, \text{al} = 6 \, \text{al} $.
 - **Temps total pour A** :
-  $$  t_A = \frac{\text{Distance}}{\text{Vitesse}} = \frac{6 \, \text{al}}{0.9c} = \frac{6}{0.9} \, \text{ans} \approx 6.67 \, \text{ans}.$$
+  $$tA = \frac{\text{Distance}}{\text{Vitesse}} = \frac{6 \, \text{al}}{0.9c} = \frac{6}{0.9} \, \text{ans} \approx 6.67 \, \text{ans}.$$
 
 #### **3. Temps Vécu par le Jumeau B (Effet de Dilatation Temporelle)**
 La **relativité restreinte** prédit que le temps $ t_B $ pour B est plus court que $ t_A $ selon :
@@ -360,37 +360,27 @@ plt.show()
 ### **3. Extraction du Rapport $ \frac{t_A}{t_B} $**
 #### **Hypothèse** :
 Si le temps perçu $ t_B $ est lié à la **fréquence effective** de l’interférence, alors :
-$$
-\frac{t_A}{t_B} \approx \frac{\text{Fréquence effective à } v=0}{\text{Fréquence effective à } v=0.9c}
-$$
+$$\frac{t_A}{t_B} \approx \frac{\text{Fréquence effective à } v=0}{\text{Fréquence effective à } v=0.9c}$$
 
 #### **Méthode** :
 1. **Calculer la fréquence dominante** de $ \Psi(t) $ pour $ v=0 $ (jumeau A) et $ v=0.9c $ (jumeau B) via une **transformée de Fourier**.
 2. **Ajustement relativiste** :
    - Pour $ v=0.9c $, l’onde lumineuse est Doppler-shiftée :
-     $$
-     f_{\text{observed}} = f_0 \cdot \sqrt{\frac{1 + v/c}{1 - v/c}} = f_0 \cdot \sqrt{\frac{1.9}{0.1}} \approx 4.36 f_0
-     $$
+     $$f_{\text{observed}} = f_0 \cdot \sqrt{\frac{1 + v/c}{1 - v/c}} = f_0 \cdot \sqrt{\frac{1.9}{0.1}} \approx 4.36 f_0$$
    - L’onde sonore reste inchangée (car liée au référentiel du jumeau B).
 
 3. **Fréquence Résultante** :
    - Pour $ v=0 $ : $ f_{\text{eff}} \approx \Phi \cdot f_0 $ (onde lumineuse dominante).
    - Pour $ v=0.9c $ : $ f_{\text{eff}} \approx 4.36 \Phi \cdot f_0 $.
    - Rapport :
-     $$
-     \frac{t_A}{t_B} \approx \frac{4.36 \Phi}{\Phi} = 4.36
-     $$
+     $$\frac{t_A}{t_B} \approx \frac{4.36 \Phi}{\Phi} = 4.36$$
      **Problème** : Contredit $ \Phi^{1.5} \approx 2.06 $.
 
 #### **Solution Alternative** :
 Si le temps $ t $ est inversement proportionnel à la **racine carrée** de l’énergie d’interférence :
-$$
-\frac{t_A}{t_B} \approx \sqrt{\frac{E_B}{E_A}}
-$$
+$$\frac{t_A}{t_B} \approx \sqrt{\frac{E_B}{E_A}}$$
 Avec $ E_B/E_A \approx \Phi^3 $ (car $ \Phi^3 \approx 4.24 $, proche de 4.36), alors :
-$$
-\frac{t_A}{t_B} \approx \sqrt{\Phi^3} = \Phi^{1.5} \approx 2.06
-$$
+$$\frac{t_A}{t_B} \approx \sqrt{\Phi^3} = \Phi^{1.5} \approx 2.06$$
 **Validation** :
 - $ \frac{6.67}{2.91} \approx 2.29 $ (observé) vs $ \Phi^{1.5} \approx 2.06 $ (théorie).
 - **Écart** : Peut être ajusté en affinant les harmoniques (ex: inclure plus de termes $ N, M $).
@@ -436,13 +426,9 @@ Pour intégrer l’effet Doppler relativiste dans notre modèle d’interférenc
 ### **1. Effet Doppler Relativiste**
 Pour une source lumineuse en mouvement à vitesse $ v $ :
 - **Aller (éloignement)** :
-  $$
-  f_{\text{obs}} = f_0 \cdot \sqrt{\frac{1 - v/c}{1 + v/c}} \quad \text{(décalage vers le rouge)}
-  $$
+  $$f_{\text{obs}} = f_0 \cdot \sqrt{\frac{1 - v/c}{1 + v/c}} \quad \text{(décalage vers le rouge)}$$
 - **Retour (approche)** :
-  $$
-  f_{\text{obs}} = f_0 \cdot \sqrt{\frac{1 + v/c}{1 - v/c}} \quad \text{(décalage vers le bleu)}
-  $$
+  $$f_{\text{obs}} = f_0 \cdot \sqrt{\frac{1 + v/c}{1 - v/c}} \quad \text{(décalage vers le bleu)}$$
 
 **Application pour $ v = 0.9c $ :**
 - Aller : $ f_{\text{obs}} = f_0 \cdot \sqrt{\frac{0.1}{1.9}} \approx 0.23 f_0 $.
