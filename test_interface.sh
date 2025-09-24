@@ -43,7 +43,7 @@ echo ""
 # Tester l'interface HTML
 echo "🧪 Test de l'interface HTML:"
 echo "-----------------------------"
-if curl -s --max-time 5 "http://127.0.0.1:8080/ipfs/$CID/index.html" | grep -q "FRD Docs"; then
+if curl -s --max-time 5 "http://127.0.0.1:8080/ipfs/$CID/index.html" | grep -q "FRD Knowledge"; then
     echo "✅ Interface HTML accessible"
 else
     echo "❌ Problème avec l'interface HTML"
