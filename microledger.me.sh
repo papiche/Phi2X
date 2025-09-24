@@ -456,8 +456,6 @@ OLD=$(cat ${MY_PATH}/.chain 2>/dev/null)
 [[ -z ${OLD} ]] \
     && GENESYS=$(ipfs add -rwHq ${MY_PATH}/* | tail -n 1) \
     && echo ${GENESYS} > ${MY_PATH}/.chain \
-    && echo "### - (^‿‿^) - " >> ${MY_PATH}/README.md \
-    && echo http://127.0.0.1:8080/ipfs/${GENESYS} >> ${MY_PATH}/README.md \
     && echo "CHAIN BLOC ZERO : ${GENESYS}" \
 
 
@@ -514,10 +512,8 @@ else
 fi
 
 echo "## README UPGRADE ${OLD}~${IPFSME}"
-# Éviter les erreurs sed si OLD est vide
-if [[ -n "${OLD}" ]]; then
-sed -i "s~${OLD}~${IPFSME}~g" ${MY_PATH}/README.md
-fi
+# Note: Les liens IPFS sont maintenant gérés dans index.html
+# Plus besoin de modifier README.md automatiquement
 
 echo "## INDEX.HTML UPDATE"
 # L'index.html est déjà généré avec les bons CIDs, pas besoin de mise à jour supplémentaire
