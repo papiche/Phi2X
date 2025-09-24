@@ -344,7 +344,7 @@ EOF
 generate_index_html() {
     PROJECT_NAME=$(basename ${MY_PATH})
     GENERATION_DATE=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
-    IPFS_NODE_ID=$(ipfs id -f="<id>" 2>/dev/null || echo "unknown")
+    IPFS_NODE_ID=$(ipfs id -f="<id>" 2>/dev/null || echo "$IPFSNODEID")
     OLD_CID_PARAM=${1:-"genesis"}
     GENESIS_CID_PARAM=${2:-"genesis"}
     EVOLUTION_COUNT=${3:-"0"}
@@ -633,6 +633,16 @@ generate_index_html() {
             background: var(--danger); 
             border-color: var(--danger); 
             color: white; 
+        }
+        .signer-badge { 
+            background: linear-gradient(135deg, var(--accent-dynamic), #ffd700); 
+            color: #0d1117; 
+            padding: 6px 12px; 
+            border-radius: 6px; 
+            font-size: 0.8em;
+            font-weight: bold;
+            text-shadow: none;
+            border: 1px solid rgba(255, 215, 0, 0.3);
         }
         .nav-menu-btn { background: none; border: none; color: var(--blue); cursor: pointer; font-size: 0.8rem; padding: 2px 6px; border-radius: 3px; }
         .nav-menu-btn:hover { background: #30363d; }
@@ -1393,7 +1403,7 @@ generate_index_html() {
             }
             
             // Fonction pour afficher le profil utilisateur dans le footer
-            function displayUserProfile(profileData) {
+            function displayUserProfile(profileData, pubkey = null) {
                 try {
                     // Créer ou mettre à jour le footer
                     let footer = document.querySelector('.footer');
@@ -1404,10 +1414,11 @@ generate_index_html() {
                     }
                     
                     // Construire le HTML du profil
-                    const name = profileData.name || profileData.display_name || 'Utilisateur Nostr';
+                    const name = profileData.name || profileData.display_name || 'Signataire Nostr';
                     const picture = profileData.picture || '';
                     const about = profileData.about || '';
-                    const pubkeyShort = userPublicKey.substring(0, 8) + '...' + userPublicKey.substring(-8);
+                    const displayPubkey = pubkey || userPublicKey || 'unknown';
+                    const pubkeyShort = displayPubkey.substring(0, 8) + '...' + displayPubkey.substring(displayPubkey.length - 8);
                     
                     let profileHTML = `
                         <div class="user-profile-footer">
@@ -1420,7 +1431,7 @@ generate_index_html() {
                                 </div>
                             </div>
                             <div class="user-actions">
-                                <button onclick="disconnectNostr()" class="disconnect-btn">🚪 Déconnecter</button>
+                                <span class="signer-badge">✍️ Dernier signataire</span>
                             </div>
                         </div>
                     `;
@@ -1428,7 +1439,7 @@ generate_index_html() {
                     footer.innerHTML = profileHTML;
                     footer.style.display = 'block';
                     
-                    console.log('✅ Profil utilisateur affiché dans le footer');
+                    console.log('✅ Profil du signataire affiché dans le footer');
                 } catch (error) {
                     console.error('Erreur lors de l\'affichage du profil:', error);
                 }
@@ -1583,6 +1594,56 @@ generate_index_html() {
             function getProjectName() {
                 const title = document.title;
                 return title.replace(/[^a-zA-Z0-9\s]/g, '').trim() || 'Projet-FRD';
+            }
+            
+            // Fonction pour charger le profil du dernier signataire
+            async function loadLastSignerProfile() {
+                try {
+                    console.log('👤 Chargement du profil du dernier signataire...');
+                    
+                    // Charger le fichier des signatures
+                    const response = await fetch('.chain.signatures');
+                    if (!response.ok) {
+                        console.log('⚠️ Aucun fichier de signatures trouvé');
+                        return;
+                    }
+                    
+                    const signaturesText = await response.text();
+                    const lines = signaturesText.split('\n').filter(line => line.trim() && !line.startsWith('#'));
+                    
+                    if (lines.length === 0) {
+                        console.log('⚠️ Aucune signature trouvée');
+                        return;
+                    }
+                    
+                    // Prendre la dernière signature (publish)
+                    const publishLines = lines.filter(line => line.includes('|publish'));
+                    if (publishLines.length === 0) {
+                        console.log('⚠️ Aucune signature de publication trouvée');
+                        return;
+                    }
+                    
+                    const lastPublish = publishLines[publishLines.length - 1];
+                    const [timestamp, cid, signer, action] = lastPublish.split('|');
+                    
+                    console.log(`👨‍✈️ Dernier signataire: ${signer}`);
+                    
+                    // Essayer de charger le profil NOSTR du signataire
+                    // Pour cela, nous devons d'abord obtenir sa clé publique
+                    // Nous allons simuler un profil basique pour l'instant
+                    const profileData = {
+                        name: signer.split('@')[0], // Utiliser la partie avant @ comme nom
+                        display_name: signer,
+                        about: `Signataire MULTIPASS Astroport.ONE - ${signer}`,
+                        picture: null
+                    };
+                    
+                    // Afficher le profil dans le footer
+                    displayUserProfile(profileData, 'multipass_' + signer.replace(/[^a-zA-Z0-9]/g, '_'));
+                    
+                } catch (error) {
+                    console.error('❌ Erreur lors du chargement du profil du signataire:', error);
+                }
             }
             
             // Fonction pour afficher les signatures de la chaîne
@@ -1775,6 +1836,11 @@ generate_index_html() {
                 // Menu déjà généré côté serveur - pas besoin de populateNavMenu()
                 console.log('✅ Menu de navigation prêt');
                 
+                // Charger le profil du dernier signataire
+                setTimeout(() => {
+                    loadLastSignerProfile();
+                }, 1000); // Attendre 1 seconde pour que la page soit bien chargée
+                
                 if (!parseInitialUrl()) {
                     loadReadme();
                     // Gérer l'ancre initiale après un délai plus long pour le rendu complet
@@ -1846,7 +1912,7 @@ OLD=$(cat ${MY_PATH}/.chain 2>/dev/null)
 [[ -z ${OLD} ]] && init_capsule
 
 [[ -z ${OLD} ]] \
-    && GENESYS=$(ipfs add -rwHq ${MY_PATH}/* | tail -n 1) \
+    && GENESYS=$(ipfs add -rwq ${MY_PATH}/* | tail -n 1) \
     && echo ${GENESYS} > ${MY_PATH}/.chain \
     && echo "CHAIN BLOC ZERO : ${GENESYS}" \
 
@@ -1883,7 +1949,7 @@ REAL_OLD_CID=$(ls -t ${MY_PATH}/.chain.* 2>/dev/null | grep -v ".chain.genesis" 
 
 generate_index_html "${REAL_OLD_CID}" "${GENESIS_CID}" "${NEXT_EVOLUTION_COUNT}"
 
-IPFSME=$(ipfs add -rwHq --ignore=.git --ignore-rules-path=.gitignore ${MY_PATH}/* | tail -n 1)
+IPFSME=$(ipfs add -rwq --ignore=.git --ignore-rules-path=.gitignore ${MY_PATH}/* | tail -n 1)
 
 [[ ${IPFSME} == ${OLD} ]] && echo "No change." && exit 0
 
