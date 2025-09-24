@@ -1363,13 +1363,13 @@ generate_index_html() {
                         await relay.connect();
                         console.log('✅ Connecté au relai pour NIP42:', relayUrl);
                         
-                        // Timeout de sécurité - Envoyer un NIP42 proactif avec .moats
+                        // Timeout de sécurité - Envoyer un NIP42 proactif avec _moats
                         setTimeout(async () => {
                             if (!authCompleted) {
-                                console.log('🔐 Pas de challenge reçu - envoi NIP42 proactif avec .moats');
+                                console.log('🔐 Pas de challenge reçu - envoi NIP42 proactif avec _moats');
                                 
                                 try {
-                                    // Utiliser un challenge basé sur le timestamp actuel (similaire à .moats)
+                                    // Utiliser un challenge basé sur le timestamp actuel (similaire à _moats)
                                     const now = new Date();
                                     const moatsChallenge = now.getFullYear().toString() + 
                                                          (now.getMonth() + 1).toString().padStart(2, '0') +
@@ -1378,7 +1378,7 @@ generate_index_html() {
                                                          now.getMinutes().toString().padStart(2, '0') +
                                                          now.getSeconds().toString().padStart(2, '0') +
                                                          now.getMilliseconds().toString().padStart(4, '0');
-                                    console.log('📅 Challenge généré (format .moats):', moatsChallenge);
+                                    console.log('📅 Challenge généré (format _moats):', moatsChallenge);
                                     
                                     // Créer l'événement NIP42 proactif
                                     const authEvent = {
@@ -2059,7 +2059,7 @@ HTMLEOF
 reset_chain() {
     echo "⚠️  ATTENTION: Cette opération va supprimer toute l'historique de la chaîne !"
     echo "📋 Fichiers qui seront supprimés:"
-    ls -la ${MY_PATH}/.chain* ${MY_PATH}/.moats ${MY_PATH}/_signatures 2>/dev/null || echo "   (Aucun fichier de chaîne trouvé)"
+    ls -la ${MY_PATH}/.chain* ${MY_PATH}/_moats ${MY_PATH}/_signatures 2>/dev/null || echo "   (Aucun fichier de chaîne trouvé)"
     if [[ -d ${MY_PATH}/frd/multipass/ ]]; then
         echo "📁 Répertoire MULTIPASS:"
         ls -la ${MY_PATH}/frd/multipass/ 2>/dev/null
@@ -2079,7 +2079,7 @@ reset_chain() {
     
     echo "🗑️  Suppression des fichiers de chaîne existants..."
     rm -f ${MY_PATH}/.chain*
-    rm -f ${MY_PATH}/.moats
+    rm -f ${MY_PATH}/_moats
     rm -f ${MY_PATH}/_signatures
     rm -rf ${MY_PATH}/frd/multipass/
     echo "✅ Chaîne réinitialisée - Prochaine publication sera une nouvelle Genesis"
@@ -2103,11 +2103,11 @@ OLD=$(cat ${MY_PATH}/.chain 2>/dev/null)
 
 echo "## TIMESTAMP CHAIN SHIFTING"
 cp ${MY_PATH}/.chain \
-        ${MY_PATH}/.chain.$(cat ${MY_PATH}/.moats)
+        ${MY_PATH}/_chain.$(cat ${MY_PATH}/_moats)
 
 # Nettoyage des anciens fichiers .chain (ne garde que les 2 plus récents, mais préserve genesis et n)
 echo "## CLEANING OLD CHAIN FILES"
-ls -t ${MY_PATH}/.chain.* 2>/dev/null | grep -v ".chain.genesis" | grep -v ".chain.n" | tail -n +3 | xargs rm -f 2>/dev/null || true
+ls -t ${MY_PATH}/_chain.* 2>/dev/null | grep -v "_chain.genesis" | grep -v "_chain.n" | tail -n +3 | xargs rm -f 2>/dev/null || true
 
 echo "## INDEX.HTML PRE-GENERATION"
 # Toujours créer/recréer l'index.html AVANT la génération IPFS
@@ -2116,20 +2116,20 @@ echo "🌐 Génération de l'index.html..."
 [[ -f ${MY_PATH}/index.html ]] && rm ${MY_PATH}/index.html
 
 # Préparer le compteur d'évolutions (prévoir l'incrémentation)
-if [[ ! -f ${MY_PATH}/.chain.genesis ]]; then
+if [[ ! -f ${MY_PATH}/_chain.genesis ]]; then
     # Premier run : sera genesis, mais on ne connaît pas encore le CID final
     NEXT_EVOLUTION_COUNT="0"
     # Utiliser l'ancien CID comme genesis temporaire (sera corrigé après)
     GENESIS_CID=${OLD:-"genesis"}
 else
     # Run suivant : incrémenter le compteur
-    CURRENT_COUNT=$(cat ${MY_PATH}/.chain.n 2>/dev/null || echo "0")
+    CURRENT_COUNT=$(cat ${MY_PATH}/_chain.n 2>/dev/null || echo "0")
     NEXT_EVOLUTION_COUNT=$((CURRENT_COUNT + 1))
-    GENESIS_CID=$(cat ${MY_PATH}/.chain.genesis)
+    GENESIS_CID=$(cat ${MY_PATH}/_chain.genesis)
 fi
 
 # Récupérer le vrai ancien CID depuis le fichier de sauvegarde
-REAL_OLD_CID=$(ls -t ${MY_PATH}/.chain.* 2>/dev/null | grep -v ".chain.genesis" | grep -v ".chain.n" | head -n 1 | xargs cat 2>/dev/null || echo "genesis")
+REAL_OLD_CID=$(ls -t ${MY_PATH}/_chain.* 2>/dev/null | grep -v "_chain.genesis" | grep -v "_chain.n" | head -n 1 | xargs cat 2>/dev/null || echo "genesis")
 
 generate_index_html "${REAL_OLD_CID}" "${GENESIS_CID}" "${NEXT_EVOLUTION_COUNT}"
 
@@ -2139,17 +2139,17 @@ IPFSME=$(ipfs add -rwq --ignore=.git --ignore-rules-path=.gitignore ${MY_PATH}/*
 
 echo "## CHAIN UPGRADE"
 echo ${IPFSME} > ${MY_PATH}/.chain
-echo ${MOATS} > ${MY_PATH}/.moats
+echo ${MOATS} > ${MY_PATH}/_moats
 
 # Gestion du CID genesis et du compteur d'évolutions
-if [[ ! -f ${MY_PATH}/.chain.genesis ]]; then
+if [[ ! -f ${MY_PATH}/_chain.genesis ]]; then
     # Premier run : sauvegarder le CID genesis
-    echo ${IPFSME} > ${MY_PATH}/.chain.genesis
-    echo "0" > ${MY_PATH}/.chain.n
+    echo ${IPFSME} > ${MY_PATH}/_chain.genesis
+    echo "0" > ${MY_PATH}/_chain.n
     echo "🌱 Genesis CID sauvegardé: ${IPFSME}"
 else
     # Sauvegarder le compteur d'évolutions (déjà calculé dans NEXT_EVOLUTION_COUNT)
-    echo ${NEXT_EVOLUTION_COUNT} > ${MY_PATH}/.chain.n
+    echo ${NEXT_EVOLUTION_COUNT} > ${MY_PATH}/_chain.n
     echo "🔄 Évolution #${NEXT_EVOLUTION_COUNT} depuis Genesis"
 fi
 
@@ -2167,7 +2167,7 @@ if select_multipass; then
     
     # Envoyer l'événement NOSTR
     PROJECT_NAME=$(basename ${MY_PATH})
-    CURRENT_EVOLUTION_COUNT=$(cat ${MY_PATH}/.chain.n 2>/dev/null || echo "0")
+    CURRENT_EVOLUTION_COUNT=$(cat ${MY_PATH}/_chain.n 2>/dev/null || echo "0")
     
     if send_nostr_capsule_event "${IPFSME}" "${PROJECT_NAME}" "${CURRENT_EVOLUTION_COUNT}"; then
         echo "📡 Événement NOSTR publié avec succès"

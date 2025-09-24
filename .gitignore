@@ -1,7 +1,7 @@
 # Fichiers temporaires du microledger
 .chain
-.chain.*
-.moats
+_chain.*
+_moats
 
 # Fichiers système
 .DS_Store
