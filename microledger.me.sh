@@ -204,6 +204,11 @@ cp ${MY_PATH}/.chain \
 echo "## CLEANING OLD CHAIN FILES"
 ls -t ${MY_PATH}/.chain* | tail -n +3 | xargs rm -f 2>/dev/null || true
 
+echo "## INDEX.HTML PRE-GENERATION"
+# Toujours créer/recréer l'index.html AVANT la génération IPFS
+echo "🌐 Génération de l'index.html..."
+generate_index_html
+
 IPFSME=$(ipfs add -rwHq --ignore=.git --ignore-rules-path=.gitignore ${MY_PATH}/* | tail -n 1)
 
 [[ ${IPFSME} == ${OLD} ]] && echo "No change." && exit 0
@@ -215,14 +220,10 @@ echo ${MOATS} > ${MY_PATH}/.moats
 echo "## README UPGRADE ${OLD}~${IPFSME}"
 sed -i "s~${OLD}~${IPFSME}~g" ${MY_PATH}/README.md
 
-echo "## INDEX.HTML CHECK & UPDATE"
-# Toujours créer/recréer l'index.html
-echo "🌐 Génération de l'index.html..."
-generate_index_html
-
+echo "## INDEX.HTML UPDATE"
 # Mise à jour des liens IPFS dans index.html
 sed -i "s~${OLD}~${IPFSME}~g" ${MY_PATH}/index.html
-echo "✅ index.html généré et mis à jour avec le nouveau CID IPFS"
+echo "✅ index.html mis à jour avec le nouveau CID IPFS"
 
 echo "## AUTO GIT"
 echo '# ENTER COMMENT FOR YOUR COMMIT :'
