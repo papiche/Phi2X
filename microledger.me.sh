@@ -88,6 +88,110 @@ generate_index_html() {
         PAGE_TITLE_ESCAPED="$PROJECT_NAME"
     fi
     
+    # Fonction pour extraire le titre d'un fichier markdown
+    extract_md_title() {
+        local file="$1"
+        if [[ -f "$file" ]]; then
+            # Chercher le premier titre H1, H2 ou H3
+            local title=$(head -n 20 "$file" | grep -E '^#{1,3} ' | head -n 1 | sed -E 's/^#{1,3} //' | sed 's/[*_`]//g')
+            if [[ -n "$title" ]]; then
+                echo "$title"
+            else
+                # Fallback : première ligne non vide significative
+                local fallback=$(head -n 10 "$file" | grep -v '^---$' | grep -v '^```' | grep -v '^[*-]' | grep -E '^.{1,100}$' | head -n 1 | sed 's/[*_`]//g')
+                if [[ -n "$fallback" ]]; then
+                    echo "$fallback"
+                else
+                    # Dernier fallback : nom du fichier
+                    basename "$file" .md
+                fi
+            fi
+        else
+            basename "$file" .md
+        fi
+    }
+    
+    # Fonction pour générer le menu des fichiers markdown
+    generate_markdown_menu() {
+        echo "📁 Génération du menu des fichiers .md..."
+        
+        # Placeholder pour le menu dans l'HTML
+        local menu_placeholder="<!-- MARKDOWN_MENU_PLACEHOLDER -->"
+        local menu_content=""
+        
+        # Trouver tous les fichiers .md récursivement
+        local md_files=()
+        while IFS= read -r -d '' file; do
+            md_files+=("$file")
+        done < <(find "${MY_PATH}" -name "*.md" -type f -print0 | sort -z)
+        
+        echo "📄 ${#md_files[@]} fichiers .md trouvés"
+        
+        # Organiser par répertoires
+        declare -A dirs_files
+        local root_files=()
+        
+        for file in "${md_files[@]}"; do
+            local rel_path="${file#${MY_PATH}/}"
+            local dir_name=$(dirname "$rel_path")
+            
+            if [[ "$dir_name" == "." ]]; then
+                root_files+=("$rel_path")
+            else
+                if [[ -z "${dirs_files[$dir_name]}" ]]; then
+                    dirs_files[$dir_name]="$rel_path"
+                else
+                    dirs_files[$dir_name]="${dirs_files[$dir_name]}|$rel_path"
+                fi
+            fi
+        done
+        
+        # Générer le HTML du menu
+        menu_content+="<div id=\"navDropdown\" class=\"nav-dropdown\">"
+        
+        # Fichiers racine en premier
+        for file in "${root_files[@]}"; do
+            local title=$(extract_md_title "${MY_PATH}/$file")
+            local display_name
+            
+            if [[ "$file" == "README.md" ]]; then
+                display_name="🏠 $title"
+            elif [[ "$file" =~ ^Readme\. ]]; then
+                local ai_name=$(echo "$file" | sed 's/Readme\.//' | sed 's/\.md//')
+                display_name="🤖 $title ($ai_name)"
+            else
+                display_name="📄 $title"
+            fi
+            
+            menu_content+="<a href=\"#\" onclick=\""
+            if [[ "$file" == "README.md" ]]; then
+                menu_content+="loadReadme();"
+            else
+                menu_content+="loadMarkdownFile('$file');"
+            fi
+            menu_content+=" document.getElementById('navDropdown').classList.remove('show'); return false;\">$display_name</a>"
+        done
+        
+        # Répertoires et leurs fichiers
+        for dir in $(printf '%s\n' "${!dirs_files[@]}" | sort); do
+            local dir_display=$(echo "$dir" | sed 's/^./\U&/' | sed 's/\/.*$//')
+            menu_content+="<div class=\"nav-section-title\">📁 $dir_display</div>"
+            
+            IFS='|' read -ra files <<< "${dirs_files[$dir]}"
+            for file in "${files[@]}"; do
+                local title=$(extract_md_title "${MY_PATH}/$file")
+                menu_content+="<a href=\"#\" class=\"nav-subsection\" onclick=\"loadMarkdownFile('$file'); document.getElementById('navDropdown').classList.remove('show'); return false;\">📄 $title</a>"
+            done
+        done
+        
+        menu_content+="</div>"
+        
+        # Remplacer le placeholder dans l'index.html
+        sed -i "s|$menu_placeholder|$menu_content|g" "${MY_PATH}/index.html"
+        
+        echo "✅ Menu généré avec ${#md_files[@]} fichiers"
+    }
+    
     cat > ${MY_PATH}/index.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="fr">
@@ -169,9 +273,7 @@ generate_index_html() {
                 <div id="breadcrumb" class="breadcrumb">
                     <div class="nav-menu">
                         <button id="navMenuBtn" class="nav-menu-btn" onclick="toggleNavMenu()">📄 Navigation ▼</button>
-                        <div id="navDropdown" class="nav-dropdown">
-                            <!-- Menu items will be populated by JavaScript -->
-                        </div>
+                        <!-- MARKDOWN_MENU_PLACEHOLDER -->
                     </div>
                     <span id="breadcrumbText"></span>
                 </div>
@@ -204,207 +306,8 @@ generate_index_html() {
                     gfm: true 
                 });
                 
-                // Liste des fichiers .md disponibles (détection automatique)
-                let availableMarkdownFiles = [];
-                let filesDiscoveryCache = null;
-                let lastDiscoveryTime = 0;
-                const DISCOVERY_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-                
-                // Fonction pour extraire le titre d'un fichier markdown
-                async function extractMarkdownTitle(filePath) {
-                    try {
-                        const response = await fetch(filePath);
-                        if (!response.ok) return null;
-                        
-                        const content = await response.text();
-                        const lines = content.split('\n');
-                        
-                        // Chercher le premier titre (H1, H2, ou H3)
-                        for (const line of lines.slice(0, 20)) { // Limiter aux 20 premières lignes
-                            const trimmed = line.trim();
-                            if (trimmed.startsWith('# ')) {
-                                return trimmed.substring(2).trim();
-                            } else if (trimmed.startsWith('## ')) {
-                                return trimmed.substring(3).trim();
-                            } else if (trimmed.startsWith('### ')) {
-                                return trimmed.substring(4).trim();
-                            }
-                        }
-                        
-                        // Chercher une ligne qui ressemble à un titre (première ligne non vide significative)
-                        for (const line of lines.slice(0, 10)) {
-                            const trimmed = line.trim();
-                            if (trimmed.length > 0 && 
-                                !trimmed.startsWith('---') && 
-                                !trimmed.startsWith('```') &&
-                                !trimmed.startsWith('*') &&
-                                !trimmed.startsWith('-') &&
-                                trimmed.length < 100) { // Pas trop long pour être un titre
-                                return trimmed.replace(/[*_`]/g, ''); // Nettoyer le markdown
-                            }
-                        }
-                        
-                        // Fallback : utiliser le nom du fichier
-                        return filePath.split('/').pop().replace('.md', '');
-                    } catch (error) {
-                        return filePath.split('/').pop().replace('.md', '');
-                    }
-                }
-                
-                // Fonction pour découvrir dynamiquement tous les fichiers .md
-                async function discoverMarkdownFiles() {
-                    availableMarkdownFiles = [];
-                    const discoveredFiles = new Set();
-                    
-                    console.log('🔍 Découverte dynamique des fichiers .md...');
-                    
-                    // Fonction récursive pour explorer les répertoires
-                    async function exploreDirectory(basePath = '') {
-                        try {
-                            // Essayer de récupérer un listing de répertoire via une requête spéciale
-                            // En IPFS, on peut parfois lister le contenu d'un répertoire
-                            const response = await fetch(basePath || './', { method: 'GET' });
-                            if (response.ok) {
-                                const html = await response.text();
-                                
-                                // Parser le HTML pour extraire les liens vers les fichiers .md
-                                const parser = new DOMParser();
-                                const doc = parser.parseFromString(html, 'text/html');
-                                const links = doc.querySelectorAll('a[href]');
-                                
-                                for (const link of links) {
-                                    const href = link.getAttribute('href');
-                                    if (href && !href.startsWith('http') && !href.startsWith('#')) {
-                                        const fullPath = basePath ? `${basePath}/${href}` : href;
-                                        
-                                        if (href.endsWith('.md')) {
-                                            discoveredFiles.add(fullPath);
-                                        } else if (!href.includes('.') && !href.endsWith('/')) {
-                                            // Potentiel répertoire, explorer récursivement
-                                            await exploreDirectory(fullPath);
-                                        }
-                                    }
-                                }
-                            }
-                        } catch (e) {
-                            // Méthode de listing échouée, utiliser une approche par tentatives
-                        }
-                    }
-                    
-                    // Fonction alternative : tester des fichiers et répertoires communs
-                    async function discoverByTesting() {
-                        const commonPaths = [
-                            // Fichiers racine
-                            'README.md', 'INTRODUCTION.md', 'GLOSSAIRE.md', 'INDEX.md',
-                            'CHANGELOG.md', 'LICENSE.md', 'CONTRIBUTING.md',
-                            
-                            // Patterns de nommage IA
-                            'Readme.gpt.md', 'Readme.deepseek.md', 'Readme.claude.md', 
-                            'Readme.gemini.md', 'Readme.mistral.md', 'Readme.llama.md',
-                            
-                            // Patterns avec préfixes
-                            'README.Human_Galaxy_Expansion.md', 'README.Theory.md',
-                            'IPFS_GUIDE.md', 'NOSTR_GUIDE.md', 'API_GUIDE.md',
-                            
-                            // Répertoires communs
-                            'docs/', 'doc/', 'documentation/', 'guide/', 'guides/',
-                            'examples/', 'example/', 'demo/', 'demos/',
-                            'experience/', 'experiments/', 'test/', 'tests/',
-                            'src/', 'lib/', 'tools/', 'scripts/',
-                            'research/', 'theory/', 'simulation/', 'simulations/'
-                        ];
-                        
-                        // Tester les fichiers directs
-                        for (const path of commonPaths) {
-                            if (path.endsWith('.md')) {
-                                try {
-                                    const response = await fetch(path, { method: 'HEAD' });
-                                    if (response.ok) {
-                                        discoveredFiles.add(path);
-                                    }
-                                } catch (e) {
-                                    // Fichier non accessible
-                                }
-                            }
-                        }
-                        
-                        // Tester les répertoires
-                        for (const dir of commonPaths.filter(p => p.endsWith('/'))) {
-                            const dirPath = dir.slice(0, -1); // Enlever le slash final
-                            
-                            // Tester quelques fichiers communs dans ce répertoire
-                            const commonFiles = [
-                                'README.md', 'index.md', 'INDEX.md', 'main.md',
-                                'introduction.md', 'overview.md', 'guide.md'
-                            ];
-                            
-                            for (const file of commonFiles) {
-                                try {
-                                    const fullPath = `${dirPath}/${file}`;
-                                    const response = await fetch(fullPath, { method: 'HEAD' });
-                                    if (response.ok) {
-                                        discoveredFiles.add(fullPath);
-                                    }
-                                } catch (e) {
-                                    // Fichier non accessible
-                                }
-                            }
-                            
-                            // Tester des patterns de nommage dans les répertoires
-                            const patterns = ['Ex.1.md', 'Ex.2.md', 'Ex.3.md', 'ESchema.md', 'Setup.md'];
-                            for (const pattern of patterns) {
-                                try {
-                                    const fullPath = `${dirPath}/${pattern}`;
-                                    const response = await fetch(fullPath, { method: 'HEAD' });
-                                    if (response.ok) {
-                                        discoveredFiles.add(fullPath);
-                                    }
-                                } catch (e) {
-                                    // Fichier non accessible
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Essayer d'abord l'exploration de répertoire
-                    await exploreDirectory();
-                    
-                    // Compléter avec la méthode de test
-                    await discoverByTesting();
-                    
-                    console.log(`📁 ${discoveredFiles.size} fichiers .md découverts dynamiquement`);
-                    
-                    // Traiter tous les fichiers découverts
-                    for (const file of discoveredFiles) {
-                        try {
-                            const title = await extractMarkdownTitle(file);
-                            availableMarkdownFiles.push({
-                                path: file,
-                                title: title,
-                                directory: file.includes('/') ? file.substring(0, file.lastIndexOf('/')) : null
-                            });
-                        } catch (e) {
-                            console.warn(`⚠️ Erreur lors du traitement de ${file}:`, e);
-                        }
-                    }
-                    
-                    // S'assurer que README.md est en premier, puis grouper par répertoire
-                    availableMarkdownFiles.sort((a, b) => {
-                        if (a.path === 'README.md') return -1;
-                        if (b.path === 'README.md') return 1;
-                        
-                        // Grouper par répertoire
-                        if (a.directory !== b.directory) {
-                            if (!a.directory) return -1; // Fichiers racine en premier
-                            if (!b.directory) return 1;
-                            return a.directory.localeCompare(b.directory);
-                        }
-                        
-                        return a.title.localeCompare(b.title);
-                    });
-                    
-                    console.log(`✅ Navigation générée avec ${availableMarkdownFiles.length} fichiers`);
-                }
+                // Menu généré côté serveur - plus de découverte JavaScript nécessaire
+                console.log('📁 Menu de navigation généré côté serveur');
                 
                 // Fonction pour basculer l'affichage du menu
                 function toggleNavMenu() {
@@ -421,106 +324,7 @@ generate_index_html() {
                     }
                 });
                 
-                // Populer le menu de navigation
-                async function populateNavMenu() {
-                    // Vérifier le cache avant de redécouvrir
-                    const now = Date.now();
-                    if (filesDiscoveryCache && (now - lastDiscoveryTime) < DISCOVERY_CACHE_DURATION) {
-                        console.log('📋 Utilisation du cache de découverte des fichiers');
-                        availableMarkdownFiles = filesDiscoveryCache;
-                    } else {
-                        // D'abord découvrir les fichiers disponibles
-                        await discoverMarkdownFiles();
-                        // Mettre en cache
-                        filesDiscoveryCache = [...availableMarkdownFiles];
-                        lastDiscoveryTime = now;
-                    }
-                    
-                    const dropdown = document.getElementById('navDropdown');
-                    dropdown.innerHTML = '';
-                    
-                    if (availableMarkdownFiles.length === 0) {
-                        const noFiles = document.createElement('span');
-                        noFiles.textContent = '📄 Aucun fichier .md trouvé';
-                        noFiles.style.padding = '8px 12px';
-                        noFiles.style.color = '#8b949e';
-                        dropdown.appendChild(noFiles);
-                        return;
-                    }
-                    
-                    // Grouper les fichiers par répertoire
-                    const filesByDirectory = {};
-                    
-                    availableMarkdownFiles.forEach(fileObj => {
-                        const directory = fileObj.directory || 'root';
-                        if (!filesByDirectory[directory]) {
-                            filesByDirectory[directory] = [];
-                        }
-                        filesByDirectory[directory].push(fileObj);
-                    });
-                    
-                    // Traiter d'abord les fichiers racine
-                    if (filesByDirectory['root']) {
-                        filesByDirectory['root'].forEach(fileObj => {
-                            const link = document.createElement('a');
-                            link.href = '#';
-                            
-                            // Nom d'affichage avec titre
-                            let displayName;
-                            if (fileObj.path === 'README.md') {
-                                displayName = '🏠 ' + fileObj.title;
-                            } else if (fileObj.path.startsWith('Readme.')) {
-                                const aiName = fileObj.path.replace('Readme.', '').replace('.md', '');
-                                displayName = '🤖 ' + fileObj.title + ' (' + aiName + ')';
-                            } else {
-                                displayName = '📄 ' + fileObj.title;
-                            }
-                            
-                            link.textContent = displayName;
-                            link.onclick = function(e) {
-                                e.preventDefault();
-                                if (fileObj.path === 'README.md') {
-                                    loadReadme();
-                                } else {
-                                    loadMarkdownFile(fileObj.path);
-                                }
-                                dropdown.classList.remove('show');
-                            };
-                            
-                            dropdown.appendChild(link);
-                        });
-                    }
-                    
-                    // Traiter les répertoires
-                    Object.keys(filesByDirectory).forEach(directory => {
-                        if (directory === 'root') return; // Déjà traité
-                        
-                        // Créer un séparateur/titre de section
-                        const sectionTitle = document.createElement('div');
-                        sectionTitle.className = 'nav-section-title';
-                        sectionTitle.textContent = `📁 ${directory.charAt(0).toUpperCase() + directory.slice(1)}`;
-                        dropdown.appendChild(sectionTitle);
-                        
-                        // Ajouter les fichiers du répertoire
-                        filesByDirectory[directory].forEach(fileObj => {
-                            const link = document.createElement('a');
-                            link.href = '#';
-                            link.className = 'nav-subsection';
-                            
-                            // Nom d'affichage avec titre
-                            const displayName = '📄 ' + fileObj.title;
-                            
-                            link.textContent = displayName;
-                            link.onclick = function(e) {
-                                e.preventDefault();
-                                loadMarkdownFile(fileObj.path);
-                                dropdown.classList.remove('show');
-                            };
-                            
-                            dropdown.appendChild(link);
-                        });
-                    });
-                }
+                // Menu généré côté serveur - fonction populateNavMenu supprimée
             
             // Fonction pour générer des IDs après le rendu
             function addHeadingIds(html) {
@@ -1103,8 +907,8 @@ generate_index_html() {
                 // Initialiser Mermaid
                 initializeMermaid();
                 
-                // Populer le menu de navigation
-                populateNavMenu();
+                // Menu déjà généré côté serveur - pas besoin de populateNavMenu()
+                console.log('✅ Menu de navigation prêt');
                 
                 if (!parseInitialUrl()) {
                     loadReadme();
@@ -1116,6 +920,9 @@ generate_index_html() {
 </body>
 </html>
 HTMLEOF
+    
+    # Générer le menu des fichiers .md
+    generate_markdown_menu
     
     # Remplacer les placeholders par les valeurs réelles
     sed -i "s/PAGE_TITLE_PLACEHOLDER/$PAGE_TITLE_ESCAPED/g" ${MY_PATH}/index.html
