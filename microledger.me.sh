@@ -399,16 +399,24 @@ echo "## INDEX.HTML PRE-GENERATION"
 echo "🌐 Génération de l'index.html..."
 # Supprimer l'ancien index.html s'il existe pour forcer la régénération
 [[ -f ${MY_PATH}/index.html ]] && rm ${MY_PATH}/index.html
+
+# Préparer le compteur d'évolutions (prévoir l'incrémentation)
+if [[ ! -f ${MY_PATH}/.chain.genesis ]]; then
+    # Premier run : sera genesis, mais on ne connaît pas encore le CID final
+    NEXT_EVOLUTION_COUNT="0"
+    # Utiliser l'ancien CID comme genesis temporaire (sera corrigé après)
+    GENESIS_CID=${OLD:-"genesis"}
+else
+    # Run suivant : incrémenter le compteur
+    CURRENT_COUNT=$(cat ${MY_PATH}/.chain.n 2>/dev/null || echo "0")
+    NEXT_EVOLUTION_COUNT=$((CURRENT_COUNT + 1))
+    GENESIS_CID=$(cat ${MY_PATH}/.chain.genesis)
+fi
+
 # Récupérer le vrai ancien CID depuis le fichier de sauvegarde
 REAL_OLD_CID=$(ls -t ${MY_PATH}/.chain.* 2>/dev/null | grep -v ".chain.genesis" | grep -v ".chain.n" | head -n 1 | xargs cat 2>/dev/null || echo "genesis")
 
-# Récupérer le CID genesis
-GENESIS_CID=$(cat ${MY_PATH}/.chain.genesis 2>/dev/null || echo "genesis")
-
-# Récupérer le compteur d'évolutions
-EVOLUTION_COUNT=$(cat ${MY_PATH}/.chain.n 2>/dev/null || echo "0")
-
-generate_index_html "${REAL_OLD_CID}" "${GENESIS_CID}" "${EVOLUTION_COUNT}"
+generate_index_html "${REAL_OLD_CID}" "${GENESIS_CID}" "${NEXT_EVOLUTION_COUNT}"
 
 IPFSME=$(ipfs add -rwHq --ignore=.git --ignore-rules-path=.gitignore ${MY_PATH}/* | tail -n 1)
 
@@ -425,11 +433,9 @@ if [[ ! -f ${MY_PATH}/.chain.genesis ]]; then
     echo "0" > ${MY_PATH}/.chain.n
     echo "🌱 Genesis CID sauvegardé: ${IPFSME}"
 else
-    # Incrémenter le compteur d'évolutions
-    CURRENT_COUNT=$(cat ${MY_PATH}/.chain.n 2>/dev/null || echo "0")
-    NEW_COUNT=$((CURRENT_COUNT + 1))
-    echo ${NEW_COUNT} > ${MY_PATH}/.chain.n
-    echo "🔄 Évolution #${NEW_COUNT} depuis Genesis"
+    # Sauvegarder le compteur d'évolutions (déjà calculé dans NEXT_EVOLUTION_COUNT)
+    echo ${NEXT_EVOLUTION_COUNT} > ${MY_PATH}/.chain.n
+    echo "🔄 Évolution #${NEXT_EVOLUTION_COUNT} depuis Genesis"
 fi
 
 echo "## README UPGRADE ${OLD}~${IPFSME}"
