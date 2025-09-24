@@ -1,11 +1,13 @@
 #!/bin/bash
 ################################################################################
+# IPFS Evolutive Knowledge Capsule - Git Versioned Nostr Distribution
 # Author: Fred (support@qo-op.com)
-# Version: 0.1
+# Version: 1.0 - Generalist Knowledge Capsule System
 # License: AGPL-3.0 (https://choosealicense.com/licenses/agpl-3.0/)
+# Tags: #frd #FRD #ipfs #nostr #knowledge #git
 ################################################################################
-MY_PATH="`dirname \"$0\"`"              # relative
-MY_PATH="`( cd \"$MY_PATH\" && pwd )`"  # absolutized and normalized
+MY_PATH="`dirname \"$0\"`"
+MY_PATH="`( cd \"$MY_PATH\" && pwd )`"
 
 echo '
 ############################################################### ipfs
@@ -14,11 +16,150 @@ echo '
 ## | |\/| || | |   | |_) | | | | | |   |  _| | | | | |  _|  _| | |_) |
 ## | |  | || | |___|  _ <| |_| | | |___| |___| |_| | |_| | |___|  _ <
 ## |_|  |_|___\____|_| \_\\___/  |_____|_____|____/ \____|_____|_| \_\  me
+##                    Capsule - IPFS+Git+Nostr Distribution
 '
 
 MOATS=$(date -u +"%Y%m%d%H%M%S%4N")
 
-OLD=$(cat ${MY_PATH}/.chain)
+# === INITIALISATION AUTOMATIQUE ===
+init_capsule() {
+    echo "🚀 Initialisation de la capsule de connaissance..."
+    
+    # Récupération des bibliothèques FRD si nécessaire
+    if [[ ! -d "${MY_PATH}/frd" ]]; then
+        echo "📦 Téléchargement des bibliothèques FRD..."
+        ipfs get QmUov88xQSGxK34SWqT6V8bz3hkEgMw6WHEuNWWTssyvWi -o ${MY_PATH}/
+        mv ${MY_PATH}/QmUov88xQSGxK34SWqT6V8bz3hkEgMw6WHEuNWWTssyvWi ${MY_PATH}/frd
+    fi
+    
+    # Génération de l'index.html si absent
+    if [[ ! -f "${MY_PATH}/index.html" ]]; then
+        echo "🌐 Génération de l'index.html..."
+        generate_index_html
+    fi
+    
+    # Création du README.md minimal si absent
+    if [[ ! -f "${MY_PATH}/README.md" ]]; then
+        echo "📖 Création du README.md..."
+        echo "# $(basename ${MY_PATH})" > ${MY_PATH}/README.md
+        echo "" >> ${MY_PATH}/README.md
+        echo "> 🌐 **Capsule de Connaissance IPFS** - Distribution décentralisée via Git+IPFS+Nostr" >> ${MY_PATH}/README.md
+        echo "" >> ${MY_PATH}/README.md
+        echo "## 🚀 Accès" >> ${MY_PATH}/README.md
+        echo "- 🌐 [Interface Web](./index.html)" >> ${MY_PATH}/README.md
+        echo "- 📡 Tags Nostr: #frd #FRD" >> ${MY_PATH}/README.md
+    fi
+}
+
+# Génération dynamique de l'index.html
+generate_index_html() {
+    PROJECT_NAME=$(basename ${MY_PATH})
+    cat > ${MY_PATH}/index.html << 'EOF'
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPFS Evolutive Knowledge Capsule - Git Versioned Nostr Distribution</title>
+    <script src="frd/marked.min.js"></script>
+    <link rel="stylesheet" href="frd/github-dark.min.css">
+    <script src="frd/highlight.min.js"></script>
+    <link rel="stylesheet" href="frd/katex.min.css">
+    <script defer src="frd/katex.min.js"></script>
+    <script defer src="frd/auto-render.min.js"></script>
+    <style>
+        :root { --bg: #0d1117; --fg: #f0f6fc; --accent: #ffd700; --blue: #58a6ff; --border: #30363d; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; }
+        .container { display: flex; min-height: 100vh; }
+        .sidebar { width: 280px; background: #161b22; border-right: 1px solid var(--border); padding: 20px; position: fixed; height: 100vh; overflow-y: auto; }
+        .sidebar h2 { color: var(--accent); margin-bottom: 20px; text-align: center; }
+        .file-list { list-style: none; }
+        .file-list li { margin-bottom: 8px; }
+        .file-list a { display: block; padding: 8px 12px; color: #8b949e; text-decoration: none; border-radius: 6px; transition: all 0.2s; }
+        .file-list a:hover { background: #21262d; color: var(--fg); }
+        .file-list a.active { background: var(--blue); color: white; }
+        .main-content { flex: 1; margin-left: 280px; padding: 40px; }
+        .markdown-content { max-width: 900px; margin: 0 auto; }
+        .markdown-content h1 { color: var(--accent); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 30px; }
+        .markdown-content h2 { color: var(--blue); margin-top: 40px; margin-bottom: 20px; }
+        .markdown-content code { background: #161b22; padding: 2px 6px; border-radius: 3px; color: var(--accent); }
+        .markdown-content pre { background: #161b22; padding: 16px; border-radius: 6px; overflow-x: auto; margin: 20px 0; }
+        .markdown-content a { color: var(--blue); text-decoration: none; }
+        .markdown-content a:hover { text-decoration: underline; }
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .main-content { margin-left: 0; padding: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <h2>📡 FRD Docs</h2>
+            <ul class="file-list" id="fileList"></ul>
+        </nav>
+        <main class="main-content">
+            <div id="content"><div style="text-align: center; padding: 60px;">⏳ Chargement...</div></div>
+        </main>
+    </div>
+    <script>
+        marked.setOptions({ highlight: (code, lang) => lang && hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value, breaks: true, gfm: true });
+        
+        async function loadMarkdown(filename) {
+            const content = document.getElementById('content');
+            content.innerHTML = '<div style="text-align: center; padding: 60px;">⏳ Chargement de ' + filename + '...</div>';
+            try {
+                const response = await fetch(filename);
+                if (!response.ok) throw new Error(`Erreur ${response.status}`);
+                const markdown = await response.text();
+                content.innerHTML = '<div class="markdown-content">' + marked.parse(markdown) + '</div>';
+                document.querySelectorAll('.file-list a').forEach(a => a.classList.remove('active'));
+                document.querySelector(`[onclick="loadMarkdown('${filename}')"]`).classList.add('active');
+                if (window.renderMathInElement) renderMathInElement(content, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });
+                window.scrollTo(0, 0);
+            } catch (error) {
+                content.innerHTML = `<div class="markdown-content"><h1>❌ Erreur</h1><p>Impossible de charger ${filename}</p></div>`;
+            }
+        }
+        
+        async function initFileList() {
+            const fileList = document.getElementById('fileList');
+            const files = ['README.md'];
+            try {
+                const response = await fetch('.');
+                const text = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                const links = doc.querySelectorAll('a[href$=".md"]');
+                links.forEach(link => {
+                    const filename = link.getAttribute('href');
+                    if (!files.includes(filename)) files.push(filename);
+                });
+            } catch (e) {}
+            
+            files.forEach((file, i) => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = '#';
+                a.onclick = () => loadMarkdown(file);
+                a.textContent = file;
+                if (i === 0) a.classList.add('active');
+                li.appendChild(a);
+                fileList.appendChild(li);
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            initFileList();
+            loadMarkdown('README.md');
+        });
+    </script>
+</body>
+</html>
+EOF
+}
+
+OLD=$(cat ${MY_PATH}/.chain 2>/dev/null)
+[[ -z ${OLD} ]] && init_capsule
+
 [[ -z ${OLD} ]] \
     && GENESYS=$(ipfs add -rwHq ${MY_PATH}/* | tail -n 1) \
     && echo ${GENESYS} > ${MY_PATH}/.chain \
@@ -68,13 +209,7 @@ echo "📡 PUBLICATION IPFS RÉUSSIE !"
 echo "🌟 ================================== 🌟"
 echo ""
 echo "🔗 Accès direct au projet :"
-echo "   📖 README : http://127.0.0.1:8080/ipfs/${IPFSME}/README.md"
 echo "   🌐 Portail : http://127.0.0.1:8080/ipfs/${IPFSME}/"
-echo ""
-echo "🎮 Applications interactives :"
-echo "   🌀 Moiré Cosmique : http://127.0.0.1:8080/ipfs/${IPFSME}/gold_phi_octave_interference.html"
-echo "   🧪 Fusion Atomique : http://127.0.0.1:8080/ipfs/${IPFSME}/atomic_phi_octave.html"
-echo "   🎹 Séquenceur : http://127.0.0.1:8080/ipfs/${IPFSME}/gold_phi_octave_piano.html"
 echo ""
 echo "💾 CID IPFS : ${IPFSME}"
 echo "🌟 ================================== 🌟"
