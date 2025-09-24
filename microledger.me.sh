@@ -925,7 +925,7 @@ generate_index_html() {
                     
                     // Préparer les données pour l'API
                     const copyData = {
-                        source_cid: currentCID,
+                        project_url: currentCID,
                         npub: userPublicKey,
                         project_name: getProjectName()
                     };
@@ -942,8 +942,28 @@ generate_index_html() {
                     });
                     
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.detail || 'Erreur de copie');
+                        let errorMessage = `Erreur HTTP ${response.status}`;
+                        try {
+                            const errorData = await response.json();
+                            if (errorData.detail) {
+                                if (typeof errorData.detail === 'string') {
+                                    errorMessage = errorData.detail;
+                                } else if (errorData.detail.message) {
+                                    errorMessage = errorData.detail.message;
+                                } else {
+                                    errorMessage = JSON.stringify(errorData.detail);
+                                }
+                            }
+                        } catch (e) {
+                            // Si ce n'est pas du JSON, essayer de lire comme texte
+                            try {
+                                const textError = await response.text();
+                                if (textError) errorMessage = textError;
+                            } catch (e2) {
+                                errorMessage = `Erreur HTTP ${response.status}: ${response.statusText}`;
+                            }
+                        }
+                        throw new Error(errorMessage);
                     }
                     
                     const result = await response.json();
