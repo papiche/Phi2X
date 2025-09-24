@@ -208,17 +208,68 @@ generate_index_html() {
     <script src="frd/nostr.bundle.js"></script>
     <script src="frd/mermaid.min.js"></script>
     <style>
-        :root { --bg: #0d1117; --fg: #f0f6fc; --accent: #ffd700; --blue: #58a6ff; --border: #30363d; }
+        :root { 
+            --bg: #0d1117; 
+            --fg: #f0f6fc; 
+            --accent: #ffd700; 
+            --blue: #58a6ff; 
+            --border: #30363d;
+            
+            /* Variables dynamiques pour les couleurs selon l'heure */
+            --primary-hue: 220;
+            --primary-sat: 70%;
+            --primary-light: 60%;
+            --bg-gradient-start: hsl(var(--primary-hue), 20%, 8%);
+            --bg-gradient-end: hsl(calc(var(--primary-hue) + 30), 15%, 12%);
+            --accent-dynamic: hsl(var(--primary-hue), var(--primary-sat), var(--primary-light));
+            --border-dynamic: hsl(var(--primary-hue), 30%, 25%);
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; margin: 0; }
-        .header { background: #161b22; border-bottom: 1px solid var(--border); padding: 8px 15px; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+        body { 
+            font-family: -apple-system, sans-serif; 
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end)); 
+            color: var(--fg); 
+            line-height: 1.6; 
+            margin: 0; 
+            min-height: 100vh;
+            transition: background 2s ease-in-out;
+        }
+        .header { 
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end)); 
+            border-bottom: 1px solid var(--border-dynamic); 
+            padding: 8px 15px; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            z-index: 1000; 
+            backdrop-filter: blur(10px);
+            transition: all 2s ease-in-out;
+        }
         .header-nav { display: flex; align-items: center; justify-content: space-between; }
         .header-left { display: flex; align-items: center; gap: 10px; }
         .header-center { flex: 1; text-align: center; }
         .header-right { display: flex; align-items: center; gap: 8px; }
         .header h1 { color: var(--accent); margin: 0; font-size: 1.1rem; }
-        .header-icon { background: #21262d; color: var(--blue); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; text-decoration: none; transition: background 0.2s; }
-        .header-icon:hover { background: #30363d; text-decoration: none; }
+        .header-icon { 
+            background: var(--bg-gradient-start); 
+            color: var(--accent-dynamic); 
+            border: 1px solid var(--border-dynamic); 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 0.8rem; 
+            text-decoration: none; 
+            transition: all 0.3s ease; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .header-icon:hover { 
+            background: var(--accent-dynamic); 
+            color: var(--bg-gradient-start); 
+            text-decoration: none; 
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
         .breadcrumb { color: #8b949e; font-size: 0.8rem; margin-left: 8px; position: relative; }
         .nav-menu { position: relative; display: inline-block; }
         .nav-dropdown { display: none; position: absolute; top: 100%; left: 0; background: #21262d; border: 1px solid var(--border); border-radius: 6px; min-width: 200px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
@@ -313,11 +364,48 @@ generate_index_html() {
         }
         .nav-menu-btn { background: none; border: none; color: var(--blue); cursor: pointer; font-size: 0.8rem; padding: 2px 6px; border-radius: 3px; }
         .nav-menu-btn:hover { background: #30363d; }
-        .connect-btn { background: linear-gradient(45deg, #9c27b0, #7b1fa2); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; text-decoration: none; transition: all 0.2s; }
-        .connect-btn:hover { background: linear-gradient(45deg, #7b1fa2, #6a1b9a); text-decoration: none; color: white; }
-        .connect-btn.connected { background: linear-gradient(45deg, #4CAF50, #45a049); }
-        .copy-btn { background: linear-gradient(45deg, #ff6b6b, #ff5252); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; text-decoration: none; transition: all 0.2s; margin-left: 8px; }
-        .copy-btn:hover { background: linear-gradient(45deg, #ff5252, #f44336); text-decoration: none; color: white; }
+        .connect-btn { 
+            background: linear-gradient(45deg, var(--accent-dynamic), hsl(calc(var(--primary-hue) + 40), var(--primary-sat), calc(var(--primary-light) - 10%))); 
+            color: white; 
+            border: none; 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 0.8rem; 
+            text-decoration: none; 
+            transition: all 0.3s ease; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .connect-btn:hover { 
+            background: linear-gradient(45deg, hsl(calc(var(--primary-hue) + 40), var(--primary-sat), calc(var(--primary-light) - 10%)), var(--accent-dynamic)); 
+            text-decoration: none; 
+            color: white; 
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .connect-btn.connected { 
+            background: linear-gradient(45deg, hsl(120, 70%, 50%), hsl(120, 70%, 40%)); 
+        }
+        .copy-btn { 
+            background: linear-gradient(45deg, hsl(calc(var(--primary-hue) + 120), 70%, 60%), hsl(calc(var(--primary-hue) + 120), 70%, 50%)); 
+            color: white; 
+            border: none; 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 0.8rem; 
+            text-decoration: none; 
+            transition: all 0.3s ease; 
+            margin-left: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .copy-btn:hover { 
+            background: linear-gradient(45deg, hsl(calc(var(--primary-hue) + 120), 70%, 50%), hsl(calc(var(--primary-hue) + 120), 70%, 40%)); 
+            text-decoration: none; 
+            color: white; 
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
         .copy-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         body { padding-top: 60px; }
         .container { max-width: 1000px; margin: 0 auto; padding: 20px; padding-bottom: 80px; /* Espace pour le footer */ }
@@ -387,6 +475,68 @@ generate_index_html() {
                     breaks: true, 
                     gfm: true 
                 });
+                
+                // Système de couleurs dynamiques selon l'heure
+                function updateTimeBasedColors() {
+                    const now = new Date();
+                    const hour = now.getHours();
+                    const minute = now.getMinutes();
+                    const timeProgress = (hour * 60 + minute) / (24 * 60); // 0 à 1
+                    
+                    // Calculer la teinte selon l'heure (cycle de 24h)
+                    // Matin (6h): bleu clair (200°), Midi (12h): jaune (60°), 
+                    // Soir (18h): orange/rouge (20°), Nuit (0h/24h): violet (280°)
+                    let hue;
+                    if (hour >= 6 && hour < 12) {
+                        // Matin: transition bleu vers jaune (200° -> 60°)
+                        const progress = (hour - 6) / 6;
+                        hue = 200 - (140 * progress);
+                    } else if (hour >= 12 && hour < 18) {
+                        // Après-midi: transition jaune vers orange (60° -> 20°)
+                        const progress = (hour - 12) / 6;
+                        hue = 60 - (40 * progress);
+                    } else if (hour >= 18 && hour < 24) {
+                        // Soir: transition orange vers violet (20° -> 280°)
+                        const progress = (hour - 18) / 6;
+                        hue = 20 + (260 * progress);
+                    } else {
+                        // Nuit: transition violet vers bleu (280° -> 200°)
+                        const progress = hour / 6;
+                        hue = 280 - (80 * progress);
+                    }
+                    
+                    // Ajuster la saturation et la luminosité selon l'heure
+                    let saturation = 70;
+                    let lightness = 60;
+                    
+                    if (hour >= 22 || hour < 6) {
+                        // Nuit: couleurs plus sombres et moins saturées
+                        saturation = 50;
+                        lightness = 45;
+                    } else if (hour >= 6 && hour < 8) {
+                        // Lever du soleil: couleurs douces
+                        saturation = 60;
+                        lightness = 55;
+                    } else if (hour >= 12 && hour < 14) {
+                        // Midi: couleurs vives
+                        saturation = 80;
+                        lightness = 65;
+                    }
+                    
+                    // Mettre à jour les variables CSS
+                    const root = document.documentElement;
+                    root.style.setProperty('--primary-hue', Math.round(hue));
+                    root.style.setProperty('--primary-sat', saturation + '%');
+                    root.style.setProperty('--primary-light', lightness + '%');
+                    
+                    console.log(`🎨 Couleurs mises à jour: ${Math.round(hue)}°, ${saturation}%, ${lightness}% (${hour}:${minute.toString().padStart(2, '0')})`);
+                }
+                
+                // Initialiser les couleurs au chargement
+                updateTimeBasedColors();
+                
+                // Mettre à jour les couleurs toutes les minutes
+                setInterval(updateTimeBasedColors, 60000);
                 
                 // Menu généré côté serveur - plus de découverte JavaScript nécessaire
                 console.log('📁 Menu de navigation généré côté serveur');
