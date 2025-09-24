@@ -75,10 +75,16 @@ generate_index_html() {
         :root { --bg: #0d1117; --fg: #f0f6fc; --accent: #ffd700; --blue: #58a6ff; --border: #30363d; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; margin: 0; }
-        .header { background: #161b22; border-bottom: 1px solid var(--border); padding: 15px 20px; text-align: center; }
-        .header-nav { display: flex; align-items: center; justify-content: flex-start; margin-bottom: 10px; }
-        .header h1 { color: var(--accent); margin: 0; font-size: 1.5rem; }
-        .header p { color: #8b949e; margin: 5px 0 0 0; font-size: 0.9rem; }
+        .header { background: #161b22; border-bottom: 1px solid var(--border); padding: 8px 15px; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+        .header-nav { display: flex; align-items: center; justify-content: space-between; }
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        .header-center { flex: 1; text-align: center; }
+        .header-right { display: flex; align-items: center; gap: 8px; }
+        .header h1 { color: var(--accent); margin: 0; font-size: 1.1rem; }
+        .header-icon { background: #21262d; color: var(--blue); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; text-decoration: none; transition: background 0.2s; }
+        .header-icon:hover { background: #30363d; text-decoration: none; }
+        .breadcrumb { color: #8b949e; font-size: 0.8rem; margin-left: 8px; }
+        body { padding-top: 60px; }
         .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
         .markdown-content { background: var(--bg); }
         .markdown-content h1 { color: var(--accent); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 30px; }
@@ -96,20 +102,30 @@ generate_index_html() {
         .markdown-content ul, .markdown-content ol { margin: 16px 0; padding-left: 30px; }
         .markdown-content li { margin-bottom: 8px; }
         .loading { text-align: center; padding: 60px; color: #8b949e; }
-        @media (max-width: 768px) { .container { padding: 10px; } }
+        @media (max-width: 768px) { 
+            .container { padding: 10px; } 
+            .header-nav { padding: 0 5px; }
+            .header h1 { font-size: 1rem; }
+            .breadcrumb { display: none; }
+            .header-right span { display: none; }
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="header-nav">
-            <button id="backBtn" onclick="loadReadme()" style="display: none; background: #21262d; color: var(--blue); border: 1px solid var(--border); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">← README</button>
-            <div id="breadcrumb" style="color: #8b949e; font-size: 0.9rem; margin-left: 10px;"></div>
-        </div>
-        <h1>📡 FRD Knowledge Capsule</h1>
-        <p>IPFS Evolutive Knowledge - Git Versioned Nostr Distribution</p>
-        <div style="font-size: 0.8rem; color: #6e7681; margin-top: 10px;">
-            <div>📅 Generated: GENERATION_DATE_PLACEHOLDER</div>
-            <div>🌐 Node: <a href="/ipns/IPFS_NODE_ID_PLACEHOLDER" style="color: #58a6ff;">IPFS_NODE_ID_PLACEHOLDER</a></div>
+            <div class="header-left">
+                <a id="backBtn" onclick="loadReadme()" class="header-icon" style="display: none;" title="Retour au README">🏠</a>
+                <div id="breadcrumb" class="breadcrumb"></div>
+            </div>
+            <div class="header-center">
+                <h1>📡 FRD</h1>
+            </div>
+            <div class="header-right">
+                <span style="font-size: 0.7rem; color: #6e7681;">GENERATION_DATE_PLACEHOLDER</span>
+                <a href="/ipns/IPFS_NODE_ID_PLACEHOLDER" class="header-icon" title="IPFS Node: IPFS_NODE_ID_PLACEHOLDER">🌐</a>
+                <a href="/ipfs/OLD_CID_PLACEHOLDER/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
+            </div>
         </div>
     </div>
     <div class="container">
@@ -138,10 +154,11 @@ generate_index_html() {
             
             if (filename === 'README.md') {
                 backBtn.style.display = 'none';
-                breadcrumb.textContent = anchor ? `README.md ${anchor}` : 'README.md';
+                breadcrumb.textContent = anchor ? `📄 README ${anchor}` : '📄 README';
             } else {
                 backBtn.style.display = 'inline-block';
-                breadcrumb.textContent = anchor ? `${filename} ${anchor}` : filename;
+                const shortName = filename.replace('.md', '').replace('Readme.', '').replace('README.', '');
+                breadcrumb.textContent = anchor ? `📄 ${shortName} ${anchor}` : `📄 ${shortName}`;
             }
         }
         
@@ -338,7 +355,8 @@ HTMLEOF
     
     # Remplacer le placeholder de l'ancien CID avec le paramètre passé
     if [[ "$OLD_CID_PARAM" == "genesis" ]]; then
-        # Cas genesis : remplacer le contenu du div previous-version-link
+        # Cas genesis : masquer le bouton version précédente et modifier le footer
+        sed -i 's/<a href="\/ipfs\/OLD_CID_PLACEHOLDER\/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️<\/a>/<span class="header-icon" style="opacity: 0.3; cursor: not-allowed;" title="Genesis - Première version">🌱<\/span>/g' ${MY_PATH}/index.html
         sed -i '/<div style="margin-top: 10px;" id="previous-version-link">/,/<\/div>/{
             s/<div style="margin-top: 10px;" id="previous-version-link">/<div style="margin-top: 10px; color: #6e7681;">/
             s/<span>📜 Previous version: <\/span>/<span>🌱 Genesis version - First publication<\/span>/
@@ -389,7 +407,7 @@ echo ${MOATS} > ${MY_PATH}/.moats
 echo "## README UPGRADE ${OLD}~${IPFSME}"
 # Éviter les erreurs sed si OLD est vide
 if [[ -n "${OLD}" ]]; then
-    sed -i "s~${OLD}~${IPFSME}~g" ${MY_PATH}/README.md
+sed -i "s~${OLD}~${IPFSME}~g" ${MY_PATH}/README.md
 fi
 
 echo "## INDEX.HTML UPDATE"

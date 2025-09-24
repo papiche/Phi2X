@@ -14,10 +14,16 @@
         :root { --bg: #0d1117; --fg: #f0f6fc; --accent: #ffd700; --blue: #58a6ff; --border: #30363d; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; margin: 0; }
-        .header { background: #161b22; border-bottom: 1px solid var(--border); padding: 15px 20px; text-align: center; }
-        .header-nav { display: flex; align-items: center; justify-content: flex-start; margin-bottom: 10px; }
-        .header h1 { color: var(--accent); margin: 0; font-size: 1.5rem; }
-        .header p { color: #8b949e; margin: 5px 0 0 0; font-size: 0.9rem; }
+        .header { background: #161b22; border-bottom: 1px solid var(--border); padding: 8px 15px; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+        .header-nav { display: flex; align-items: center; justify-content: space-between; }
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        .header-center { flex: 1; text-align: center; }
+        .header-right { display: flex; align-items: center; gap: 8px; }
+        .header h1 { color: var(--accent); margin: 0; font-size: 1.1rem; }
+        .header-icon { background: #21262d; color: var(--blue); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; text-decoration: none; transition: background 0.2s; }
+        .header-icon:hover { background: #30363d; text-decoration: none; }
+        .breadcrumb { color: #8b949e; font-size: 0.8rem; margin-left: 8px; }
+        body { padding-top: 60px; }
         .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
         .markdown-content { background: var(--bg); }
         .markdown-content h1 { color: var(--accent); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 30px; }
@@ -35,20 +41,30 @@
         .markdown-content ul, .markdown-content ol { margin: 16px 0; padding-left: 30px; }
         .markdown-content li { margin-bottom: 8px; }
         .loading { text-align: center; padding: 60px; color: #8b949e; }
-        @media (max-width: 768px) { .container { padding: 10px; } }
+        @media (max-width: 768px) { 
+            .container { padding: 10px; } 
+            .header-nav { padding: 0 5px; }
+            .header h1 { font-size: 1rem; }
+            .breadcrumb { display: none; }
+            .header-right span { display: none; }
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="header-nav">
-            <button id="backBtn" onclick="loadReadme()" style="display: none; background: #21262d; color: var(--blue); border: 1px solid var(--border); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">← README</button>
-            <div id="breadcrumb" style="color: #8b949e; font-size: 0.9rem; margin-left: 10px;"></div>
-        </div>
-        <h1>📡 FRD Knowledge Capsule</h1>
-        <p>IPFS Evolutive Knowledge - Git Versioned Nostr Distribution</p>
-        <div style="font-size: 0.8rem; color: #6e7681; margin-top: 10px;">
-            <div>📅 Generated: 2025-09-24 14:42:14 UTC</div>
-            <div>🌐 Node: <a href="/ipns/12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu" style="color: #58a6ff;">12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu</a></div>
+            <div class="header-left">
+                <a id="backBtn" onclick="loadReadme()" class="header-icon" style="display: none;" title="Retour au README">🏠</a>
+                <div id="breadcrumb" class="breadcrumb"></div>
+            </div>
+            <div class="header-center">
+                <h1>📡 FRD</h1>
+            </div>
+            <div class="header-right">
+                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 14:51:12 UTC</span>
+                <a href="/ipns/12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu" class="header-icon" title="IPFS Node: 12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu">🌐</a>
+                <a href="/ipfs/Qmaxuafq4ujK51PRgEbkyXfXurjpDoDT9NBtpABav8SbXA/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
+            </div>
         </div>
     </div>
     <div class="container">
@@ -60,7 +76,7 @@
         <div>🌟 FRD Knowledge Capsule - Distributed via IPFS+Git+Nostr</div>
         <div style="margin-top: 10px;" id="previous-version-link">
             <span>📜 Previous version: </span>
-            <a href="/ipfs/Qmaf3pjGD5e1TGkLcrXsCNbhS4B7rD8NnXoeEK2KSgzPqz/" style="color: #58a6ff;">Qmaf3pjGD5e1TGkLcrXsCNbhS4B7rD8NnXoeEK2KSgzPqz</a>
+            <a href="/ipfs/Qmaxuafq4ujK51PRgEbkyXfXurjpDoDT9NBtpABav8SbXA/" style="color: #58a6ff;">Qmaxuafq4ujK51PRgEbkyXfXurjpDoDT9NBtpABav8SbXA</a>
         </div>
     </div>
     <script>
@@ -77,10 +93,11 @@
             
             if (filename === 'README.md') {
                 backBtn.style.display = 'none';
-                breadcrumb.textContent = anchor ? `README.md ${anchor}` : 'README.md';
+                breadcrumb.textContent = anchor ? `📄 README ${anchor}` : '📄 README';
             } else {
                 backBtn.style.display = 'inline-block';
-                breadcrumb.textContent = anchor ? `${filename} ${anchor}` : filename;
+                const shortName = filename.replace('.md', '').replace('Readme.', '').replace('README.', '');
+                breadcrumb.textContent = anchor ? `📄 ${shortName} ${anchor}` : `📄 ${shortName}`;
             }
         }
         
