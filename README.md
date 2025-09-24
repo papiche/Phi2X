@@ -470,13 +470,3 @@ Pour questions, discussions philosophiques ou collaborations scientifiques, n'h�
 *"Et si la réalité était une partition musicale, issue de la résonance entre une onde divine de lumière dorée et une onde terrestre sonore ?"*
 
 **Phi2X** - Vers une physique de l'interférence consciente 🌀✨
-### - (^‿‿^) - 
-http://127.0.0.1:8080/ipfs/QmfMaX4AFyXPvJUpGjJqoVmrbYHGfr3BgrQZnqPzgcXXfQ
-### - (^‿‿^) - 
-http://127.0.0.1:8080/ipfs/QmTwMNBUJU3G4JZjyafoDyf5Boq9ibjAb3DcrLEPERhGpf
-### - (^‿‿^) - 
-http://127.0.0.1:8080/ipfs/QmP5dTzokhy7JKkQ99fzbguj3GgNPmoELHiT1nUkV6SAJN
-### - (^‿‿^) - 
-http://127.0.0.1:8080/ipfs/QmYLvj7iYaj1jtdWL6JEqTuYSMjQjg7BjgvFfJnKUEptDz
-### - (^‿‿^) - 
-http://127.0.0.1:8080/ipfs/QmdGkRDpK7Qc19M2ZQXjMDJXqKVLJ3F29ro9RJcqCiqxnv
