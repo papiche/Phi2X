@@ -22,7 +22,15 @@
         .header h1 { color: var(--accent); margin: 0; font-size: 1.1rem; }
         .header-icon { background: #21262d; color: var(--blue); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; text-decoration: none; transition: background 0.2s; }
         .header-icon:hover { background: #30363d; text-decoration: none; }
-        .breadcrumb { color: #8b949e; font-size: 0.8rem; margin-left: 8px; }
+        .breadcrumb { color: #8b949e; font-size: 0.8rem; margin-left: 8px; position: relative; }
+        .nav-menu { position: relative; display: inline-block; }
+        .nav-dropdown { display: none; position: absolute; top: 100%; left: 0; background: #21262d; border: 1px solid var(--border); border-radius: 6px; min-width: 200px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .nav-dropdown.show { display: block; }
+        .nav-dropdown a { display: block; padding: 8px 12px; color: var(--fg); text-decoration: none; border-bottom: 1px solid var(--border); }
+        .nav-dropdown a:hover { background: #30363d; }
+        .nav-dropdown a:last-child { border-bottom: none; }
+        .nav-menu-btn { background: none; border: none; color: var(--blue); cursor: pointer; font-size: 0.8rem; padding: 2px 6px; border-radius: 3px; }
+        .nav-menu-btn:hover { background: #30363d; }
         body { padding-top: 60px; }
         .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
         .markdown-content { background: var(--bg); }
@@ -45,8 +53,9 @@
             .container { padding: 10px; } 
             .header-nav { padding: 0 5px; }
             .header h1 { font-size: 1rem; }
-            .breadcrumb { display: none; }
+            .breadcrumb #breadcrumbText { display: none; }
             .header-right span { display: none; }
+            .nav-dropdown { min-width: 180px; right: 0; left: auto; }
         }
     </style>
 </head>
@@ -55,17 +64,25 @@
         <div class="header-nav">
             <div class="header-left">
                 <a id="backBtn" onclick="loadReadme()" class="header-icon" style="display: none;" title="Retour au README">🏠</a>
-                <div id="breadcrumb" class="breadcrumb"></div>
+                <div id="breadcrumb" class="breadcrumb">
+                    <div class="nav-menu">
+                        <button id="navMenuBtn" class="nav-menu-btn" onclick="toggleNavMenu()">📄 Navigation ▼</button>
+                        <div id="navDropdown" class="nav-dropdown">
+                            <!-- Menu items will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <span id="breadcrumbText"></span>
+                </div>
             </div>
             <div class="header-center">
                 <h1>📡 FRD</h1>
             </div>
             <div class="header-right">
-                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 17:57:18 UTC</span>
+                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 18:02:04 UTC</span>
                 <a href="/ipns/12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu" class="header-icon" title="IPFS Node: 12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu">🌐</a>
-                <a href="/ipfs/QmYLkdv1RNBU4xnjkvm5q8WckHW4vSPyo6UCZRCTgMcYTU/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
+                <a href="/ipfs/QmVATbJCDx3MpAZYwaSV2K6JDCZfb7d228VWNbTthE7EMN/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
                 <a href="/ipfs/QmYLkdv1RNBU4xnjkvm5q8WckHW4vSPyo6UCZRCTgMcYTU/" class="header-icon" id="genesisBtn" title="Version Genesis">🌱</a>
-                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 1</span>
+                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 2</span>
             </div>
         </div>
     </div>
@@ -77,12 +94,78 @@
     <div class="footer" style="border-top: 1px solid var(--border); padding: 20px; text-align: center; font-size: 0.8rem; color: #6e7681; margin-top: 40px;">
 
     </div>
-    <script>
-            marked.setOptions({ 
-                highlight: (code, lang) => lang && hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value, 
-                breaks: true, 
-                gfm: true 
-            });
+            <script>
+                marked.setOptions({ 
+                    highlight: (code, lang) => lang && hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value, 
+                    breaks: true, 
+                    gfm: true 
+                });
+                
+                // Liste des fichiers .md disponibles (sera peuplée dynamiquement)
+                const availableMarkdownFiles = [
+                    'README.md',
+                    'INTRODUCTION.md',
+                    'GLOSSAIRE.md',
+                    'Readme.gpt.md',
+                    'Readme.Deepseek.md',
+                    'Readme.Gemini.md',
+                    'README.Human_Galaxy_Expansion.md',
+                    'IPFS_GUIDE.md',
+                    'Experience/MoteurElectroAcoustique.md',
+                    'Experience/Ex.1.md',
+                    'Experience/Rpi/ESchema.md'
+                ];
+                
+                // Fonction pour basculer l'affichage du menu
+                function toggleNavMenu() {
+                    const dropdown = document.getElementById('navDropdown');
+                    dropdown.classList.toggle('show');
+                }
+                
+                // Fermer le menu si on clique ailleurs
+                document.addEventListener('click', function(event) {
+                    const navMenu = document.querySelector('.nav-menu');
+                    const dropdown = document.getElementById('navDropdown');
+                    if (!navMenu.contains(event.target)) {
+                        dropdown.classList.remove('show');
+                    }
+                });
+                
+                // Populer le menu de navigation
+                function populateNavMenu() {
+                    const dropdown = document.getElementById('navDropdown');
+                    dropdown.innerHTML = '';
+                    
+                    availableMarkdownFiles.forEach(file => {
+                        const link = document.createElement('a');
+                        link.href = '#';
+                        
+                        // Créer un nom d'affichage plus lisible
+                        let displayName = file.replace('.md', '');
+                        if (displayName === 'README') {
+                            displayName = '🏠 README (Accueil)';
+                        } else if (displayName.startsWith('Readme.')) {
+                            displayName = '📖 ' + displayName.replace('Readme.', '') + ' (IA)';
+                        } else if (displayName.includes('/')) {
+                            displayName = '🔬 ' + displayName.replace('Experience/', '').replace('Rpi/', 'RPi/');
+                        } else {
+                            displayName = '📄 ' + displayName;
+                        }
+                        
+                        link.textContent = displayName;
+                        link.onclick = function(e) {
+                            e.preventDefault();
+                            if (file === 'README.md') {
+                                loadReadme();
+                            } else {
+                                loadMarkdownFile(file);
+                            }
+                            dropdown.classList.remove('show');
+                        };
+                        
+                        dropdown.appendChild(link);
+                    });
+                }
             
             // Fonction pour générer des IDs après le rendu
             function addHeadingIds(html) {
@@ -105,20 +188,20 @@
                 });
             }
         
-        // Fonction pour mettre à jour la navigation (breadcrumb et bouton retour)
-        function updateNavigation(filename, anchor) {
-            const backBtn = document.getElementById('backBtn');
-            const breadcrumb = document.getElementById('breadcrumb');
-            
-            if (filename === 'README.md') {
-                backBtn.style.display = 'none';
-                breadcrumb.textContent = anchor ? `📄 README ${anchor}` : '📄 README';
-            } else {
-                backBtn.style.display = 'inline-block';
-                const shortName = filename.replace('.md', '').replace('Readme.', '').replace('README.', '');
-                breadcrumb.textContent = anchor ? `📄 ${shortName} ${anchor}` : `📄 ${shortName}`;
+            // Fonction pour mettre à jour la navigation (breadcrumb et bouton retour)
+            function updateNavigation(filename, anchor) {
+                const backBtn = document.getElementById('backBtn');
+                const breadcrumbText = document.getElementById('breadcrumbText');
+                
+                if (filename === 'README.md') {
+                    backBtn.style.display = 'none';
+                    breadcrumbText.textContent = anchor ? ` → README ${anchor}` : ' → README';
+                } else {
+                    backBtn.style.display = 'inline-block';
+                    const shortName = filename.replace('.md', '').replace('Readme.', '').replace('README.', '');
+                    breadcrumbText.textContent = anchor ? ` → ${shortName} ${anchor}` : ` → ${shortName}`;
+                }
             }
-        }
         
         async function loadReadme() {
             const content = document.getElementById('content');
@@ -374,14 +457,17 @@
             return false;
         }
         
-        // Charger README.md au démarrage ou le fichier spécifié dans l'URL
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!parseInitialUrl()) {
-                loadReadme();
-                // Gérer l'ancre initiale après un délai plus long pour le rendu complet
-                setTimeout(() => handleAnchors(), 800);
-            }
-        });
+            // Charger README.md au démarrage ou le fichier spécifié dans l'URL
+            document.addEventListener('DOMContentLoaded', () => {
+                // Populer le menu de navigation
+                populateNavMenu();
+                
+                if (!parseInitialUrl()) {
+                    loadReadme();
+                    // Gérer l'ancre initiale après un délai plus long pour le rendu complet
+                    setTimeout(() => handleAnchors(), 800);
+                }
+            });
     </script>
 </body>
 </html>

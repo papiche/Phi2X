@@ -402,7 +402,6 @@ Phi2X/
 └── 🔧 .gitignore                       # Fichiers exclus du versioning
 ```
 
-> 🆕 **Nouveautés** : Les fichiers marqués  ont été créés pour améliorer l'accessibilité et la navigation du projet.
 
 ## 🔬 Validation Scientifique
 
