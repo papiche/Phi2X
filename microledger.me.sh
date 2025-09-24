@@ -650,13 +650,20 @@ generate_index_html() {
                     if (window.nostr) {
                         console.log('Extension Nostr détectée');
                         userPublicKey = await window.nostr.getPublicKey();
-                        nostrConnected = true;
                         
-                        connectBtn.textContent = '✅ Connecté';
-                        connectBtn.classList.add('connected');
-                        copyBtn.disabled = false;
+                        // Effectuer l'authentification NIP42
+                        connectBtn.textContent = '🔐 Authentification...';
+                        const authSuccess = await performNIP42Auth();
                         
-                        console.log('Connecté avec la clé publique:', userPublicKey);
+                        if (authSuccess) {
+                            nostrConnected = true;
+                            connectBtn.textContent = '✅ Connecté';
+                            connectBtn.classList.add('connected');
+                            copyBtn.disabled = false;
+                            console.log('Connecté et authentifié avec la clé publique:', userPublicKey);
+                        } else {
+                            throw new Error('Échec de l\'authentification NIP42');
+                        }
                     } else {
                         // Fallback: demander une clé nsec
                         const nsec = prompt('Entrez votre clé nsec (ou installez une extension Nostr):');
@@ -665,15 +672,22 @@ generate_index_html() {
                                 const decoded = NostrTools.nip19.decode(nsec);
                                 userPrivateKey = decoded.data;
                                 userPublicKey = NostrTools.getPublicKey(userPrivateKey);
-                                nostrConnected = true;
                                 
-                                connectBtn.textContent = '✅ Connecté';
-                                connectBtn.classList.add('connected');
-                                copyBtn.disabled = false;
+                                // Effectuer l'authentification NIP42
+                                connectBtn.textContent = '🔐 Authentification...';
+                                const authSuccess = await performNIP42Auth();
                                 
-                                console.log('Connecté avec clé manuelle, clé publique:', userPublicKey);
+                                if (authSuccess) {
+                                    nostrConnected = true;
+                                    connectBtn.textContent = '✅ Connecté';
+                                    connectBtn.classList.add('connected');
+                                    copyBtn.disabled = false;
+                                    console.log('Connecté et authentifié avec la clé publique:', userPublicKey);
+                                } else {
+                                    throw new Error('Échec de l\'authentification NIP42');
+                                }
                             } catch (error) {
-                                throw new Error('Clé nsec invalide');
+                                throw new Error('Clé nsec invalide: ' + error.message);
                             }
                         } else {
                             throw new Error('Aucune clé fournie');
@@ -688,6 +702,108 @@ generate_index_html() {
                     }, 2000);
                     alert('Erreur de connexion Nostr: ' + error.message);
                 }
+            }
+            
+            // Fonction pour effectuer l'authentification NIP42
+            async function performNIP42Auth() {
+                try {
+                    console.log('🔐 Début de l\'authentification NIP42...');
+                    
+                    // Créer un événement d'authentification NIP42 (kind 22242)
+                    const authEvent = {
+                        kind: 22242,
+                        created_at: Math.floor(Date.now() / 1000),
+                        tags: [
+                            ['relay', 'ws://127.0.0.1:7777'],
+                            ['challenge', 'auth_' + Date.now()]
+                        ],
+                        content: 'Authentication for UPlanet API access',
+                        pubkey: userPublicKey
+                    };
+                    
+                    // Signer l'événement
+                    let signedEvent;
+                    if (window.nostr && window.nostr.signEvent) {
+                        // Utiliser l'extension Nostr pour signer
+                        signedEvent = await window.nostr.signEvent(authEvent);
+                    } else if (userPrivateKey) {
+                        // Signer avec la clé privée locale
+                        signedEvent = NostrTools.finishEvent(authEvent, userPrivateKey);
+                    } else {
+                        throw new Error('Impossible de signer l\'événement d\'authentification');
+                    }
+                    
+                    console.log('📝 Événement d\'authentification signé:', signedEvent);
+                    
+                    // Publier l'événement sur le relai
+                    const published = await publishToRelay(signedEvent);
+                    
+                    if (published) {
+                        console.log('✅ Authentification NIP42 réussie');
+                        return true;
+                    } else {
+                        console.error('❌ Échec de la publication de l\'événement d\'authentification');
+                        return false;
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Erreur lors de l\'authentification NIP42:', error);
+                    return false;
+                }
+            }
+            
+            // Fonction pour publier un événement sur le relai
+            async function publishToRelay(event) {
+                return new Promise((resolve) => {
+                    try {
+                        const ws = new WebSocket('ws://127.0.0.1:7777');
+                        
+                        ws.onopen = () => {
+                            console.log('📡 Connexion au relai établie');
+                            const message = JSON.stringify(['EVENT', event]);
+                            ws.send(message);
+                            console.log('📤 Événement envoyé au relai:', message);
+                        };
+                        
+                        ws.onmessage = (event) => {
+                            const data = JSON.parse(event.data);
+                            console.log('📥 Réponse du relai:', data);
+                            
+                            if (data[0] === 'OK' && data[2] === true) {
+                                console.log('✅ Événement accepté par le relai');
+                                ws.close();
+                                resolve(true);
+                            } else if (data[0] === 'OK' && data[2] === false) {
+                                console.error('❌ Événement rejeté par le relai:', data[3]);
+                                ws.close();
+                                resolve(false);
+                            }
+                        };
+                        
+                        ws.onerror = (error) => {
+                            console.error('❌ Erreur WebSocket:', error);
+                            ws.close();
+                            resolve(false);
+                        };
+                        
+                        ws.onclose = () => {
+                            console.log('📡 Connexion au relai fermée');
+                        };
+                        
+                        // Timeout après 10 secondes
+                        setTimeout(() => {
+                            if (ws.readyState === WebSocket.OPEN) {
+                                console.log('⏰ Timeout de l\'authentification');
+                                ws.close();
+                                resolve(false);
+                            }
+                        }, 10000);
+                        
+                    } catch (error) {
+                        console.error('❌ Erreur lors de la connexion au relai:', error);
+                        resolve(false);
+                    }
+                });
             }
             
             // Fonction pour copier le projet vers uDRIVE
