@@ -31,10 +31,8 @@ Un moteur à résonance acoustique utilise **des ondes stationnaires** pour cré
    - *Exemple* : Un piezo de 40 mm a souvent une résonance vers **28 kHz**.
 
 2. **Formule théorique** :
-   \[
-   f_{\text{rés}} = \frac{1}{2\pi \sqrt{L C}}
-   \]
-   (où \( L \) et \( C \) sont l’inductance/capacité du piezo).
+   $$f_{\text{rés}} = \frac{1}{2\pi \sqrt{L C}}$$
+   (où $L$ et $C$ sont l'inductance/capacité du piezo).
 
 ---
 
