@@ -269,7 +269,7 @@ add_signature_to_chain() {
     local action="$3"  # "publish" ou "copy"
     local timestamp=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
     
-    local signatures_file="${MY_PATH}/_signaturesnatures"
+    local signatures_file="${MY_PATH}/_signatures"
     
     # Créer le fichier de signatures s'il n'existe pas
     if [[ ! -f "$signatures_file" ]]; then
@@ -1639,7 +1639,7 @@ generate_index_html() {
                     console.log('👤 Chargement du profil du dernier signataire...');
                     
                     // Charger le fichier des signatures
-                    const response = await fetch('_signaturesnatures');
+                    const response = await fetch('_signatures');
                     if (!response.ok) {
                         console.log('⚠️ Aucun fichier de signatures trouvé');
                         return;
@@ -1696,7 +1696,7 @@ generate_index_html() {
             // Fonction pour afficher les signatures de la chaîne
             async function showSignatures() {
                 try {
-                    const response = await fetch('_signaturesnatures');
+                    const response = await fetch('_signatures');
                     if (!response.ok) {
                         alert('Aucun fichier de signatures trouvé');
                         return;
@@ -2080,11 +2080,11 @@ if [[ -n "$SELECTED_MULTIPASS" ]]; then
 fi
 
 # Afficher les signatures existantes
-if [[ -f "${MY_PATH}/_signaturesnatures" ]]; then
-    sig_count=$(grep -v "^#" "${MY_PATH}/_signaturesnatures" 2>/dev/null | wc -l)
+if [[ -f "${MY_PATH}/_signatures" ]]; then
+    sig_count=$(grep -v "^#" "${MY_PATH}/_signatures" 2>/dev/null | wc -l)
     if [[ $sig_count -gt 0 ]]; then
         echo "📜 Historique des signatures ($sig_count):"
-        tail -n 5 "${MY_PATH}/_signaturesnatures" | grep -v "^#" | while IFS='|' read -r timestamp cid signer action; do
+        tail -n 5 "${MY_PATH}/_signatures" | grep -v "^#" | while IFS='|' read -r timestamp cid signer action; do
             echo "   $timestamp - $signer ($action)"
         done
         echo ""

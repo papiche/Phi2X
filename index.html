@@ -1172,7 +1172,7 @@
                     console.log('👤 Chargement du profil du dernier signataire...');
                     
                     // Charger le fichier des signatures
-                    const response = await fetch('_signaturesnatures');
+                    const response = await fetch('_signatures');
                     if (!response.ok) {
                         console.log('⚠️ Aucun fichier de signatures trouvé');
                         return;
@@ -1229,7 +1229,7 @@
             // Fonction pour afficher les signatures de la chaîne
             async function showSignatures() {
                 try {
-                    const response = await fetch('_signaturesnatures');
+                    const response = await fetch('_signatures');
                     if (!response.ok) {
                         alert('Aucun fichier de signatures trouvé');
                         return;
