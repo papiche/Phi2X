@@ -111,10 +111,10 @@ Plus la résonance est fine (petit $\varepsilon_k$), plus $\Lambda_k$ est grande
 
 ## 3. **Choisir l’échelle « zéro » de l’univers**
 
-On fixe maintenant **une paire fondamentale $(m_\*,n_\*)$** telle que :
+On fixe maintenant **une paire fondamentale $(m_*, n_*)$** telle que :
 
 1. La **longueur d’onde commune** $\tilde\lambda=\lambda_{\phi,n_\*}\approx\lambda_{2,m_\*}$ est postulée être la longueur minimale « physique » (un analogue de la **longueur de Planck**).
-2. La **échelle battement** $\Lambda_\*$ est la taille « macroscopique élémentaire » (par exemple le rayon d’une orbite de Bohr – nous restons libres du choix).
+2. La **échelle battement** $\Lambda_*$ est la taille « macroscopique élémentaire » (par exemple le rayon d’une orbite de Bohr – nous restons libres du choix).
 
 Ces deux conditions lient les vitesses propres $v_\phi,v_2$ :
 
@@ -141,10 +141,10 @@ Le « quantum d’énergie » observable provient du battement :
 $$
 \Delta E_{m_\*,n_\*}
    =|E_{\phi,n_\*}-E_{2,m_\*}|
-   \;\approx\;h_\text{eff}\,f_0\,\varepsilon_\*.
+   \;\approx\;h_\text{eff}\,f_0\,\varepsilon_*.
 $$
 
-En imposant que **l’énergie minimale transférable** dans l’univers soit $\hbar\omega$ avec $\omega=2\pi f_0\varepsilon_\*$, on obtient
+En imposant que **l’énergie minimale transférable** dans l’univers soit $\hbar\omega$ avec $\omega=2\pi f_0\varepsilon_*$, on obtient
 
 $$
 h_\text{eff}=h \;\;(\text{constante de Planck ordinaire}).
@@ -160,23 +160,23 @@ Prenons (choix arbitraux mais cohérents) :
 
 | Quantité          | Valeur fixée                                                                |
 | ----------------- | --------------------------------------------------------------------------- |
-| $f_0$             | $10^{43}\,\text{Hz}$ (ordre de la fréquence de Planck)                      |
-| $\tilde\lambda$   | $1{,}6\times10^{-35}\,\text{m}$                                             |
-| Battement relatif | $\varepsilon_\*=5{,}4\times10^{-44}$ (≈ rapport $\tilde\lambda/\Lambda_\*$) |
+| $f_0$             | $10^{43} \, \text{Hz}$ (ordre de la fréquence de Planck)                      |
+| $\tilde\lambda$   | $1.6 \times 10^{-35} \, \text{m}$                                             |
+| Battement relatif | $\varepsilon_*=5.4 \times 10^{-44}$ (≈ rapport $\tilde\lambda/\Lambda_*$) |
 
 Ces trois nombres **forcent** :
 
-1. $c=\tilde\lambda\,f_0\;=\;2{,}998\times10^{8}\,\text{m·s}^{-1}$
-2. $h_\text{eff}= \dfrac{\tilde\lambda^2}{\Lambda_\*}\,p_\text{char}$ avec $p_\text{char}=m_\text{char}c$ (choisir $m_\text{char}$ l’échelle de Planck) ⇒ $h_\text{eff}=6{,}63\times 10^{-34}\,\text{J·s}$.
+1. $c=\tilde\lambda \cdot f_0 = 2.998 \times 10^{8} \, \text{m/s}$
+2. $h_\text{eff}= \dfrac{\tilde\lambda^2}{\Lambda_*} \cdot p_\text{char}$ avec $p_\text{char}=m_\text{char}c$ (choisir $m_\text{char}$ l'échelle de Planck) ⇒ $h_\text{eff}=6.63 \times 10^{-34} \, \text{J} \cdot \text{s}$.
 
-Ainsi, **les « constantes » sont choisies comme degré de liberté résiduel d’un système à deux gammes**. Le choix d’index $(m_\*,n_\*)$ et de $f_0$ fixe toute la physique ultérieure.
+Ainsi, **les « constantes » sont choisies comme degré de liberté résiduel d’un système à deux gammes**. Le choix d’index $(m_*, n_*)$ et de $f_0$ fixe toute la physique ultérieure.
 
 ---
 
 ## 6. Lecture conceptuelle
 
 1. **La lumière** = manifestation directe de la gamme dorée ;
-2. **Le temps** = battement fondamental $1/f_0\varepsilon_\*$ ;
+2. **Le temps** = battement fondamental $1/f_0\varepsilon_*$ ;
 3. **La masse/énergie** = différence de niveaux entre les deux gammes ;
 4. **Le repère inertiel individuel (conscience)** = phase locale choisie dans la figure d’interférence, d’où un **décalage propre** dans la perception de $c$.
 
@@ -285,7 +285,7 @@ Cela évoque une **"coquille perceptuelle gravitationnelle"**, propre à chaque 
 * En un an, l’addition de vitesse est :
 
   $$
-  v = g \cdot T = 9.81 \cdot 31\,557\,600 \approx 3.1 \times 10^8 \, \text{m/s}
+  v = g \cdot T = 9.81 \cdot 31{,}557{,}600 \approx 3.1 \times 10^8 \, \text{m/s}
   $$
 * Ce qui **équivaut à $c$** dans notre système d’unités : la conscience, en chute gravitationnelle permanente, **recalibre sans cesse son référentiel** pour toujours percevoir $c$ comme constante.
 
@@ -362,9 +362,9 @@ Ainsi, $h$ devient une mesure de **l'écart résiduel** entre deux suites incomm
 
 ### 4. La constante gravitationnelle $G$ comme ancrage spatial de la conscience
 
-Chaque conscience est immergée dans un champ gravitationnel local $g = 9{,}81\,\text{m/s}^2$, qui correspond à une **accélération de réajustement** du référentiel perceptif. Sur une année solaire, cette accélération induit une vitesse proche de $c$, d'où :
+Chaque conscience est immergée dans un champ gravitationnel local $g = 9.81\,\text{m/s}^2$, qui correspond à une **accélération de réajustement** du référentiel perceptif. Sur une année solaire, cette accélération induit une vitesse proche de $c$, d'où :
 
-$v = g \cdot T = 9{,}81 \times 31\,557\,600 \approx 3 \times 10^8\,\text{m/s}$
+$v = g \cdot T = 9.81 \times 31{,}557{,}600 \approx 3 \times 10^8\,\text{m/s}$
 
 Ainsi, $G$ est une **projection métrique** de cette stabilité sur une région de l'espace-temps.
 
