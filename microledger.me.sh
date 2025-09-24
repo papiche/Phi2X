@@ -338,8 +338,12 @@ HTMLEOF
     
     # Remplacer le placeholder de l'ancien CID avec le paramètre passé
     if [[ "$OLD_CID_PARAM" == "genesis" ]]; then
-        # Cas genesis : masquer le lien vers la version précédente
-        sed -i 's/<div style="margin-top: 10px;" id="previous-version-link">.*<\/div>/<div style="margin-top: 10px; color: #6e7681;"><span>🌱 Genesis version - First publication<\/span><\/div>/g' ${MY_PATH}/index.html
+        # Cas genesis : remplacer le contenu du div previous-version-link
+        sed -i '/<div style="margin-top: 10px;" id="previous-version-link">/,/<\/div>/{
+            s/<div style="margin-top: 10px;" id="previous-version-link">/<div style="margin-top: 10px; color: #6e7681;">/
+            s/<span>📜 Previous version: <\/span>/<span>🌱 Genesis version - First publication<\/span>/
+            s/<a href="\/ipfs\/OLD_CID_PLACEHOLDER\/" style="color: #58a6ff;">OLD_CID_PLACEHOLDER<\/a>//
+        }' ${MY_PATH}/index.html
     else
         # Cas normal : remplacer par le CID précédent
         sed -i "s/OLD_CID_PLACEHOLDER/$OLD_CID_PARAM/g" ${MY_PATH}/index.html
