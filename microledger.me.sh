@@ -55,8 +55,10 @@ init_capsule() {
 generate_index_html() {
     PROJECT_NAME=$(basename ${MY_PATH})
     GENERATION_DATE=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
-    IPFS_NODE_ID=$(ipfs id -f="<id>" 2>/dev/null || echo "$IPFSNODEID")
+    IPFS_NODE_ID=$(ipfs id -f="<id>" 2>/dev/null || echo "unknown")
     OLD_CID_PARAM=${1:-"genesis"}
+    GENESIS_CID_PARAM=${2:-"genesis"}
+    EVOLUTION_COUNT=${3:-"0"}
     
     cat > ${MY_PATH}/index.html << 'HTMLEOF'
 <!DOCTYPE html>
@@ -125,6 +127,8 @@ generate_index_html() {
                 <span style="font-size: 0.7rem; color: #6e7681;">GENERATION_DATE_PLACEHOLDER</span>
                 <a href="/ipns/IPFS_NODE_ID_PLACEHOLDER" class="header-icon" title="IPFS Node: IPFS_NODE_ID_PLACEHOLDER">🌐</a>
                 <a href="/ipfs/OLD_CID_PLACEHOLDER/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
+                <a href="/ipfs/GENESIS_CID_PLACEHOLDER/" class="header-icon" id="genesisBtn" title="Version Genesis">🌱</a>
+                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 EVOLUTION_COUNT_PLACEHOLDER</span>
             </div>
         </div>
     </div>
@@ -352,18 +356,18 @@ HTMLEOF
     # Remplacer les placeholders par les valeurs réelles
     sed -i "s/GENERATION_DATE_PLACEHOLDER/$GENERATION_DATE/g" ${MY_PATH}/index.html
     sed -i "s/IPFS_NODE_ID_PLACEHOLDER/$IPFS_NODE_ID/g" ${MY_PATH}/index.html
+    sed -i "s/GENESIS_CID_PLACEHOLDER/$GENESIS_CID_PARAM/g" ${MY_PATH}/index.html
+    sed -i "s/EVOLUTION_COUNT_PLACEHOLDER/$EVOLUTION_COUNT/g" ${MY_PATH}/index.html
     
-    # Remplacer le placeholder de l'ancien CID avec le paramètre passé
+    # Remplacer le placeholder de l'ancien CID
     if [[ "$OLD_CID_PARAM" == "genesis" ]]; then
-        # Cas genesis : d'abord remplacer les placeholders, puis modifier le bouton
-        sed -i "s/OLD_CID_PLACEHOLDER/genesis/g" ${MY_PATH}/index.html
-        # Ensuite remplacer le lien genesis par l'icône 🌱
-        sed -i 's/<a href="\/ipfs\/genesis\/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️<\/a>/<span class="header-icon" style="opacity: 0.3; cursor: not-allowed;" title="Genesis - Première version">🌱<\/span>/g' ${MY_PATH}/index.html
+        # Cas genesis : masquer le bouton version précédente
+        sed -i 's/<a href="\/ipfs\/OLD_CID_PLACEHOLDER\/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️<\/a>/<span class="header-icon" style="opacity: 0.3; cursor: not-allowed;" title="Pas de version précédente">⏮️<\/span>/g' ${MY_PATH}/index.html
         # Modifier le footer
         sed -i '/<div style="margin-top: 10px;" id="previous-version-link">/,/<\/div>/{
             s/<div style="margin-top: 10px;" id="previous-version-link">/<div style="margin-top: 10px; color: #6e7681;">/
             s/<span>📜 Previous version: <\/span>/<span>🌱 Genesis version - First publication<\/span>/
-            s/<a href="\/ipfs\/genesis\/" style="color: #58a6ff;">genesis<\/a>//
+            s/<a href="\/ipfs\/OLD_CID_PLACEHOLDER\/" style="color: #58a6ff;">OLD_CID_PLACEHOLDER<\/a>//
         }' ${MY_PATH}/index.html
     else
         # Cas normal : remplacer par le CID précédent
@@ -396,8 +400,15 @@ echo "🌐 Génération de l'index.html..."
 # Supprimer l'ancien index.html s'il existe pour forcer la régénération
 [[ -f ${MY_PATH}/index.html ]] && rm ${MY_PATH}/index.html
 # Récupérer le vrai ancien CID depuis le fichier de sauvegarde
-REAL_OLD_CID=$(ls -t ${MY_PATH}/.chain.* 2>/dev/null | head -n 1 | xargs cat 2>/dev/null || echo "genesis")
-generate_index_html "${REAL_OLD_CID}"
+REAL_OLD_CID=$(ls -t ${MY_PATH}/.chain.* 2>/dev/null | grep -v ".chain.genesis" | grep -v ".chain.n" | head -n 1 | xargs cat 2>/dev/null || echo "genesis")
+
+# Récupérer le CID genesis
+GENESIS_CID=$(cat ${MY_PATH}/.chain.genesis 2>/dev/null || echo "genesis")
+
+# Récupérer le compteur d'évolutions
+EVOLUTION_COUNT=$(cat ${MY_PATH}/.chain.n 2>/dev/null || echo "0")
+
+generate_index_html "${REAL_OLD_CID}" "${GENESIS_CID}" "${EVOLUTION_COUNT}"
 
 IPFSME=$(ipfs add -rwHq --ignore=.git --ignore-rules-path=.gitignore ${MY_PATH}/* | tail -n 1)
 
@@ -406,6 +417,20 @@ IPFSME=$(ipfs add -rwHq --ignore=.git --ignore-rules-path=.gitignore ${MY_PATH}/
 echo "## CHAIN UPGRADE"
 echo ${IPFSME} > ${MY_PATH}/.chain
 echo ${MOATS} > ${MY_PATH}/.moats
+
+# Gestion du CID genesis et du compteur d'évolutions
+if [[ ! -f ${MY_PATH}/.chain.genesis ]]; then
+    # Premier run : sauvegarder le CID genesis
+    echo ${IPFSME} > ${MY_PATH}/.chain.genesis
+    echo "0" > ${MY_PATH}/.chain.n
+    echo "🌱 Genesis CID sauvegardé: ${IPFSME}"
+else
+    # Incrémenter le compteur d'évolutions
+    CURRENT_COUNT=$(cat ${MY_PATH}/.chain.n 2>/dev/null || echo "0")
+    NEW_COUNT=$((CURRENT_COUNT + 1))
+    echo ${NEW_COUNT} > ${MY_PATH}/.chain.n
+    echo "🔄 Évolution #${NEW_COUNT} depuis Genesis"
+fi
 
 echo "## README UPGRADE ${OLD}~${IPFSME}"
 # Éviter les erreurs sed si OLD est vide
