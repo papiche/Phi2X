@@ -63,20 +63,9 @@
             }
         }
         
-        async function initFileList() {
+        function initFileList() {
             const fileList = document.getElementById('fileList');
-            const files = ['README.md'];
-            try {
-                const response = await fetch('.');
-                const text = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(text, 'text/html');
-                const links = doc.querySelectorAll('a[href$=".md"]');
-                links.forEach(link => {
-                    const filename = link.getAttribute('href');
-                    if (!files.includes(filename)) files.push(filename);
-                });
-            } catch (e) {}
+            const files = ['GLOSSAIRE.md', 'INTRODUCTION.md', 'IPFS_GUIDE.md', 'Readme.Deepseek.md', 'Readme.Gemini.md', 'Readme.gpt.md', 'README.Human_Galaxy_Expansion.md', 'README.md'];
             
             files.forEach((file, i) => {
                 const li = document.createElement('li');

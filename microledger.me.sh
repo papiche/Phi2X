@@ -54,7 +54,24 @@ init_capsule() {
 # Génération dynamique de l'index.html
 generate_index_html() {
     PROJECT_NAME=$(basename ${MY_PATH})
-    cat > ${MY_PATH}/index.html << 'EOF'
+    
+    # Détecter tous les fichiers .md dans le répertoire
+    MD_FILES=""
+    for file in ${MY_PATH}/*.md; do
+        if [[ -f "$file" ]]; then
+            filename=$(basename "$file")
+            if [[ -z "$MD_FILES" ]]; then
+                MD_FILES="'$filename'"
+            else
+                MD_FILES="$MD_FILES, '$filename'"
+            fi
+        fi
+    done
+    
+    # Si aucun fichier .md trouvé, utiliser README.md par défaut
+    [[ -z "$MD_FILES" ]] && MD_FILES="'README.md'"
+    
+    cat > ${MY_PATH}/index.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -120,20 +137,9 @@ generate_index_html() {
             }
         }
         
-        async function initFileList() {
+        function initFileList() {
             const fileList = document.getElementById('fileList');
-            const files = ['README.md'];
-            try {
-                const response = await fetch('.');
-                const text = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(text, 'text/html');
-                const links = doc.querySelectorAll('a[href$=".md"]');
-                links.forEach(link => {
-                    const filename = link.getAttribute('href');
-                    if (!files.includes(filename)) files.push(filename);
-                });
-            } catch (e) {}
+            const files = [MD_FILES_PLACEHOLDER];
             
             files.forEach((file, i) => {
                 const li = document.createElement('li');
@@ -154,7 +160,10 @@ generate_index_html() {
     </script>
 </body>
 </html>
-EOF
+HTMLEOF
+    
+    # Remplacer le placeholder par la liste des fichiers
+    sed -i "s/MD_FILES_PLACEHOLDER/$MD_FILES/g" ${MY_PATH}/index.html
 }
 
 OLD=$(cat ${MY_PATH}/.chain 2>/dev/null)
