@@ -204,12 +204,22 @@ generate_index_html() {
                 setTimeout(() => handleAnchors(), 300);
                 
                 // Debug : afficher les ancres disponibles dans la console
+                setTimeout(() => {
+                    console.log('=== ANCRES DISPONIBLES APRÈS RENDU ===');
+                    document.querySelectorAll('[id]').forEach(el => {
+                        console.log(`#${el.id} - "${el.textContent.trim().substring(0, 50)}..."`);
+                    });
+                    
+                    // Debug spécial pour les titres
+                    console.log('=== TITRES H1-H6 ===');
+                    document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(el => {
+                        console.log(`${el.tagName} id="${el.id}" - "${el.textContent.trim()}"`);
+                    });
+                }, 800);
+                
                 if (window.location.search.includes('debug=anchors')) {
                     setTimeout(() => {
-                        console.log('=== ANCRES DISPONIBLES ===');
-                        document.querySelectorAll('[id]').forEach(el => {
-                            console.log(`#${el.id} - "${el.textContent.trim().substring(0, 50)}..."`);
-                        });
+                        console.log('=== MODE DEBUG ANCHORS ACTIVÉ ===');
                     }, 500);
                 }
             } catch (error) {
@@ -248,6 +258,14 @@ generate_index_html() {
                         ] 
                     });
                 }
+                
+                // Debug : afficher les ancres dans le fichier chargé
+                setTimeout(() => {
+                    console.log(`=== ANCRES DANS ${filename} ===`);
+                    document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(el => {
+                        console.log(`${el.tagName} id="${el.id}" - "${el.textContent.trim()}"`);
+                    });
+                }, 600);
                 
                 // Gérer l'ancre cible ou scroll vers le haut
                 if (targetAnchor) {

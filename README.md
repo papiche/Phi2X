@@ -80,7 +80,7 @@ fₘ = f₀ × 2ᵐ
 | Constante | Formule Phi2X | Précision | Statut | Signification |
 |-----------|---------------|-----------|---------|---------------|
 | **α** (structure fine) | `1/(4π × Φ⁵)` | **98.3%** | ✅ Validé | Intensité électromagnétique |
-| **G** (gravitation) | `(g×R_T²)/(M_T) × (f_Φ/f_2)` | **94.0%** | ✅ Validé | Force gravitationnelle |
+| **G** (gravitation) | `(g×R_T^2)/(M_T) × (f_Φ/f_2)` | **94.0%** | ✅ Validé | Force gravitationnelle |
 | **c** (lumière) | `g × T_année × facteur_Φ` | **~97%** | 🔄 En cours | Limite de condensation |
 | **h** (Planck) | `E_conscience × t_Planck × Φⁿ` | **Variable** | 🔄 En cours | Quantum de conscience |
 
@@ -95,15 +95,15 @@ fₘ = f₀ × 2ᵐ
 La formule révisée pour G repose sur l'**interférence constructive** entre les ondes fondamentales :
 
 ```
-G = (g × R_T²) / (M_T) × (f_Φ/f_2)
+G = (g × R_T^2) / (M_T) × (f_Φ/f_2)
 ```
 
 **Où :**
-- `g = 9.81 m/s²` : accélération gravitationnelle terrestre
+- `g = 9.81 m/s^2` : accélération gravitationnelle terrestre
 - `R_T = 6.371×10⁶ m` : rayon de la Terre  
-- `M_T = 5.972×10²⁴ kg` : masse de la Terre
+- `M_T = 5.972×10^24 kg` : masse de la Terre
 - `f_Φ = 33.17 Hz` : fréquence de résonance de l'onde lumineuse (Φ³ × 7.83 Hz)
-- `f_2 = 31.32 Hz` : fréquence de résonance de l'onde sonore (2² × 7.83 Hz)
+- `f_2 = 31.32 Hz` : fréquence de résonance de l'onde sonore (2^2 × 7.83 Hz)
 
 **Interprétation physique :**
 1. La gravité émerge de l'**interférence entre ondes Φ et octave 2**
@@ -121,7 +121,7 @@ G = (g × R_T²) / (M_T) × (f_Φ/f_2)
 
 **Vitesse de la Lumière c (Limite de Condensation Conscientielle)**
 - **Formule révisée** : `c ≈ g × T_année × facteur_harmonique`
-- **Mécanisme** : Chaque conscience expérimente `g = 9.81 m/s²` pendant une année
+- **Mécanisme** : Chaque conscience expérimente `g = 9.81 m/s^2` pendant une année
 - **Résultat** : Vitesse ≈ 3.1×10⁸ m/s, très proche de c
 - **Interprétation** : c est la **limite de condensation** de la lumière infinie par la conscience
 
@@ -412,7 +412,7 @@ Le modèle fait plusieurs prédictions vérifiables :
 
 1. **Dilatation temporelle** : `t_A/t_B ≈ Φ^1.5` pour v = 0.9c
 2. **Constante de structure fine** : `α ≈ 1/(4π × Φ⁵)` ✅ **Précision 98.3%**
-3. **Constante gravitationnelle** : `G ≈ (g × R_T²)/(M_T) × (f_Φ/f_2)` ✅ **Précision 94.0%**
+3. **Constante gravitationnelle** : `G ≈ (g × R_T^2)/(M_T) × (f_Φ/f_2)` ✅ **Précision 94.0%**
 4. **Émergence de motifs Φ** dans les interférences acousto-optiques
 
 ### Résultats de Validation
@@ -420,7 +420,7 @@ Le modèle fait plusieurs prédictions vérifiables :
 | Constante | Formule Phi2X | Précision | Statut |
 |-----------|---------------|-----------|---------|
 | **α** (structure fine) | `1/(4π × Φ⁵)` | **98.3%** | ✅ Validé |
-| **G** (gravitation) | `(g×R_T²)/(M_T) × (f_Φ/f_2)` | **94.0%** | ✅ Validé |
+| **G** (gravitation) | `(g×R_T^2)/(M_T) × (f_Φ/f_2)` | **94.0%** | ✅ Validé |
 | **c** (lumière) | `g × T_année × facteur_Φ` | **~97%** | 🔄 En cours |
 | **h** (Planck) | `E_conscience × t_Planck × Φⁿ` | **Variable** | 🔄 En cours |
 
