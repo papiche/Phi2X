@@ -226,7 +226,7 @@ send_nostr_capsule_event() {
         return 1
     fi
     
-    echo "📡 Envoi de l'événement NOSTR vers strfry local"
+    echo "📡 Envoi de l'événement NOSTR vers relais multiples"
     
     # Lire la clé nsec
     local nsec_content=""
@@ -252,12 +252,12 @@ send_nostr_capsule_event() {
     echo "   CID: $cid"
     echo "   Évolution: #$evolution_count"
     
-    # Exécuter le script strfry
+    # Exécuter le script pour publication multi-relais
     if python3 "$nostr_script" --nsec "$nsec_content" --content "$nostr_message" --relay "ws://127.0.0.1:7777"; then
-        echo "✅ Événement NOSTR publié avec succès sur strfry"
+        echo "✅ Événement NOSTR publié avec succès sur les relais"
         return 0
     else
-        echo "❌ Échec de la publication NOSTR sur strfry"
+        echo "❌ Échec de la publication NOSTR sur les relais"
         return 1
     fi
 }

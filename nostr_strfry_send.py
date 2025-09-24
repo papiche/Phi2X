@@ -67,8 +67,8 @@ def create_nostr_event(private_key_nsec: str, content: str):
         print(f"❌ Erreur création événement: {e}")
         return None
 
-def send_to_strfry(event, relay_url="ws://127.0.0.1:7777"):
-    """Envoie l'événement au relai strfry via WebSocket"""
+def send_to_relay(event, relay_url="ws://127.0.0.1:7777"):
+    """Envoie l'événement à un relai NOSTR via WebSocket"""
     success = False
     error_msg = ""
     
@@ -98,7 +98,8 @@ def send_to_strfry(event, relay_url="ws://127.0.0.1:7777"):
         print(f"🔌 Connexion fermée (code: {close_status_code})")
     
     def on_open(ws):
-        print(f"✅ Connecté à strfry: {relay_url}")
+        relay_name = "strfry local" if "127.0.0.1" in relay_url else "relay distant"
+        print(f"✅ Connecté au {relay_name}: {relay_url}")
         
         # Envoyer l'événement
         event_msg = json.dumps(["EVENT", event])
@@ -114,7 +115,8 @@ def send_to_strfry(event, relay_url="ws://127.0.0.1:7777"):
         threading.Thread(target=close_connection, daemon=True).start()
     
     try:
-        print(f"🔌 Connexion à strfry: {relay_url}")
+        relay_name = "strfry local" if "127.0.0.1" in relay_url else "relay distant"
+        print(f"🔌 Connexion au {relay_name}: {relay_url}")
         
         # Créer la connexion WebSocket
         ws = websocket.WebSocketApp(
@@ -131,18 +133,18 @@ def send_to_strfry(event, relay_url="ws://127.0.0.1:7777"):
         return success
         
     except Exception as e:
-        print(f"❌ Erreur connexion strfry: {e}")
+        print(f"❌ Erreur connexion {relay_name}: {e}")
         return False
 
 def main():
-    parser = argparse.ArgumentParser(description='Envoi direct vers strfry')
+    parser = argparse.ArgumentParser(description='Envoi vers relais NOSTR multiples')
     parser.add_argument('--nsec', required=True, help='Clé privée NOSTR (nsec)')
     parser.add_argument('--content', required=True, help='Contenu du message')
-    parser.add_argument('--relay', default='ws://127.0.0.1:7777', help='URL du relai strfry')
+    parser.add_argument('--relay', default='ws://127.0.0.1:7777', help='URL du relai principal')
     
     args = parser.parse_args()
     
-    print("📡 Publication NOSTR vers strfry")
+    print("📡 Publication NOSTR vers relais multiples")
     print(f"🔑 Clé: {args.nsec[:12]}...")
     print(f"📝 Contenu: {args.content[:50]}...")
     
@@ -153,14 +155,34 @@ def main():
     
     print(f"📝 Événement créé: {event['id']}")
     
-    # Envoyer à strfry
-    success = send_to_strfry(event, args.relay)
+    # Liste des relais à utiliser
+    relays = [
+        args.relay,  # Relai principal (strfry local)
+        "wss://relay.copylaradio.com"  # Relai distant
+    ]
     
-    if success:
-        print("✅ Publication réussie sur strfry")
+    success_count = 0
+    total_relays = len(relays)
+    
+    # Publier sur chaque relai
+    for relay_url in relays:
+        print(f"\n🔄 Publication sur {relay_url}...")
+        try:
+            if send_to_relay(event, relay_url):
+                success_count += 1
+                print(f"✅ Succès sur {relay_url}")
+            else:
+                print(f"❌ Échec sur {relay_url}")
+        except Exception as e:
+            print(f"❌ Erreur sur {relay_url}: {e}")
+    
+    print(f"\n📊 Résultat: {success_count}/{total_relays} relais réussis")
+    
+    if success_count > 0:
+        print("✅ Publication réussie sur au moins un relai")
         sys.exit(0)
     else:
-        print("❌ Échec de la publication")
+        print("❌ Échec sur tous les relais")
         sys.exit(1)
 
 if __name__ == "__main__":
