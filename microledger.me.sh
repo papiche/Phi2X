@@ -100,7 +100,7 @@ detect_multipass() {
     
     # Détecter le capitaine par défaut
     local captain_email=""
-    local captain_file="$zen_dir/game/nostr/CAPTAINEMAIL"
+    local captain_file="$zen_dir/game/players/.current/.player"
     if [[ -f "$captain_file" ]]; then
         captain_email=$(cat "$captain_file" 2>/dev/null | tr -d '\n')
         echo "👨‍✈️ Capitaine détecté: $captain_email"
