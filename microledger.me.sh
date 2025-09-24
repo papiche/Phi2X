@@ -544,13 +544,13 @@ generate_index_html() {
         }
         .breadcrumb { color: #8b949e; font-size: 0.8rem; margin-left: 8px; position: relative; }
         .nav-menu { position: relative; display: inline-block; }
-        .nav-dropdown { display: none; position: absolute; top: 100%; left: 0; background: #21262d; border: 1px solid var(--border); border-radius: 6px; min-width: 200px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .nav-dropdown { display: none; position: absolute; top: 100%; left: 0; background: #21262d; border: 1px solid var(--border); border-radius: 6px; min-width: 320px; max-width: 450px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .nav-dropdown.show { display: block; }
-        .nav-dropdown a { display: block; padding: 8px 12px; color: var(--fg); text-decoration: none; border-bottom: 1px solid var(--border); transition: background 0.2s; }
+        .nav-dropdown a { display: block; padding: 10px 16px; color: var(--fg); text-decoration: none; border-bottom: 1px solid var(--border); transition: background 0.2s; font-size: 0.9em; }
         .nav-dropdown a:hover { background: #30363d; }
         .nav-dropdown a:last-child { border-bottom: none; }
-        .nav-section-title { padding: 8px 12px; font-weight: bold; color: #58a6ff; border-top: 1px solid var(--border); margin-top: 4px; font-size: 0.9em; background: #161b22; }
-        .nav-subsection a { padding-left: 24px; font-size: 0.9em; }
+        .nav-section-title { padding: 10px 16px; font-weight: bold; color: #58a6ff; border-top: 1px solid var(--border); margin-top: 4px; font-size: 0.85em; background: #161b22; text-transform: uppercase; letter-spacing: 0.5px; }
+        .nav-subsection a { padding-left: 32px; font-size: 0.85em; }
         .nav-subsection a:hover { background: #2d333b; }
         
         /* Footer profil utilisateur */
@@ -703,7 +703,7 @@ generate_index_html() {
             .header h1 { font-size: 1rem; }
             .breadcrumb #breadcrumbText { display: none; }
             .header-right span { display: none; }
-            .nav-dropdown { min-width: 180px; right: 0; left: auto; }
+            .nav-dropdown { min-width: 280px; max-width: 90vw; right: 0; left: auto; }
         }
     </style>
 </head>
