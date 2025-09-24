@@ -1363,15 +1363,66 @@ generate_index_html() {
                         await relay.connect();
                         console.log('✅ Connecté au relai pour NIP42:', relayUrl);
                         
-                        // Timeout de sécurité
-                        setTimeout(() => {
+                        // Timeout de sécurité - Envoyer un NIP42 proactif avec .moats
+                        setTimeout(async () => {
                             if (!authCompleted) {
-                                console.log('ℹ️ Pas de challenge NIP42 - authentification optionnelle sur ce relai');
-                                relay.close();
-                                // Si pas de challenge reçu, on considère que l'auth n'est pas requise
-                                resolve(true);
+                                console.log('🔐 Pas de challenge reçu - envoi NIP42 proactif avec .moats');
+                                
+                                try {
+                                    // Charger le contenu de .moats comme challenge
+                                    const moatsResponse = await fetch('.moats');
+                                    let moatsChallenge = 'default-challenge';
+                                    if (moatsResponse.ok) {
+                                        moatsChallenge = await moatsResponse.text();
+                                        moatsChallenge = moatsChallenge.trim();
+                                        console.log('📅 Challenge .moats:', moatsChallenge);
+                                    }
+                                    
+                                    // Créer l'événement NIP42 proactif
+                                    const authEvent = {
+                                        kind: 22242,
+                                        created_at: Math.floor(Date.now() / 1000),
+                                        tags: [
+                                            ['relay', relayUrl],
+                                            ['challenge', moatsChallenge]
+                                        ],
+                                        content: '',
+                                        pubkey: userPublicKey
+                                    };
+                                    
+                                    // Signer l'événement
+                                    let signedEvent;
+                                    if (window.nostr && window.nostr.signEvent) {
+                                        signedEvent = await window.nostr.signEvent(authEvent);
+                                    } else if (userPrivateKey) {
+                                        signedEvent = NostrTools.finishEvent(authEvent, userPrivateKey);
+                                    } else {
+                                        throw new Error('Impossible de signer l\'événement NIP42');
+                                    }
+                                    
+                                    // Publier l'événement
+                                    const pub = relay.publish(signedEvent);
+                                    pub.on('ok', () => {
+                                        console.log('✅ Authentification NIP42 proactive réussie');
+                                        authCompleted = true;
+                                        relay.close();
+                                        resolve(true);
+                                    });
+                                    pub.on('failed', (reason) => {
+                                        console.log('⚠️ Authentification NIP42 proactive échouée:', reason);
+                                        relay.close();
+                                        resolve(true); // On considère que c'est OK même si ça échoue
+                                    });
+                                    
+                                    console.log('📡 Événement NIP42 proactif envoyé');
+                                    
+                                } catch (error) {
+                                    console.log('⚠️ Erreur lors de l\'authentification proactive:', error);
+                                    relay.close();
+                                    resolve(true); // On considère que c'est OK même si ça échoue
+                                }
                             }
-                        }, 5000);
+                        }, 2000); // Réduire le timeout à 2s pour être plus réactif
                         
                     } catch (error) {
                         console.error('❌ Erreur générale NIP42:', error);
@@ -1533,9 +1584,6 @@ generate_index_html() {
                                 <a href="${profileViewerUrl}" target="_blank" class="profile-link" title="Voir le profil complet">
                                     👁️ Profil
                                 </a>
-                                <div class="cli-info" title="Copie CLI disponible dans ~/.zen/game/nostr/\${CAPTAINEMAIL}/APP/uDRIVE/Apps">
-                                    💻 CLI
-                                </div>
                             </div>
                         </div>
                     `;
