@@ -100,7 +100,7 @@ G = (g × R_T^2) / (M_T) × (f_Φ/f_2)
 
 **Où :**
 - `g = 9.81 m/s^2` : accélération gravitationnelle terrestre
-- `R_T = 6.371×10⁶ m` : rayon de la Terre  
+- `R_T = 6.371×10^6 m` : rayon de la Terre  
 - `M_T = 5.972×10^24 kg` : masse de la Terre
 - `f_Φ = 33.17 Hz` : fréquence de résonance de l'onde lumineuse (Φ³ × 7.83 Hz)
 - `f_2 = 31.32 Hz` : fréquence de résonance de l'onde sonore (2^2 × 7.83 Hz)
