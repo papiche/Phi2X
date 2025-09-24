@@ -138,6 +138,9 @@ generate_index_html() {
                         ] 
                     });
                 }
+                
+                // Gérer les ancres après le chargement
+                handleAnchors();
             } catch (error) {
                 content.innerHTML = `<h1>❌ Erreur</h1><p>Impossible de charger README.md</p><p>Détails: ${error.message}</p>`;
             }
@@ -171,14 +174,45 @@ generate_index_html() {
                         ] 
                     });
                 }
-                window.scrollTo(0, 0);
+                
+                // Gérer les ancres après le chargement ou scroll vers le haut
+                if (window.location.hash) {
+                    handleAnchors();
+                } else {
+                    window.scrollTo(0, 0);
+                }
             } catch (error) {
                 content.innerHTML = `<h1>❌ Erreur</h1><p>Impossible de charger ${filename}</p><p>Détails: ${error.message}</p>`;
             }
         }
         
+        // Fonction pour gérer les ancres
+        function handleAnchors() {
+            // Gérer l'ancre dans l'URL au chargement
+            if (window.location.hash) {
+                setTimeout(() => {
+                    const element = document.querySelector(window.location.hash);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth' });
+                        // Ajouter un effet de surbrillance temporaire
+                        element.style.backgroundColor = 'rgba(255, 215, 0, 0.2)';
+                        setTimeout(() => {
+                            element.style.backgroundColor = '';
+                        }, 2000);
+                    }
+                }, 100);
+            }
+        }
+        
+        // Gérer les changements d'ancre
+        window.addEventListener('hashchange', handleAnchors);
+        
         // Charger README.md au démarrage
-        document.addEventListener('DOMContentLoaded', loadReadme);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadReadme();
+            // Gérer l'ancre initiale après un petit délai
+            setTimeout(handleAnchors, 500);
+        });
     </script>
 </body>
 </html>
