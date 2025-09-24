@@ -2005,7 +2005,11 @@ HTMLEOF
 reset_chain() {
     echo "⚠️  ATTENTION: Cette opération va supprimer toute l'historique de la chaîne !"
     echo "📋 Fichiers qui seront supprimés:"
-    ls -la ${MY_PATH}/.chain* ${MY_PATH}/.moats 2>/dev/null || echo "   (Aucun fichier de chaîne trouvé)"
+    ls -la ${MY_PATH}/.chain* ${MY_PATH}/.moats ${MY_PATH}/_signatures 2>/dev/null || echo "   (Aucun fichier de chaîne trouvé)"
+    if [[ -d ${MY_PATH}/frd/multipass/ ]]; then
+        echo "📁 Répertoire MULTIPASS:"
+        ls -la ${MY_PATH}/frd/multipass/ 2>/dev/null
+    fi
     echo ""
     
     if [[ "$FORCE_RESET" == "false" ]]; then
@@ -2022,8 +2026,11 @@ reset_chain() {
     echo "🗑️  Suppression des fichiers de chaîne existants..."
     rm -f ${MY_PATH}/.chain*
     rm -f ${MY_PATH}/.moats
+    rm -f ${MY_PATH}/_signatures
+    rm -rf ${MY_PATH}/frd/multipass/
     echo "✅ Chaîne réinitialisée - Prochaine publication sera une nouvelle Genesis"
     echo "🌱 Nouveau départ : Evolution #0"
+    echo "🧹 Signatures et profils MULTIPASS supprimés"
 }
 
 # Gestion du reset si demandé
