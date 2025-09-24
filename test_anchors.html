@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test des ancres Markdown</title>
+    <script src="frd/marked.min.js"></script>
+</head>
+<body>
+    <h1>Test des ancres générées par marked.js</h1>
+    <div id="content"></div>
+    
+    <script>
+        const testMarkdown = `
+# Titre Principal
+
+## 🚀 Découverte Rapide (2 minutes)
+
+### 👶 **Nouveau sur Phi2X ?**
+
+#### 🟡 Onde Lumineuse (Harmoniques Φ)
+
+#### 🔵 Onde Sonore (Harmoniques Octave)
+
+## 📖 Concepts Fondamentaux
+
+### Les Deux Ondes Primordiales
+        `;
+        
+        const html = marked.parse(testMarkdown);
+        document.getElementById('content').innerHTML = html;
+        
+        // Afficher tous les éléments avec des IDs
+        console.log('=== ANCRES DISPONIBLES ===');
+        const elementsWithIds = document.querySelectorAll('[id]');
+        elementsWithIds.forEach(el => {
+            console.log(`ID: "${el.id}" - Texte: "${el.textContent.trim()}"`);
+        });
+    </script>
+</body>
+</html>
