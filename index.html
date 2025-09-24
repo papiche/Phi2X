@@ -307,11 +307,11 @@
                 <button id="copyBtn" class="copy-btn" onclick="copyToUDrive()" disabled>📋 Copier</button>
             </div>
             <div class="header-right">
-                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 22:51:45 UTC</span>
+                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 22:55:44 UTC</span>
                 <a href="/ipns/12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu" class="header-icon" title="IPFS Node: 12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu">🌐</a>
-                <a href="/ipfs/QmYytMrQ1GdCQsKYXDtMrxDb6T24S7yK4M7u4sWi8Wdmac/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
-                <a href="/ipfs/genesis/" class="header-icon" id="genesisBtn" title="Version Genesis">🌱</a>
-                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 0</span>
+                <a href="/ipfs/QmaKoWdWrwSd3q7Wzy3DdDTVfzf7TZo111JCrh8BM857qN/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
+                <a href="/ipfs/QmaKoWdWrwSd3q7Wzy3DdDTVfzf7TZo111JCrh8BM857qN/" class="header-icon" id="genesisBtn" title="Version Genesis">🌱</a>
+                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 1</span>
                 <a href="#" onclick="showSignatures()" class="header-icon" id="signaturesBtn" title="Signatures de la chaîne">✍️</a>
             </div>
         </div>
@@ -882,14 +882,16 @@
                                 console.log('🔐 Pas de challenge reçu - envoi NIP42 proactif avec .moats');
                                 
                                 try {
-                                    // Charger le contenu de .moats comme challenge
-                                    const moatsResponse = await fetch('.moats');
-                                    let moatsChallenge = 'default-challenge';
-                                    if (moatsResponse.ok) {
-                                        moatsChallenge = await moatsResponse.text();
-                                        moatsChallenge = moatsChallenge.trim();
-                                        console.log('📅 Challenge .moats:', moatsChallenge);
-                                    }
+                                    // Utiliser un challenge basé sur le timestamp actuel (similaire à .moats)
+                                    const now = new Date();
+                                    const moatsChallenge = now.getFullYear().toString() + 
+                                                         (now.getMonth() + 1).toString().padStart(2, '0') +
+                                                         now.getDate().toString().padStart(2, '0') +
+                                                         now.getHours().toString().padStart(2, '0') +
+                                                         now.getMinutes().toString().padStart(2, '0') +
+                                                         now.getSeconds().toString().padStart(2, '0') +
+                                                         now.getMilliseconds().toString().padStart(4, '0');
+                                    console.log('📅 Challenge généré (format .moats):', moatsChallenge);
                                     
                                     // Créer l'événement NIP42 proactif
                                     const authEvent = {
@@ -913,19 +915,23 @@
                                         throw new Error('Impossible de signer l\'événement NIP42');
                                     }
                                     
-                                    // Publier l'événement
-                                    const pub = relay.publish(signedEvent);
-                                    pub.on('ok', () => {
+                                    // Publier l'événement (méthode simplifiée)
+                                    try {
+                                        await relay.publish(signedEvent);
                                         console.log('✅ Authentification NIP42 proactive réussie');
                                         authCompleted = true;
-                                        relay.close();
-                                        resolve(true);
-                                    });
-                                    pub.on('failed', (reason) => {
-                                        console.log('⚠️ Authentification NIP42 proactive échouée:', reason);
+                                        
+                                        // Attendre un peu avant de fermer
+                                        setTimeout(() => {
+                                            relay.close();
+                                            resolve(true);
+                                        }, 1000);
+                                        
+                                    } catch (publishError) {
+                                        console.log('⚠️ Authentification NIP42 proactive échouée:', publishError);
                                         relay.close();
                                         resolve(true); // On considère que c'est OK même si ça échoue
-                                    });
+                                    }
                                     
                                     console.log('📡 Événement NIP42 proactif envoyé');
                                     

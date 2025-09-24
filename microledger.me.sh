@@ -1369,14 +1369,16 @@ generate_index_html() {
                                 console.log('🔐 Pas de challenge reçu - envoi NIP42 proactif avec .moats');
                                 
                                 try {
-                                    // Charger le contenu de .moats comme challenge
-                                    const moatsResponse = await fetch('.moats');
-                                    let moatsChallenge = 'default-challenge';
-                                    if (moatsResponse.ok) {
-                                        moatsChallenge = await moatsResponse.text();
-                                        moatsChallenge = moatsChallenge.trim();
-                                        console.log('📅 Challenge .moats:', moatsChallenge);
-                                    }
+                                    // Utiliser un challenge basé sur le timestamp actuel (similaire à .moats)
+                                    const now = new Date();
+                                    const moatsChallenge = now.getFullYear().toString() + 
+                                                         (now.getMonth() + 1).toString().padStart(2, '0') +
+                                                         now.getDate().toString().padStart(2, '0') +
+                                                         now.getHours().toString().padStart(2, '0') +
+                                                         now.getMinutes().toString().padStart(2, '0') +
+                                                         now.getSeconds().toString().padStart(2, '0') +
+                                                         now.getMilliseconds().toString().padStart(4, '0');
+                                    console.log('📅 Challenge généré (format .moats):', moatsChallenge);
                                     
                                     // Créer l'événement NIP42 proactif
                                     const authEvent = {
@@ -1400,19 +1402,23 @@ generate_index_html() {
                                         throw new Error('Impossible de signer l\'événement NIP42');
                                     }
                                     
-                                    // Publier l'événement
-                                    const pub = relay.publish(signedEvent);
-                                    pub.on('ok', () => {
+                                    // Publier l'événement (méthode simplifiée)
+                                    try {
+                                        await relay.publish(signedEvent);
                                         console.log('✅ Authentification NIP42 proactive réussie');
                                         authCompleted = true;
-                                        relay.close();
-                                        resolve(true);
-                                    });
-                                    pub.on('failed', (reason) => {
-                                        console.log('⚠️ Authentification NIP42 proactive échouée:', reason);
+                                        
+                                        // Attendre un peu avant de fermer
+                                        setTimeout(() => {
+                                            relay.close();
+                                            resolve(true);
+                                        }, 1000);
+                                        
+                                    } catch (publishError) {
+                                        console.log('⚠️ Authentification NIP42 proactive échouée:', publishError);
                                         relay.close();
                                         resolve(true); // On considère que c'est OK même si ça échoue
-                                    });
+                                    }
                                     
                                     console.log('📡 Événement NIP42 proactif envoyé');
                                     
