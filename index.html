@@ -307,11 +307,11 @@
                 <button id="copyBtn" class="copy-btn" onclick="copyToUDrive()" disabled>📋 Copier</button>
             </div>
             <div class="header-right">
-                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 23:00:50 UTC</span>
+                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 23:05:55 UTC</span>
                 <a href="/ipns/12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu" class="header-icon" title="IPFS Node: 12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu">🌐</a>
-                <a href="/ipfs/QmRAoiNhYU8tuxAUNaRXnWTQUqAeEh3htGUNShJoihLquT/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
-                <a href="/ipfs/genesis/" class="header-icon" id="genesisBtn" title="Version Genesis">🌱</a>
-                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 0</span>
+                <a href="/ipfs/QmXaR4yozExsGj7ombKsC5BfiR25KGkmzNe9bhTY2ruKGS/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
+                <a href="/ipfs/QmWU3DpK2mcJgA94Gj9raYZbkaCXmMP1C5qnKL4wcZ9fk6/" class="header-icon" id="genesisBtn" title="Version Genesis">🌱</a>
+                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 1</span>
                 <a href="#" onclick="showSignatures()" class="header-icon" id="signaturesBtn" title="Signatures de la chaîne">✍️</a>
             </div>
         </div>
@@ -882,16 +882,40 @@
                                 console.log('🔐 Pas de challenge reçu - envoi NIP42 proactif avec _moats');
                                 
                                 try {
-                                    // Utiliser un challenge basé sur le timestamp actuel (similaire à _moats)
-                                    const now = new Date();
-                                    const moatsChallenge = now.getFullYear().toString() + 
-                                                         (now.getMonth() + 1).toString().padStart(2, '0') +
-                                                         now.getDate().toString().padStart(2, '0') +
-                                                         now.getHours().toString().padStart(2, '0') +
-                                                         now.getMinutes().toString().padStart(2, '0') +
-                                                         now.getSeconds().toString().padStart(2, '0') +
-                                                         now.getMilliseconds().toString().padStart(4, '0');
-                                    console.log('📅 Challenge généré (format _moats):', moatsChallenge);
+                                    // Charger le contenu du fichier _moats qui se trouve à côté de index.html
+                                    let moatsChallenge = 'default-challenge';
+                                    try {
+                                        const moatsResponse = await fetch('_moats');
+                                        if (moatsResponse.ok) {
+                                            moatsChallenge = await moatsResponse.text();
+                                            moatsChallenge = moatsChallenge.trim();
+                                            console.log('📅 Challenge _moats lu:', moatsChallenge);
+                                        } else {
+                                            console.log('⚠️ Fichier _moats non trouvé, génération d\'un challenge temporaire');
+                                            // Fallback: générer un challenge basé sur le timestamp actuel
+                                            const now = new Date();
+                                            moatsChallenge = now.getFullYear().toString() + 
+                                                           (now.getMonth() + 1).toString().padStart(2, '0') +
+                                                           now.getDate().toString().padStart(2, '0') +
+                                                           now.getHours().toString().padStart(2, '0') +
+                                                           now.getMinutes().toString().padStart(2, '0') +
+                                                           now.getSeconds().toString().padStart(2, '0') +
+                                                           now.getMilliseconds().toString().padStart(4, '0');
+                                            console.log('📅 Challenge généré (fallback):', moatsChallenge);
+                                        }
+                                    } catch (fetchError) {
+                                        console.log('⚠️ Erreur lors de la lecture de _moats:', fetchError);
+                                        // Fallback: générer un challenge basé sur le timestamp actuel
+                                        const now = new Date();
+                                        moatsChallenge = now.getFullYear().toString() + 
+                                                       (now.getMonth() + 1).toString().padStart(2, '0') +
+                                                       now.getDate().toString().padStart(2, '0') +
+                                                       now.getHours().toString().padStart(2, '0') +
+                                                       now.getMinutes().toString().padStart(2, '0') +
+                                                       now.getSeconds().toString().padStart(2, '0') +
+                                                       now.getMilliseconds().toString().padStart(4, '0');
+                                        console.log('📅 Challenge généré (erreur):', moatsChallenge);
+                                    }
                                     
                                     // Créer l'événement NIP42 proactif
                                     const authEvent = {

@@ -1369,16 +1369,40 @@ generate_index_html() {
                                 console.log('🔐 Pas de challenge reçu - envoi NIP42 proactif avec _moats');
                                 
                                 try {
-                                    // Utiliser un challenge basé sur le timestamp actuel (similaire à _moats)
-                                    const now = new Date();
-                                    const moatsChallenge = now.getFullYear().toString() + 
-                                                         (now.getMonth() + 1).toString().padStart(2, '0') +
-                                                         now.getDate().toString().padStart(2, '0') +
-                                                         now.getHours().toString().padStart(2, '0') +
-                                                         now.getMinutes().toString().padStart(2, '0') +
-                                                         now.getSeconds().toString().padStart(2, '0') +
-                                                         now.getMilliseconds().toString().padStart(4, '0');
-                                    console.log('📅 Challenge généré (format _moats):', moatsChallenge);
+                                    // Charger le contenu du fichier _moats qui se trouve à côté de index.html
+                                    let moatsChallenge = 'default-challenge';
+                                    try {
+                                        const moatsResponse = await fetch('_moats');
+                                        if (moatsResponse.ok) {
+                                            moatsChallenge = await moatsResponse.text();
+                                            moatsChallenge = moatsChallenge.trim();
+                                            console.log('📅 Challenge _moats lu:', moatsChallenge);
+                                        } else {
+                                            console.log('⚠️ Fichier _moats non trouvé, génération d\'un challenge temporaire');
+                                            // Fallback: générer un challenge basé sur le timestamp actuel
+                                            const now = new Date();
+                                            moatsChallenge = now.getFullYear().toString() + 
+                                                           (now.getMonth() + 1).toString().padStart(2, '0') +
+                                                           now.getDate().toString().padStart(2, '0') +
+                                                           now.getHours().toString().padStart(2, '0') +
+                                                           now.getMinutes().toString().padStart(2, '0') +
+                                                           now.getSeconds().toString().padStart(2, '0') +
+                                                           now.getMilliseconds().toString().padStart(4, '0');
+                                            console.log('📅 Challenge généré (fallback):', moatsChallenge);
+                                        }
+                                    } catch (fetchError) {
+                                        console.log('⚠️ Erreur lors de la lecture de _moats:', fetchError);
+                                        // Fallback: générer un challenge basé sur le timestamp actuel
+                                        const now = new Date();
+                                        moatsChallenge = now.getFullYear().toString() + 
+                                                       (now.getMonth() + 1).toString().padStart(2, '0') +
+                                                       now.getDate().toString().padStart(2, '0') +
+                                                       now.getHours().toString().padStart(2, '0') +
+                                                       now.getMinutes().toString().padStart(2, '0') +
+                                                       now.getSeconds().toString().padStart(2, '0') +
+                                                       now.getMilliseconds().toString().padStart(4, '0');
+                                        console.log('📅 Challenge généré (erreur):', moatsChallenge);
+                                    }
                                     
                                     // Créer l'événement NIP42 proactif
                                     const authEvent = {
@@ -2059,7 +2083,7 @@ HTMLEOF
 reset_chain() {
     echo "⚠️  ATTENTION: Cette opération va supprimer toute l'historique de la chaîne !"
     echo "📋 Fichiers qui seront supprimés:"
-    ls -la ${MY_PATH}/.chain* ${MY_PATH}/_moats ${MY_PATH}/_signatures 2>/dev/null || echo "   (Aucun fichier de chaîne trouvé)"
+    ls -la ${MY_PATH}/_chain* ${MY_PATH}/_moats ${MY_PATH}/_signatures 2>/dev/null || echo "   (Aucun fichier de chaîne trouvé)"
     if [[ -d ${MY_PATH}/frd/multipass/ ]]; then
         echo "📁 Répertoire MULTIPASS:"
         ls -la ${MY_PATH}/frd/multipass/ 2>/dev/null
@@ -2078,7 +2102,7 @@ reset_chain() {
     fi
     
     echo "🗑️  Suppression des fichiers de chaîne existants..."
-    rm -f ${MY_PATH}/.chain*
+    rm -f ${MY_PATH}/_chain*
     rm -f ${MY_PATH}/_moats
     rm -f ${MY_PATH}/_signatures
     rm -rf ${MY_PATH}/frd/multipass/
@@ -2092,20 +2116,20 @@ if [[ "$RESET_CHAIN" == "true" ]]; then
     reset_chain
 fi
 
-OLD=$(cat ${MY_PATH}/.chain 2>/dev/null)
+OLD=$(cat ${MY_PATH}/_chain 2>/dev/null)
 [[ -z ${OLD} ]] && init_capsule
 
 [[ -z ${OLD} ]] \
     && GENESYS=$(ipfs add -rwq ${MY_PATH}/* | tail -n 1) \
-    && echo ${GENESYS} > ${MY_PATH}/.chain \
+    && echo ${GENESYS} > ${MY_PATH}/_chain \
     && echo "CHAIN BLOC ZERO : ${GENESYS}" \
 
 
 echo "## TIMESTAMP CHAIN SHIFTING"
-cp ${MY_PATH}/.chain \
+cp ${MY_PATH}/_chain \
         ${MY_PATH}/_chain.$(cat ${MY_PATH}/_moats)
 
-# Nettoyage des anciens fichiers .chain (ne garde que les 2 plus récents, mais préserve genesis et n)
+# Nettoyage des anciens fichiers _chain (ne garde que les 2 plus récents, mais préserve genesis et n)
 echo "## CLEANING OLD CHAIN FILES"
 ls -t ${MY_PATH}/_chain.* 2>/dev/null | grep -v "_chain.genesis" | grep -v "_chain.n" | tail -n +3 | xargs rm -f 2>/dev/null || true
 
@@ -2138,7 +2162,7 @@ IPFSME=$(ipfs add -rwq --ignore=.git --ignore-rules-path=.gitignore ${MY_PATH}/*
 [[ ${IPFSME} == ${OLD} ]] && echo "No change." && exit 0
 
 echo "## CHAIN UPGRADE"
-echo ${IPFSME} > ${MY_PATH}/.chain
+echo ${IPFSME} > ${MY_PATH}/_chain
 echo ${MOATS} > ${MY_PATH}/_moats
 
 # Gestion du CID genesis et du compteur d'évolutions
