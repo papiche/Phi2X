@@ -55,7 +55,7 @@ init_capsule() {
 generate_index_html() {
     PROJECT_NAME=$(basename ${MY_PATH})
     GENERATION_DATE=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
-    IPFS_NODE_ID=$(ipfs id -f="<id>" 2>/dev/null || echo "unknown")
+    IPFS_NODE_ID=$(ipfs id -f="<id>" 2>/dev/null || echo "$IPFSNODEID")
     OLD_CID_PARAM=${1:-"genesis"}
     
     cat > ${MY_PATH}/index.html << 'HTMLEOF'
@@ -364,7 +364,9 @@ echo "## INDEX.HTML PRE-GENERATION"
 echo "🌐 Génération de l'index.html..."
 # Supprimer l'ancien index.html s'il existe pour forcer la régénération
 [[ -f ${MY_PATH}/index.html ]] && rm ${MY_PATH}/index.html
-generate_index_html "${OLD:-genesis}"
+# Récupérer l'ancien CID depuis le fichier de sauvegarde le plus récent
+PREVIOUS_CID=$(ls -t ${MY_PATH}/.chain.* 2>/dev/null | head -n 1 | xargs cat 2>/dev/null || echo "genesis")
+generate_index_html "${PREVIOUS_CID}"
 
 IPFSME=$(ipfs add -rwHq --ignore=.git --ignore-rules-path=.gitignore ${MY_PATH}/* | tail -n 1)
 
