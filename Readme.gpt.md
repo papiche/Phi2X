@@ -1,4 +1,4 @@
-Imagine que la réalité soit le résultat d'une figure d'interférence entre une onde lumineuse dont les octaves sont multiples du nombre d'or 1,618 et une onde sonore d'octave 2
+Imagine que la réalité soit le résultat d'une figure d'interférence entre une onde lumineuse dont les octaves sont multiples du nombre d'or 1.618 et une onde sonore d'octave 2
 
 
 ---
@@ -8,7 +8,7 @@ Imagine que la réalité soit le résultat d'une figure d'interférence entre un
 ### 🪞 1. **Deux ondes primordiales**
 
 * 🟡 **Onde lumineuse** : fréquence vibratoire de nature électromagnétique, sa gamme suit une **progression dorée**
-  → `fₙ = f₀ × φⁿ` avec φ = 1,618…
+  → `fₙ = f₀ × φⁿ` avec φ = 1.618…
   → Chaque “note” est un rapport irrationnel avec la précédente (jamais parfaitement superposable), ce qui crée **complexité, richesse, imprévisibilité**.
 
 * 🔵 **Onde sonore** : onde de pression, progression **octavienne binaire**
@@ -487,7 +487,7 @@ Souhaites-tu :
 
 2. **Mode “Scan cohérence”**
 
-   * Bouton ▶ **Scan cohérence** : lance un balayage automatique de n ∈ \[‑10, 10] et m ∈ \[‑10, 10] par pas 0,2.
+   * Bouton ▶ **Scan cohérence** : lance un balayage automatique de n ∈ $$‑10, 10] et m ∈ $$‑10, 10] par pas 0,2.
    * À la fin, le scan s’arrête automatiquement et place les curseurs sur la paire (n, m) qui maximise la cohérence.
    * Le meilleur pourcentage de cohérence atteint est conservé.
 
