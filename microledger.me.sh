@@ -281,16 +281,6 @@ add_signature_to_chain() {
     echo "${timestamp}|${cid}|${signer_email}|${action}" >> "$signatures_file"
     
     echo "✍️ Signature ajoutée: $signer_email ($action) - $timestamp"
-    
-    # Copier la clé publique du signataire si elle existe et n'est pas déjà copiée
-    if [[ "$action" == "publish" && -n "$MULTIPASS_NPUB_FILE" && -f "$MULTIPASS_NPUB_FILE" ]]; then
-        local npub_dest="${MY_PATH}/frd/multipass/${signer_email}.npub"
-        if [[ ! -f "$npub_dest" ]]; then
-            mkdir -p "${MY_PATH}/frd/multipass"
-            cp "$MULTIPASS_NPUB_FILE" "$npub_dest" 2>/dev/null && \
-                echo "🔑 Clé publique copiée pour $signer_email"
-        fi
-    fi
 }
 
 # Fonction pour copier automatiquement dans l'uDRIVE du signataire
@@ -1243,56 +1233,101 @@ generate_index_html() {
             
             // Fonction pour effectuer l'authentification NIP42
             async function performNIP42Auth() {
-                try {
-                    console.log('🔐 Début de l\'authentification NIP42...');
-                    
-                    // Obtenir l'URL du relai automatiquement
-                    const relayUrl = getRelayURL();
-                    console.log('🌐 URL du relai détectée:', relayUrl);
-                    
-                    // Créer un événement d'authentification NIP42 (kind 22242)
-                    const authEvent = {
-                        kind: 22242,
-                        created_at: Math.floor(Date.now() / 1000),
-                        tags: [
-                            ['relay', relayUrl],
-                            ['challenge', 'auth_' + Date.now()]
-                        ],
-                        content: 'Authentication for UPlanet API access',
-                        pubkey: userPublicKey
-                    };
-                    
-                    // Signer l'événement
-                    let signedEvent;
-                    if (window.nostr && window.nostr.signEvent) {
-                        // Utiliser l'extension Nostr pour signer
-                        signedEvent = await window.nostr.signEvent(authEvent);
-                    } else if (userPrivateKey) {
-                        // Signer avec la clé privée locale
-                        signedEvent = NostrTools.finishEvent(authEvent, userPrivateKey);
-                    } else {
-                        throw new Error('Impossible de signer l\'événement d\'authentification');
+                return new Promise((resolve) => {
+                    try {
+                        console.log('🔐 Démarrage de l\'authentification NIP42...');
+                        
+                        const relayUrl = getRelayURL();
+                        console.log('🌐 URL du relai détectée:', relayUrl);
+                        
+                        // Initialiser la connexion au relai avec NostrTools
+                        const relay = NostrTools.relayInit(relayUrl);
+                        let authCompleted = false;
+                        
+                        relay.on('connect', () => {
+                            console.log('✅ Connecté au relai pour NIP42:', relayUrl);
+                        });
+                        
+                        relay.on('auth', async (challenge) => {
+                            console.log('🔐 Challenge NIP42 reçu:', challenge);
+                            
+                            if (authCompleted) {
+                                console.log('⚠️ Authentification déjà complétée, ignoré');
+                                return;
+                            }
+                            
+                            try {
+                                // Créer l'événement NIP42 avec le vrai challenge
+                                const authEvent = {
+                                    kind: 22242,
+                                    created_at: Math.floor(Date.now() / 1000),
+                                    tags: [
+                                        ['relay', relayUrl],
+                                        ['challenge', challenge]
+                                    ],
+                                    content: '',
+                                    pubkey: userPublicKey
+                                };
+                                
+                                console.log('📝 Création événement NIP42 avec challenge:', authEvent);
+                                
+                                // Signer l'événement
+                                let signedAuthEvent;
+                                if (window.nostr && window.nostr.signEvent) {
+                                    signedAuthEvent = await window.nostr.signEvent(authEvent);
+                                } else if (userPrivateKey) {
+                                    signedAuthEvent = NostrTools.finishEvent(authEvent, userPrivateKey);
+                                } else {
+                                    throw new Error('Impossible de signer l\'événement d\'authentification');
+                                }
+                                
+                                console.log('✍️ Événement NIP42 signé:', signedAuthEvent);
+                                
+                                // Publier l'événement d'authentification
+                                await relay.publish(signedAuthEvent);
+                                console.log('📡 Événement NIP42 publié avec succès');
+                                
+                                authCompleted = true;
+                                
+                                // Attendre un peu puis fermer et résoudre
+                                setTimeout(async () => {
+                                    relay.close();
+                                    console.log('✅ Authentification NIP42 réussie');
+                                    // Charger et afficher le profil utilisateur dans le footer
+                                    await loadUserProfile();
+                                    resolve(true);
+                                }, 1000);
+                                
+                            } catch (authError) {
+                                console.error('❌ Erreur lors de l\'authentification NIP42:', authError);
+                                relay.close();
+                                resolve(false);
+                            }
+                        });
+                        
+                        relay.on('error', (error) => {
+                            console.error('❌ Erreur de connexion relai NIP42:', error);
+                            resolve(false);
+                        });
+                        
+                        // Connecter au relai
+                        relay.connect();
+                        
+                        // Timeout de sécurité
+                        setTimeout(() => {
+                            if (!authCompleted) {
+                                console.log('⏰ Timeout authentification NIP42 - tentative de connexion sans challenge');
+                                relay.close();
+                                // Si pas de challenge reçu, on considère que l'auth n'est pas requise
+                                resolve(true);
+                            }
+                        }, 10000);
+                        
+                    } catch (error) {
+                        console.error('❌ Erreur générale NIP42:', error);
+                        resolve(false);
                     }
-                    
-                    console.log('📝 Événement d\'authentification signé:', signedEvent);
-                    
-                    // Publier l'événement sur le relai
-                    const published = await publishToRelay(signedEvent, relayUrl);
-                    
-                    if (published) {
-                        console.log('✅ Authentification NIP42 réussie');
-                        // Charger et afficher le profil utilisateur dans le footer
-                        await loadUserProfile();
-                        return true;
-                    } else {
-                        console.error('❌ Échec de la publication de l\'événement d\'authentification');
-                        return false;
-                    }
-                    
-                } catch (error) {
-                    console.error('❌ Erreur lors de l\'authentification NIP42:', error);
-                    return false;
-                }
+                });
             }
             
             // Fonction pour publier un événement sur le relai
