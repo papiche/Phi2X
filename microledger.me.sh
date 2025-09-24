@@ -123,7 +123,11 @@ generate_index_html() {
                 let html = marked.parse(markdown);
                 
                 // Transformer les liens .md en liens qui rechargent dans la même page
-                html = html.replace(/href="([^"]+\.md)"/g, 'href="#" onclick="loadMarkdownFile(\'$1\'); return false;"');
+                // Gérer les liens avec ancres : fichier.md#ancre
+                html = html.replace(/href="([^"]+\.md)(#[^"]+)?"/g, function(match, file, anchor) {
+                    anchor = anchor || '';
+                    return `href="#" onclick="loadMarkdownFile('${file}', '${anchor}'); return false;"`;
+                });
                 
                 content.innerHTML = html;
                 
@@ -154,7 +158,7 @@ generate_index_html() {
             }
         }
         
-        async function loadMarkdownFile(filename) {
+        async function loadMarkdownFile(filename, targetAnchor = '') {
             const content = document.getElementById('content');
             content.innerHTML = '<div class="loading">⏳ Chargement de ' + filename + '...</div>';
             try {
@@ -167,8 +171,11 @@ generate_index_html() {
                 // Ajouter un bouton retour
                 html = '<div style="margin-bottom: 20px;"><a href="#" onclick="loadReadme(); return false;" style="background: #21262d; padding: 8px 16px; border-radius: 6px; text-decoration: none; color: var(--blue);">← Retour au README</a></div>' + html;
                 
-                // Transformer les liens .md
-                html = html.replace(/href="([^"]+\.md)"/g, 'href="#" onclick="loadMarkdownFile(\'$1\'); return false;"');
+                // Transformer les liens .md avec gestion des ancres
+                html = html.replace(/href="([^"]+\.md)(#[^"]+)?"/g, function(match, file, anchor) {
+                    anchor = anchor || '';
+                    return `href="#" onclick="loadMarkdownFile('${file}', '${anchor}'); return false;"`;
+                });
                 
                 content.innerHTML = html;
                 
@@ -183,8 +190,22 @@ generate_index_html() {
                     });
                 }
                 
-                // Gérer les ancres après le chargement ou scroll vers le haut
-                if (window.location.hash) {
+                // Gérer l'ancre cible ou scroll vers le haut
+                if (targetAnchor) {
+                    // Mettre à jour l'URL sans recharger la page
+                    window.history.replaceState(null, null, targetAnchor);
+                    setTimeout(() => {
+                        const element = document.querySelector(targetAnchor);
+                        if (element) {
+                            element.scrollIntoView({ behavior: 'smooth' });
+                            // Effet de surbrillance
+                            element.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
+                            setTimeout(() => {
+                                element.style.backgroundColor = '';
+                            }, 3000);
+                        }
+                    }, 200);
+                } else if (window.location.hash) {
                     handleAnchors();
                 } else {
                     window.scrollTo(0, 0);
@@ -215,11 +236,44 @@ generate_index_html() {
         // Gérer les changements d'ancre
         window.addEventListener('hashchange', handleAnchors);
         
-        // Charger README.md au démarrage
+        // Intercepter tous les clics sur les liens .md (délégation d'événements)
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a[href]');
+            if (!link) return;
+            
+            const href = link.getAttribute('href');
+            const mdMatch = href.match(/^([^#]+\.md)(#.*)?$/);
+            
+            if (mdMatch) {
+                e.preventDefault();
+                const filename = mdMatch[1];
+                const anchor = mdMatch[2] || '';
+                loadMarkdownFile(filename, anchor);
+            }
+        });
+        
+        // Fonction pour parser l'URL et détecter les liens vers des fichiers .md
+        function parseInitialUrl() {
+            const path = window.location.pathname;
+            const hash = window.location.hash;
+            
+            // Vérifier si l'URL pointe vers un fichier .md
+            const mdMatch = path.match(/\/([^\/]+\.md)$/);
+            if (mdMatch) {
+                const filename = mdMatch[1];
+                loadMarkdownFile(filename, hash);
+                return true;
+            }
+            return false;
+        }
+        
+        // Charger README.md au démarrage ou le fichier spécifié dans l'URL
         document.addEventListener('DOMContentLoaded', () => {
-            loadReadme();
-            // Gérer l'ancre initiale après un petit délai
-            setTimeout(handleAnchors, 500);
+            if (!parseInitialUrl()) {
+                loadReadme();
+                // Gérer l'ancre initiale après un petit délai
+                setTimeout(handleAnchors, 500);
+            }
         });
     </script>
 </body>
