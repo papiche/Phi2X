@@ -77,13 +77,24 @@ generate_index_html() {
     GENESIS_CID_PARAM=${2:-"genesis"}
     EVOLUTION_COUNT=${3:-"0"}
     
+    # Extraire le titre du README.md (première ligne commençant par #)
+    if [[ -f "${MY_PATH}/README.md" ]]; then
+        PAGE_TITLE=$(head -n 20 "${MY_PATH}/README.md" | grep "^# " | head -n 1 | sed 's/^# //' | sed 's/[[:space:]]*$//')
+        [[ -z "$PAGE_TITLE" ]] && PAGE_TITLE="$PROJECT_NAME"
+        # Échapper les caractères spéciaux pour sed
+        PAGE_TITLE_ESCAPED=$(echo "$PAGE_TITLE" | sed 's/[[\.*^$()+?{|]/\\&/g')
+    else
+        PAGE_TITLE="$PROJECT_NAME"
+        PAGE_TITLE_ESCAPED="$PROJECT_NAME"
+    fi
+    
     cat > ${MY_PATH}/index.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IPFS Evolutive Knowledge Capsule - Git Versioned Nostr Distribution</title>
+    <title>PAGE_TITLE_PLACEHOLDER</title>
     <script src="frd/marked.min.js"></script>
     <link rel="stylesheet" href="frd/github-dark.min.css">
     <script src="frd/highlight.min.js"></script>
@@ -468,6 +479,7 @@ generate_index_html() {
 HTMLEOF
     
     # Remplacer les placeholders par les valeurs réelles
+    sed -i "s/PAGE_TITLE_PLACEHOLDER/$PAGE_TITLE_ESCAPED/g" ${MY_PATH}/index.html
     sed -i "s/GENERATION_DATE_PLACEHOLDER/$GENERATION_DATE/g" ${MY_PATH}/index.html
     sed -i "s/IPFS_NODE_ID_PLACEHOLDER/$IPFS_NODE_ID/g" ${MY_PATH}/index.html
     sed -i "s/GENESIS_CID_PLACEHOLDER/$GENESIS_CID_PARAM/g" ${MY_PATH}/index.html
