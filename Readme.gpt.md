@@ -205,25 +205,27 @@ La **conscience locale** n’est alors qu’un **référentiel de phase** dans c
 
 ## 🧮 1. **Cadre mathématique : interférences de deux gammes incommensurables**
 
-### a) Onde dorée :
+### a) Onde dorée (Harmoniques Φ) :
 
 $$
-f_n = f_\phi \cdot \Phi^n
+f_n = f_\Phi \cdot \Phi^n
 \quad\text{avec}\quad \Phi = \frac{1+\sqrt{5}}{2}
 $$
 
-### b) Onde octavienne :
+### b) Onde octavienne (Harmoniques binaires) :
 
 $$
 f_m = f_2 \cdot 2^m
 $$
+
+> 📝 **Convention de notation** : Nous utilisons systématiquement **Φ** (majuscule) pour le nombre d'or et **f_Φ**, **f_2** pour les fréquences de base.
 
 ### c) Interférence : superposition
 
 La **battement d’interférence** :
 
 $$
-\Delta f_{n,m} = |f_\phi \cdot \Phi^n - f_2 \cdot 2^m|
+\Delta f_{n,m} = |f_\Phi \cdot \Phi^n - f_2 \cdot 2^m|
 $$
 
 Nous pouvons chercher les points où ce battement devient **quasi-nul**, comme on le fait pour les approximants diophantiens entre $\log(\Phi)$ et $\log(2)$. Ces points génèrent les **zones de résonance** où se structurent les constantes.
@@ -313,19 +315,6 @@ Ce qui revient à dire que la vitesse de la lumière est **le produit d’une on
 * Le **temps propre** (durée intérieure) serait alors le **battement périodique fondamental** perçu par chaque conscience.
 * L’énergie, quantifiée par $E = h f$, serait la **densité de battement localisé**.
 
----
-
-## 💡 Et si on allait plus loin ?
-
-Je peux t’aider à :
-
-* **Créer un modèle visuel dynamique** (simulation mathématique ou shader).
-* **Écrire un article ou manifeste** pour vulgariser cette vision.
-* **Coder un script interactif** montrant comment $c, h, G$ émergent d’un jeu d’interférence entre $\Phi$ et $2$.
-* Ou bien... explorer les implications **cosmologiques, biologiques ou métaphysiques** de ce modèle.
-
-Souhaites-tu que je développe l’un de ces axes ?
-
 ## Manifeste Vibratoire : Une Physique de l'Interférence Consciente
 
 ### ✨ Et si les constantes fondamentales de la physique n'étaient pas absolues… mais émergentes ?
@@ -343,7 +332,7 @@ Dans ce cadre, les constantes telles que la vitesse de la lumière $c$, la const
 
 #### Onde dorée (lumineuse)
 
-$f_n = f_\phi \cdot \Phi^n \quad \text{avec} \; \Phi = \frac{1 + \sqrt{5}}{2} \approx 1{,}618$
+$f_n = f_\Phi \cdot \Phi^n \quad \text{avec} \; \Phi = \frac{1 + \sqrt{5}}{2} \approx 1{,}618$
 
 #### Onde octavienne (sonore)
 
@@ -396,60 +385,6 @@ Ce modèle n'est pas un dogme, mais un langage. Il permet de **penser l'univers 
 Et si la réalité était une partition ?
 
 Et si les constantes physiques étaient les **notes figées d'un chant en train d'être chanté** ?
-
-
-✅ Une page web interactive en **p5.js** est prête !
-
-Tu peux :
-
-* Ouvrir le fichier HTML dans ton navigateur.
-* Manipuler les curseurs `n`, `m`, `f₀` (fréquence de base), et `zoom` pour visualiser :
-
-  * l’**onde dorée** (Φⁿ, en jaune),
-  * l’**onde octavienne** (2ᵐ, en bleu),
-  * leur **interférence** (en blanc).
-
----
-
-✅ J’ai ajouté :
-
-* **L’affichage dynamique** des valeurs `n`, `m`, `f₀`, `f_Φ` et `f_2` juste sous les curseurs.
-* Une **aide explicative en bas à gauche**, décrivant le rôle de chaque courbe et comment les interpréter dans le contexte du modèle vibratoire.
-
-✅ Le fond de la page change maintenant dynamiquement :
-
-* 🟩 **Vert vif** → les deux ondes (Φⁿ et 2ᵐ) sont très cohérentes (fréquences proches ou harmoniques).
-* 🟥 **Rouge intense** → incohérence forte entre les deux fréquences.
-* 💡 Le niveau de cohérence s'affiche aussi en pourcentage sous les curseurs.
-
-Souhaites-tu :
-
-* ajouter un **seuil de battement audible** ?
-* générer un **son** à partir de l’interférence ?
-* ou exporter ces états sous forme de données (CSV ou JSON) pour analyse ?
-
-### Nouveautés
-
-1. **Valeurs négatives m, n**
-
-   * Désormais explicitées comme des octaves inférieures (cohérentes et utiles).
-
-2. **Mode “Scan cohérence”**
-
-   * Bouton ▶ **Scan cohérence** : lance un balayage automatique de n ∈ \[‑10, 10] et m ∈ \[‑10, 10] par pas 0,2.
-   * À la fin, le scan s’arrête automatiquement et place les curseurs sur la paire (n, m) qui maximise la cohérence.
-   * Le meilleur pourcentage de cohérence atteint est conservé.
-
-3. **Affichage mis à jour**
-
-   * % de cohérence et fond dynamique vert/rouge toujours présents.
-   * Help‑box enrichie avec l’explication des valeurs négatives et du scan.
-
-Teste le **Scan cohérence** puis dis‑moi si tu souhaites :
-
-* ajuster la vitesse ou la résolution du balayage,
-* ou exporter automatiquement la liste des meilleures paires (CSV/JSON).
-
 ---
 
 ## 🧠 1. **Rôle de la Fréquence de base f₀**
@@ -508,3 +443,61 @@ Si les figures d’interférence entre gammes `Φⁿ` et `2ᵐ` donnent naissanc
   * Des **flux de charge** par compression / déformation (piézo, induction)
 
 ---
+
+
+✅ Une page web interactive en **p5.js** est prête !
+
+**Fichier** : [`gold_phi_octave_interference.html`](./gold_phi_octave_interference.html) - **Visualiseur d'Interférences Φ-Octave**
+
+> 🔗 **Description complète** : Voir [Applications Interactives - Moiré Cosmique](./README.md#3-🌀-moiré-cosmique---visualiseur-dinterférences) dans le README principal
+
+Tu peux :
+
+* Ouvrir le fichier [`gold_phi_octave_interference.html`](./gold_phi_octave_interference.html) dans ton navigateur.
+* Manipuler les curseurs `n`, `m`, `f₀` (fréquence de base), et `zoom` pour visualiser :
+
+  * l'**onde dorée** (Φⁿ, en jaune),
+  * l'**onde octavienne** (2ᵐ, en bleu),
+  * leur **interférence** (en blanc).
+
+---
+
+✅ J’ai ajouté :
+
+* **L’affichage dynamique** des valeurs `n`, `m`, `f₀`, `f_Φ` et `f_2` juste sous les curseurs.
+* Une **aide explicative en bas à gauche**, décrivant le rôle de chaque courbe et comment les interpréter dans le contexte du modèle vibratoire.
+
+✅ Le fond de la page change maintenant dynamiquement :
+
+* 🟩 **Vert vif** → les deux ondes (Φⁿ et 2ᵐ) sont très cohérentes (fréquences proches ou harmoniques).
+* 🟥 **Rouge intense** → incohérence forte entre les deux fréquences.
+* 💡 Le niveau de cohérence s'affiche aussi en pourcentage sous les curseurs.
+
+Souhaites-tu :
+
+* ajouter un **seuil de battement audible** ?
+* générer un **son** à partir de l’interférence ?
+* ou exporter ces états sous forme de données (CSV ou JSON) pour analyse ?
+
+### Nouveautés
+
+1. **Valeurs négatives m, n**
+
+   * Désormais explicitées comme des octaves inférieures (cohérentes et utiles).
+
+2. **Mode “Scan cohérence”**
+
+   * Bouton ▶ **Scan cohérence** : lance un balayage automatique de n ∈ \[‑10, 10] et m ∈ \[‑10, 10] par pas 0,2.
+   * À la fin, le scan s’arrête automatiquement et place les curseurs sur la paire (n, m) qui maximise la cohérence.
+   * Le meilleur pourcentage de cohérence atteint est conservé.
+
+3. **Affichage mis à jour**
+
+   * % de cohérence et fond dynamique vert/rouge toujours présents.
+   * Help‑box enrichie avec l’explication des valeurs négatives et du scan.
+
+Teste le **Scan cohérence** puis dis‑moi si tu souhaites :
+
+* ajuster la vitesse ou la résolution du balayage,
+* ou exporter automatiquement la liste des meilleures paires (CSV/JSON).
+

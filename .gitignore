@@ -1,0 +1,24 @@
+# Fichiers temporaires du microledger
+.chain
+.chain.*
+.moats
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Fichiers temporaires
+*.tmp
+*.temp
+*~
+
+# Dossiers de cache
+.cache/
+node_modules/
+
+# Fichiers de sauvegarde
+*.bak
+*.backup

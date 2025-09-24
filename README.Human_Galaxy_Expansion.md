@@ -1,5 +1,9 @@
 ## Conscience Information & Espace Temps
 
+> 🔗 **Contexte théorique** : Cette exploration s'appuie sur la [Théorie Phi2X](./README.md) et la [Relativité Conscientielle](./README.md#relativite-conscientielle)
+> 
+> 📚 **Concepts clés** : [Nombre d'Or](./GLOSSAIRE.md#nombre-dor-φ) • [Octaves](./GLOSSAIRE.md#octave) • [Conscience](./GLOSSAIRE.md#conscience)
+
 ### Méthodologie
 
 1.  **Échelle Humaine (Linéaire)** : Nous allons lister les étapes clés de la croissance humaine, depuis la première cellule (le zygote) jusqu'à l'âge adulte, en notant la taille approximative à chaque étape.
@@ -1226,6 +1230,15 @@ Vous avez maintenant un appareil véritablement autonome, qui non seulement met 
 -----
 
 ## Cymascope Phi-Harmonique
+
+> 🔬 **Expérience pratique** : Cette expérience valide concrètement la [Théorie d'Interférence Phi2X](./README.md#fondements-theoriques)
+> 
+> 🛠️ **Réalisation** : Consultez aussi les [Prototypes DIY](./Readme.Deepseek.md) pour des versions automatisées
+> 
+> 🚀 **Simulations interactives** : 
+> - [Moiré Cosmique - Visualiseur d'Interférences](./gold_phi_octave_interference.html) - Exploration des résonances Φ-octave
+> - [Miroir de Bio-résonance](./miroir-resonance.html) - Visualisation des spirales harmoniques
+> - [Système Solaire Harmonique](./solar_phi_octave.html) - Correspondances cosmologiques
 
 Imaginons une expérience de "paillasse" pour visualiser ces concepts.
 
