@@ -119,9 +119,12 @@ generate_index_html() {
         .nav-menu { position: relative; display: inline-block; }
         .nav-dropdown { display: none; position: absolute; top: 100%; left: 0; background: #21262d; border: 1px solid var(--border); border-radius: 6px; min-width: 200px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .nav-dropdown.show { display: block; }
-        .nav-dropdown a { display: block; padding: 8px 12px; color: var(--fg); text-decoration: none; border-bottom: 1px solid var(--border); }
+        .nav-dropdown a { display: block; padding: 8px 12px; color: var(--fg); text-decoration: none; border-bottom: 1px solid var(--border); transition: background 0.2s; }
         .nav-dropdown a:hover { background: #30363d; }
         .nav-dropdown a:last-child { border-bottom: none; }
+        .nav-section-title { padding: 8px 12px; font-weight: bold; color: #58a6ff; border-top: 1px solid var(--border); margin-top: 4px; font-size: 0.9em; background: #161b22; }
+        .nav-subsection a { padding-left: 24px; font-size: 0.9em; }
+        .nav-subsection a:hover { background: #2d333b; }
         .nav-menu-btn { background: none; border: none; color: var(--blue); cursor: pointer; font-size: 0.8rem; padding: 2px 6px; border-radius: 3px; }
         .nav-menu-btn:hover { background: #30363d; }
         .connect-btn { background: linear-gradient(45deg, #9c27b0, #7b1fa2); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; text-decoration: none; transition: all 0.2s; }
@@ -204,7 +207,31 @@ generate_index_html() {
                 // Liste des fichiers .md disponibles (détection automatique)
                 let availableMarkdownFiles = [];
                 
-                // Fonction pour détecter automatiquement les fichiers .md
+                // Fonction pour extraire le titre d'un fichier markdown
+                async function extractMarkdownTitle(filePath) {
+                    try {
+                        const response = await fetch(filePath);
+                        if (!response.ok) return null;
+                        
+                        const content = await response.text();
+                        const lines = content.split('\n');
+                        
+                        // Chercher le premier titre H1
+                        for (const line of lines.slice(0, 20)) { // Limiter aux 20 premières lignes
+                            const trimmed = line.trim();
+                            if (trimmed.startsWith('# ')) {
+                                return trimmed.substring(2).trim();
+                            }
+                        }
+                        
+                        // Fallback : utiliser le nom du fichier
+                        return filePath.split('/').pop().replace('.md', '');
+                    } catch (error) {
+                        return filePath.split('/').pop().replace('.md', '');
+                    }
+                }
+                
+                // Fonction pour détecter automatiquement les fichiers .md avec leurs titres
                 async function discoverMarkdownFiles() {
                     const knownFiles = [
                         'README.md',
@@ -217,28 +244,42 @@ generate_index_html() {
                         'IPFS_GUIDE.md',
                         'Experience/MoteurElectroAcoustique.md',
                         'Experience/Ex.1.md',
-                        'Experience/Rpi/ESchema.md'
+                        'Experience/Rpi/ESchema.md',
+                        'TEST_MERMAID.md'
                     ];
                     
                     availableMarkdownFiles = [];
                     
-                    // Tester chaque fichier connu
+                    // Tester chaque fichier connu et extraire son titre
                     for (const file of knownFiles) {
                         try {
                             const response = await fetch(file, { method: 'HEAD' });
                             if (response.ok) {
-                                availableMarkdownFiles.push(file);
+                                const title = await extractMarkdownTitle(file);
+                                availableMarkdownFiles.push({
+                                    path: file,
+                                    title: title,
+                                    directory: file.includes('/') ? file.substring(0, file.lastIndexOf('/')) : null
+                                });
                             }
                         } catch (e) {
                             // Fichier non accessible, on l'ignore
                         }
                     }
                     
-                    // S'assurer que README.md est en premier
+                    // S'assurer que README.md est en premier, puis grouper par répertoire
                     availableMarkdownFiles.sort((a, b) => {
-                        if (a === 'README.md') return -1;
-                        if (b === 'README.md') return 1;
-                        return a.localeCompare(b);
+                        if (a.path === 'README.md') return -1;
+                        if (b.path === 'README.md') return 1;
+                        
+                        // Grouper par répertoire
+                        if (a.directory !== b.directory) {
+                            if (!a.directory) return -1; // Fichiers racine en premier
+                            if (!b.directory) return 1;
+                            return a.directory.localeCompare(b.directory);
+                        }
+                        
+                        return a.title.localeCompare(b.title);
                     });
                 }
                 
@@ -274,34 +315,77 @@ generate_index_html() {
                         return;
                     }
                     
-                    availableMarkdownFiles.forEach(file => {
-                        const link = document.createElement('a');
-                        link.href = '#';
-                        
-                        // Créer un nom d'affichage plus lisible
-                        let displayName = file.replace('.md', '');
-                        if (displayName === 'README') {
-                            displayName = '🏠 README (Accueil)';
-                        } else if (displayName.startsWith('Readme.')) {
-                            displayName = '📖 ' + displayName.replace('Readme.', '') + ' (IA)';
-                        } else if (displayName.includes('/')) {
-                            displayName = '🔬 ' + displayName.replace('Experience/', '').replace('Rpi/', 'RPi/');
-                        } else {
-                            displayName = '📄 ' + displayName;
+                    // Grouper les fichiers par répertoire
+                    const filesByDirectory = {};
+                    
+                    availableMarkdownFiles.forEach(fileObj => {
+                        const directory = fileObj.directory || 'root';
+                        if (!filesByDirectory[directory]) {
+                            filesByDirectory[directory] = [];
                         }
-                        
-                        link.textContent = displayName;
-                        link.onclick = function(e) {
-                            e.preventDefault();
-                            if (file === 'README.md') {
-                                loadReadme();
+                        filesByDirectory[directory].push(fileObj);
+                    });
+                    
+                    // Traiter d'abord les fichiers racine
+                    if (filesByDirectory['root']) {
+                        filesByDirectory['root'].forEach(fileObj => {
+                            const link = document.createElement('a');
+                            link.href = '#';
+                            
+                            // Nom d'affichage avec titre
+                            let displayName;
+                            if (fileObj.path === 'README.md') {
+                                displayName = '🏠 ' + fileObj.title;
+                            } else if (fileObj.path.startsWith('Readme.')) {
+                                const aiName = fileObj.path.replace('Readme.', '').replace('.md', '');
+                                displayName = '🤖 ' + fileObj.title + ' (' + aiName + ')';
                             } else {
-                                loadMarkdownFile(file);
+                                displayName = '📄 ' + fileObj.title;
                             }
-                            dropdown.classList.remove('show');
-                        };
+                            
+                            link.textContent = displayName;
+                            link.onclick = function(e) {
+                                e.preventDefault();
+                                if (fileObj.path === 'README.md') {
+                                    loadReadme();
+                                } else {
+                                    loadMarkdownFile(fileObj.path);
+                                }
+                                dropdown.classList.remove('show');
+                            };
+                            
+                            dropdown.appendChild(link);
+                        });
+                    }
+                    
+                    // Traiter les répertoires
+                    Object.keys(filesByDirectory).forEach(directory => {
+                        if (directory === 'root') return; // Déjà traité
                         
-                        dropdown.appendChild(link);
+                        // Créer un séparateur/titre de section
+                        const sectionTitle = document.createElement('div');
+                        sectionTitle.className = 'nav-section-title';
+                        sectionTitle.textContent = `📁 ${directory.charAt(0).toUpperCase() + directory.slice(1)}`;
+                        dropdown.appendChild(sectionTitle);
+                        
+                        // Ajouter les fichiers du répertoire
+                        filesByDirectory[directory].forEach(fileObj => {
+                            const link = document.createElement('a');
+                            link.href = '#';
+                            link.className = 'nav-subsection';
+                            
+                            // Nom d'affichage avec titre
+                            const displayName = '📄 ' + fileObj.title;
+                            
+                            link.textContent = displayName;
+                            link.onclick = function(e) {
+                                e.preventDefault();
+                                loadMarkdownFile(fileObj.path);
+                                dropdown.classList.remove('show');
+                            };
+                            
+                            dropdown.appendChild(link);
+                        });
                     });
                 }
             
