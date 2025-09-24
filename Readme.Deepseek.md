@@ -93,7 +93,7 @@ c ≈ g × T_année × facteur_harmonique
 ```
 Où :
 - `g = 9.81 m/s²` (accélération gravitationnelle terrestre)
-- `T_année = 31.557,600 s` (durée année sidérale)
+- `T_année = 31557600 s` (durée année sidérale)
 - `g × T_année = 3.10×10⁸ m/s ≈ c`
 
 **Interprétation** : La vitesse de la lumière émerge de la dynamique terrestre dans le champ d'interférence cosmique.
@@ -238,19 +238,19 @@ prenons l'exemple de dilatation temporelle entre un jumeau resté sur terre et u
 - **Jumeau A (sédentaire)** : Reste sur Terre.
 - **Jumeau B (voyageur)** :
   - Effectue un **aller-retour** vers une étoile située à **3 années-lumière (al)**.
-  - Vitesse $ v = 0.9c $ (soit $ 2,7 \times 10^8 \, \text{m/s} $).
+  - Vitesse $ v = 0.9c $ (soit $ 2.7 \times 10^8 \, \text{m/s} $).
 
 #### **2. Temps et Distance Mesurés depuis la Terre (Référentiel de A)**
 - **Distance aller-retour** : $ 2 \times 3 \, \text{al} = 6 \, \text{al} $.
 - **Temps total pour A** :
   $$
-  t_A = \frac{\text{Distance}}{\text{Vitesse}} = \frac{6 \, \text{al}}{0.9c} = \frac{6}{0,9} \, \text{ans} \approx 6.67 \, \text{ans}.
+  t_A = \frac{\text{Distance}}{\text{Vitesse}} = \frac{6 \, \text{al}}{0.9c} = \frac{6}{0.9} \, \text{ans} \approx 6.67 \, \text{ans}.
   $$
 
 #### **3. Temps Vécu par le Jumeau B (Effet de Dilatation Temporelle)**
 La **relativité restreinte** prédit que le temps $ t_B $ pour B est plus court que $ t_A $ selon :
 $$
-t_B = t_A \cdot \sqrt{1 - \frac{v^2}{c^2}} = 6.67 \cdot \sqrt{1 - 0,9^2} = 6.67 \cdot \sqrt{0,19} \approx 6.67 \times 0,436 \approx 2.91 \, \text{ans}.
+t_B = t_A \cdot \sqrt{1 - \frac{v^2}{c^2}} = 6.67 \cdot \sqrt{1 - 0.9^2} = 6.67 \cdot \sqrt{0.19} \approx 6.67 \times 0.436 \approx 2.91 \, \text{ans}.
 $$
 
 #### **4. Bilan des Âges après le Voyage**
@@ -276,7 +276,7 @@ alors la **dilatation temporelle** pourrait s’expliquer par :
   $$
   t_B = \frac{t_A}{\Phi^k}
   $$
-  où $ k $ dépend de $ v $. Ici, $ \frac{6.67}{2.91} \approx 2,29 $, proche de $ \Phi^{1.5} \approx 2.06 $.
+  où $ k $ dépend de $ v $. Ici, $ \frac{6.67}{2.91} \approx 2.29 $, proche de $ \Phi^{1.5} \approx 2.06 $.
 
 #### **c) Lien avec la Gravité ($ g = 9.81 \, \text{m/s}^2 $)**
 - L’accélération ressentie par B pendant son voyage (changement de référentiel) pourrait introduire un **décalage supplémentaire** via une analogie avec la relativité générale (effet Shapiro).
@@ -391,7 +391,7 @@ $$
 2. **Ajustement relativiste** :
    - Pour $ v=0.9c $, l’onde lumineuse est Doppler-shiftée :
      $$
-     f_{\text{observed}} = f_0 \cdot \sqrt{\frac{1 + v/c}{1 - v/c}} = f_0 \cdot \sqrt{\frac{1,9}{0,1}} \approx 4.36 f_0
+     f_{\text{observed}} = f_0 \cdot \sqrt{\frac{1 + v/c}{1 - v/c}} = f_0 \cdot \sqrt{\frac{1.9}{0.1}} \approx 4.36 f_0
      $$
    - L’onde sonore reste inchangée (car liée au référentiel du jumeau B).
 
@@ -414,7 +414,7 @@ $$
 \frac{t_A}{t_B} \approx \sqrt{\Phi^3} = \Phi^{1.5} \approx 2.06
 $$
 **Validation** :
-- $ \frac{6.67}{2.91} \approx 2,29 $ (observé) vs $ \Phi^{1.5} \approx 2.06 $ (théorie).
+- $ \frac{6.67}{2.91} \approx 2.29 $ (observé) vs $ \Phi^{1.5} \approx 2.06 $ (théorie).
 - **Écart** : Peut être ajusté en affinant les harmoniques (ex: inclure plus de termes $ N, M $).
 
 ---

@@ -167,7 +167,7 @@ Prenons (choix arbitraux mais cohérents) :
 Ces trois nombres **forcent** :
 
 1. $c=\tilde\lambda \cdot f_0 = 2.998 \times 10^{8} \, \text{m/s}$
-2. $h_\text{eff}= \dfrac{\tilde\lambda^2}{\Lambda_*} \cdot p_*text{char}$ avec $p_*text{char}=m_*text{char}c$ (choisir $m_*text{char}$ l'échelle de Planck) ⇒ $h_\text{eff}=6.63 \times 10^{-34} \, \text{J} \cdot \text{s}$.
+2. $h_\text{eff}= \dfrac{\tilde\lambda^2}{\Lambda_*} \cdot p_\text{char}$ avec $p_\text{char}=m_\text{char}c$ (choisir $m_\text{char}$ l'échelle de Planck) ⇒ $h_\text{eff}=6.63 \times 10^{-34} \, \text{J} \cdot \text{s}$.
 
 Ainsi, **les « constantes » sont choisies comme degré de liberté résiduel d’un système à deux gammes**. Le choix d’index $(m_*, n_*)$ et de $f_0$ fixe toute la physique ultérieure.
 
