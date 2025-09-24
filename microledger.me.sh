@@ -1233,7 +1233,7 @@ generate_index_html() {
             
             // Fonction pour effectuer l'authentification NIP42
             async function performNIP42Auth() {
-                return new Promise((resolve) => {
+                return new Promise(async (resolve) => {
                     try {
                         console.log('🔐 Démarrage de l\'authentification NIP42...');
                         
@@ -1241,14 +1241,11 @@ generate_index_html() {
                         console.log('🌐 URL du relai détectée:', relayUrl);
                         
                         // Initialiser la connexion au relai avec NostrTools
-                        const relay = NostrTools.relayInit(relayUrl);
+                        const relay = new NostrTools.Relay(relayUrl);
                         let authCompleted = false;
                         
-                        relay.on('connect', () => {
-                            console.log('✅ Connecté au relai pour NIP42:', relayUrl);
-                        });
-                        
-                        relay.on('auth', async (challenge) => {
+                        // Gérer le challenge d'authentification
+                        relay._onauth = async (challenge) => {
                             console.log('🔐 Challenge NIP42 reçu:', challenge);
                             
                             if (authCompleted) {
@@ -1257,35 +1254,26 @@ generate_index_html() {
                             }
                             
                             try {
-                                // Créer l'événement NIP42 avec le vrai challenge
-                                const authEvent = {
-                                    kind: 22242,
-                                    created_at: Math.floor(Date.now() / 1000),
-                                    tags: [
-                                        ['relay', relayUrl],
-                                        ['challenge', challenge]
-                                    ],
-                                    content: '',
-                                    pubkey: userPublicKey
+                                // Utiliser la fonction auth() du relai avec une fonction de signature
+                                const signAuthEvent = async (authEvent) => {
+                                    console.log('📝 Signature de l\'événement NIP42:', authEvent);
+                                    
+                                    // Ajouter la clé publique
+                                    authEvent.pubkey = userPublicKey;
+                                    
+                                    // Signer l'événement
+                                    if (window.nostr && window.nostr.signEvent) {
+                                        return await window.nostr.signEvent(authEvent);
+                                    } else if (userPrivateKey) {
+                                        return NostrTools.finishEvent(authEvent, userPrivateKey);
+                                    } else {
+                                        throw new Error('Impossible de signer l\'événement d\'authentification');
+                                    }
                                 };
                                 
-                                console.log('📝 Création événement NIP42 avec challenge:', authEvent);
-                                
-                                // Signer l'événement
-                                let signedAuthEvent;
-                                if (window.nostr && window.nostr.signEvent) {
-                                    signedAuthEvent = await window.nostr.signEvent(authEvent);
-                                } else if (userPrivateKey) {
-                                    signedAuthEvent = NostrTools.finishEvent(authEvent, userPrivateKey);
-                                } else {
-                                    throw new Error('Impossible de signer l\'événement d\'authentification');
-                                }
-                                
-                                console.log('✍️ Événement NIP42 signé:', signedAuthEvent);
-                                
-                                // Publier l'événement d'authentification
-                                await relay.publish(signedAuthEvent);
-                                console.log('📡 Événement NIP42 publié avec succès');
+                                // Effectuer l'authentification
+                                await relay.auth(signAuthEvent);
+                                console.log('📡 Authentification NIP42 envoyée avec succès');
                                 
                                 authCompleted = true;
                                 
@@ -1303,20 +1291,24 @@ generate_index_html() {
                                 relay.close();
                                 resolve(false);
                             }
-                        });
+                        };
                         
-                        relay.on('error', (error) => {
-                            console.error('❌ Erreur de connexion relai NIP42:', error);
-                            resolve(false);
-                        });
+                        // Gérer les erreurs de connexion
+                        relay.onclose = () => {
+                            if (!authCompleted) {
+                                console.log('🔌 Connexion fermée avant authentification');
+                                resolve(false);
+                            }
+                        };
                         
                         // Connecter au relai
-                        relay.connect();
+                        await relay.connect();
+                        console.log('✅ Connecté au relai pour NIP42:', relayUrl);
                         
                         // Timeout de sécurité
                         setTimeout(() => {
                             if (!authCompleted) {
-                                console.log('⏰ Timeout authentification NIP42 - tentative de connexion sans challenge');
+                                console.log('⏰ Timeout authentification NIP42 - pas de challenge reçu');
                                 relay.close();
                                 // Si pas de challenge reçu, on considère que l'auth n'est pas requise
                                 resolve(true);
