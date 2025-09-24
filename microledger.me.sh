@@ -393,11 +393,8 @@ if [[ -n "${OLD}" ]]; then
 fi
 
 echo "## INDEX.HTML UPDATE"
-# Mise à jour des liens IPFS dans index.html (éviter erreurs sed si OLD est vide)
-if [[ -n "${OLD}" ]]; then
-    sed -i "s~${OLD}~${IPFSME}~g" ${MY_PATH}/index.html
-fi
-echo "✅ index.html mis à jour avec le nouveau CID IPFS"
+# L'index.html est déjà généré avec les bons CIDs, pas besoin de mise à jour supplémentaire
+echo "✅ index.html généré avec les métadonnées à jour"
 
 echo "## AUTO GIT"
 echo '# ENTER COMMENT FOR YOUR COMMIT :'
