@@ -54,6 +54,8 @@ init_capsule() {
 # Génération dynamique de l'index.html
 generate_index_html() {
     PROJECT_NAME=$(basename ${MY_PATH})
+    GENERATION_DATE=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+    IPFS_NODE_ID=$(ipfs id -f="<id>" 2>/dev/null || $IPFSNODEID)
     
     cat > ${MY_PATH}/index.html << 'HTMLEOF'
 <!DOCTYPE html>
@@ -104,10 +106,21 @@ generate_index_html() {
         </div>
         <h1>📡 FRD Knowledge Capsule</h1>
         <p>IPFS Evolutive Knowledge - Git Versioned Nostr Distribution</p>
+        <div style="font-size: 0.8rem; color: #6e7681; margin-top: 10px;">
+            <div>📅 Generated: GENERATION_DATE_PLACEHOLDER</div>
+            <div>🌐 Node: <a href="/ipns/IPFS_NODE_ID_PLACEHOLDER" style="color: #58a6ff;">IPFS_NODE_ID_PLACEHOLDER</a></div>
+        </div>
     </div>
     <div class="container">
         <div id="content" class="markdown-content">
             <div class="loading">⏳ Chargement de la documentation...</div>
+        </div>
+    </div>
+    <div class="footer" style="border-top: 1px solid var(--border); padding: 20px; text-align: center; font-size: 0.8rem; color: #6e7681; margin-top: 40px;">
+        <div>🌟 FRD Knowledge Capsule - Distributed via IPFS+Git+Nostr</div>
+        <div style="margin-top: 10px;">
+            <span>📜 Previous version: </span>
+            <a href="/ipfs/OLD_CID_PLACEHOLDER/" style="color: #58a6ff;">OLD_CID_PLACEHOLDER</a>
         </div>
     </div>
     <script>
@@ -317,6 +330,14 @@ generate_index_html() {
 </body>
 </html>
 HTMLEOF
+    
+    # Remplacer les placeholders par les valeurs réelles
+    sed -i "s/GENERATION_DATE_PLACEHOLDER/$GENERATION_DATE/g" ${MY_PATH}/index.html
+    sed -i "s/IPFS_NODE_ID_PLACEHOLDER/$IPFS_NODE_ID/g" ${MY_PATH}/index.html
+    
+    # Remplacer le placeholder de l'ancien CID (sera fait plus tard dans le script)
+    OLD_CID=$(cat ${MY_PATH}/.chain 2>/dev/null || echo "genesis")
+    sed -i "s/OLD_CID_PLACEHOLDER/$OLD_CID/g" ${MY_PATH}/index.html
 }
 
 OLD=$(cat ${MY_PATH}/.chain 2>/dev/null)
@@ -341,6 +362,8 @@ ls -t ${MY_PATH}/.chain* | tail -n +3 | xargs rm -f 2>/dev/null || true
 echo "## INDEX.HTML PRE-GENERATION"
 # Toujours créer/recréer l'index.html AVANT la génération IPFS
 echo "🌐 Génération de l'index.html..."
+# Supprimer l'ancien index.html s'il existe pour forcer la régénération
+[[ -f ${MY_PATH}/index.html ]] && rm ${MY_PATH}/index.html
 generate_index_html
 
 IPFSME=$(ipfs add -rwHq --ignore=.git --ignore-rules-path=.gitignore ${MY_PATH}/* | tail -n 1)
