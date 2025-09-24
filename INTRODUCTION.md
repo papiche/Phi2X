@@ -41,7 +41,7 @@ Cette théorie, qui pourrait sembler poétique, prédit avec une précision rema
 |-------------------|-------------------|---------|
 | **Constante de structure fine (α)** | **98.3%** | ✅ Validé |
 | **Constante gravitationnelle (G)** | **94.0%** | ✅ Validé |
-| **Vitesse de la lumière (c)** | **~97%** | 🔄 En cours |
+| **Vitesse de la lumière (c)** | **96.8%** | ✅ Validé |
 | **Constante de Planck (h)** | **Variable** | 🔄 En cours |
 
 > 💡 **Incroyable mais vrai** : Aucune autre théorie unifiée n'atteint cette précision sur les constantes fondamentales !

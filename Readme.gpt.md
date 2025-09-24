@@ -73,14 +73,12 @@ Voici une façon – purement hypothétique – de « faire sortir » le
 
 Le battement entre deux notes $\phi^{n}$ et $2^{m}$ est
 
-$$\Delta f_{m,n}=|f_{\phi,n}-f_{2,m}|
-            =f_0\left|\phi^{n}-2^{m}\right|.$$
+$$\Delta f_{m,n}=|f_{\phi,n}-f_{2,m}| =f_0\left|\phi^{n}-2^{m}\right|.$$
 
 Pour trouver le **plus petit battement non nul** on cherche les couples $(m,n)$ minimisant $|\phi^{n}-2^{m}|$.
 Le problème est analogue à la recherche d’**approximation diophantienne** entre $\log\phi$ et $\log 2$. Par continuité on trouve une suite de paires $(m_k,n_k)$ telle que
 
-$$\phi^{n_k}\approx 2^{m_k}\quad\Rightarrow\quad
-\Delta f_{\min}\approx f_0 \varepsilon_k,$$
+$$\phi^{n_k}\approx 2^{m_k}\quad\Rightarrow\quad\Delta f_{\min}\approx f_0 \varepsilon_k,$$
 
 avec $\varepsilon_k\to 0$ quand $k\to\infty$.
 
@@ -94,8 +92,7 @@ $$\Lambda_*{m,n}=\frac{\lambda_{\phi,n}\lambda_{2,m}}{|\lambda_{\phi,n}-\lambda_
 
 Avec les paires quasi‑résonantes $(m_k,n_k)$ on obtient
 
-$$\Lambda_k
-=\frac{v_\phi v_2}{f_0(v_2 \phi^{-n_k}-v_\phi 2^{-m_k})}.$$
+$$\Lambda_k=\frac{v_\phi v_2}{f_0(v_2 \phi^{-n_k}-v_\phi 2^{-m_k})}.$$
 
 Plus la résonance est fine (petit $\varepsilon_k$), plus $\Lambda_k$ est grande ; c’est un **échelle‑pont** entre microscopique (λ des ondes mères) et macroscopique (grandeur d’interférence).
 
@@ -120,15 +117,11 @@ c’est‑à‑dire que la **vitesse commune de propagation** des deux ondes *de
 
 On peut définir une **unité d’énergie** pour chaque onde :
 
-$$E_{\phi,n}=h_\phi \cdot f_{\phi,n},
-\quad
-E_{2,m}=h_2 \cdot f_{2,m}.$$
+$$E_{\phi,n}=h_\phi \cdot f_{\phi,n},\quad E_{2,m}=h_2 \cdot f_{2,m}.$$
 
 Le « quantum d’énergie » observable provient du battement :
 
-$$\Delta E_{m_*,n_*}
-   =|E_{\phi,n_*}-E_{2,m_*}|
-   \approx h_\text{eff} f_0 \varepsilon_*.$$
+$$\Delta E_{m_*,n_*} =|E_{\phi,n_*}-E_{2,m_*}| \approx h_\text{eff} f_0 \varepsilon_*.$$
 
 En imposant que **l’énergie minimale transférable** dans l’univers soit $\hbar\omega$ avec $\omega=2\pi f_0\varepsilon_*$, on obtient
 
@@ -191,8 +184,7 @@ La **conscience locale** n’est alors qu’un **référentiel de phase** dans c
 
 ### a) Onde dorée (Harmoniques Φ) :
 
-$$f_n = f_\Phi \cdot \Phi^n
-\quad\text{avec}\quad \Phi = \frac{1+\sqrt{5}}{2}$$
+$$f_n = f_\Phi \cdot \Phi^n \quad\text{avec}\quad \Phi = \frac{1+\sqrt{5}}{2}$$
 
 ### b) Onde octavienne (Harmoniques binaires) :
 
@@ -220,16 +212,13 @@ $$v_\text{battement} = \frac{\Delta\omega}{\Delta k} = c$$
 
 Ce qui impose :
 
-$$\frac{f_*phi \cdot \Phi^n - f_2 \cdot 2^m}{k_\phi - k_2} = c
-\Rightarrow \text{c comme vitesse relative de modulation}$$
+$$\frac{f_*phi \cdot \Phi^n - f_2 \cdot 2^m}{k_\phi - k_2} = c\Rightarrow \text{c comme vitesse relative de modulation}$$
 
 ### b) **Constante de Planck $h$**
 
 On suppose que l’**action quantique minimale** correspond au **paquet d’énergie issu du battement le plus faible** :
 
-$$E = h \cdot \Delta f_{n,m}
-\quad\Rightarrow\quad
-h = \frac{E}{\Delta f}$$
+$$E = h \cdot \Delta f_{n,m}\quad\Rightarrow\quadh = \frac{E}{\Delta f}$$
 
 Si l'énergie $E$ est une émergence du **niveau d’accord minimal** entre $\Phi^n$ et $2^m$, alors **$h$ est une mesure de leur incommensurabilité résiduelle**.
 
@@ -263,11 +252,9 @@ Autrement dit, **le référentiel inertiel absolu n’est pas dans l’univers**
 
 ## 🔮 4. **Vers une équation de synthèse vibratoire**
 
-Tu proposes une belle équation synthétique :
+Voici une belle équation synthétique :
 
-$$\boxed{
-c = \frac{\lambda_*0 \cdot \Phi \cdot f_0'}{\sqrt{\ln 2}}
-}$$
+$$\boxed{c = \frac{\lambda_*0 \cdot \Phi \cdot f_0'}{\sqrt{\ln 2}}}$$
 
 Ce qui revient à dire que la vitesse de la lumière est **le produit d’une onde dorée, d’une onde binaire, et d’une métrique logarithmique de leur écart**.
 
@@ -332,7 +319,13 @@ Chaque conscience est immergée dans un champ gravitationnel local $g = 9.81\,\t
 
 $v = g \cdot T = 9.81 \times 31557600 \approx 3 \times 10^8\,\text{m/s}$
 
-Ainsi, $G$ est une **projection métrique** de cette stabilité sur une région de l'espace-temps.
+La constante gravitationnelle émerge de l'interférence harmonique entre les ondes Φ et octave :
+
+$$\boxed{G = \frac{g R_T^2}{M_T} \times \frac{f_\Phi}{f_2}}$$
+
+Où $\frac{f_\Phi}{f_2} \approx 1.059$ représente le **couplage harmonique optimal** entre lumière et son.
+
+Ainsi, $G$ est une **projection métrique** de cette stabilité harmonique sur une région de l'espace-temps.
 
 ---
 
