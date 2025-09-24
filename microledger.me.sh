@@ -216,11 +216,28 @@ generate_index_html() {
                         const content = await response.text();
                         const lines = content.split('\n');
                         
-                        // Chercher le premier titre H1
+                        // Chercher le premier titre (H1, H2, ou H3)
                         for (const line of lines.slice(0, 20)) { // Limiter aux 20 premières lignes
                             const trimmed = line.trim();
                             if (trimmed.startsWith('# ')) {
                                 return trimmed.substring(2).trim();
+                            } else if (trimmed.startsWith('## ')) {
+                                return trimmed.substring(3).trim();
+                            } else if (trimmed.startsWith('### ')) {
+                                return trimmed.substring(4).trim();
+                            }
+                        }
+                        
+                        // Chercher une ligne qui ressemble à un titre (première ligne non vide significative)
+                        for (const line of lines.slice(0, 10)) {
+                            const trimmed = line.trim();
+                            if (trimmed.length > 0 && 
+                                !trimmed.startsWith('---') && 
+                                !trimmed.startsWith('```') &&
+                                !trimmed.startsWith('*') &&
+                                !trimmed.startsWith('-') &&
+                                trimmed.length < 100) { // Pas trop long pour être un titre
+                                return trimmed.replace(/[*_`]/g, ''); // Nettoyer le markdown
                             }
                         }
                         

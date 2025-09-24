@@ -90,11 +90,11 @@
                 <button id="copyBtn" class="copy-btn" onclick="copyToUDrive()" disabled>📋 Copier</button>
             </div>
             <div class="header-right">
-                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 19:00:09 UTC</span>
+                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 19:03:02 UTC</span>
                 <a href="/ipns/12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu" class="header-icon" title="IPFS Node: 12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu">🌐</a>
-                <a href="/ipfs/QmYks2HDHFLCUniDXo8Y3AgBGMaBVuu74hsw55LPbV4L3t/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
+                <a href="/ipfs/QmRtNaxnFatFrEVoesv1muPZi4RCvEhKCV8DvYMg5bY11W/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
                 <a href="/ipfs/QmYLkdv1RNBU4xnjkvm5q8WckHW4vSPyo6UCZRCTgMcYTU/" class="header-icon" id="genesisBtn" title="Version Genesis">🌱</a>
-                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 9</span>
+                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 10</span>
             </div>
         </div>
     </div>
@@ -125,11 +125,28 @@
                         const content = await response.text();
                         const lines = content.split('\n');
                         
-                        // Chercher le premier titre H1
+                        // Chercher le premier titre (H1, H2, ou H3)
                         for (const line of lines.slice(0, 20)) { // Limiter aux 20 premières lignes
                             const trimmed = line.trim();
                             if (trimmed.startsWith('# ')) {
                                 return trimmed.substring(2).trim();
+                            } else if (trimmed.startsWith('## ')) {
+                                return trimmed.substring(3).trim();
+                            } else if (trimmed.startsWith('### ')) {
+                                return trimmed.substring(4).trim();
+                            }
+                        }
+                        
+                        // Chercher une ligne qui ressemble à un titre (première ligne non vide significative)
+                        for (const line of lines.slice(0, 10)) {
+                            const trimmed = line.trim();
+                            if (trimmed.length > 0 && 
+                                !trimmed.startsWith('---') && 
+                                !trimmed.startsWith('```') &&
+                                !trimmed.startsWith('*') &&
+                                !trimmed.startsWith('-') &&
+                                trimmed.length < 100) { // Pas trop long pour être un titre
+                                return trimmed.replace(/[*_`]/g, ''); // Nettoyer le markdown
                             }
                         }
                         
