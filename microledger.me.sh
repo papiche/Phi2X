@@ -219,14 +219,14 @@ send_nostr_capsule_event() {
         return 1
     fi
     
-    # Vérifier si le script automatisé est disponible
-    local nostr_script="${MY_PATH}/nostr_auto_send.py"
+    # Vérifier si le script strfry est disponible
+    local nostr_script="${MY_PATH}/nostr_strfry_send.py"
     if [[ ! -f "$nostr_script" ]]; then
-        echo "❌ Script nostr_auto_send.py non trouvé: $nostr_script"
+        echo "❌ Script nostr_strfry_send.py non trouvé: $nostr_script"
         return 1
     fi
     
-    echo "📡 Envoi de l'événement NOSTR via script automatisé"
+    echo "📡 Envoi de l'événement NOSTR vers strfry local"
     
     # Lire la clé nsec
     local nsec_content=""
@@ -252,12 +252,12 @@ send_nostr_capsule_event() {
     echo "   CID: $cid"
     echo "   Évolution: #$evolution_count"
     
-    # Exécuter le script automatisé
-    if python3 "$nostr_script" --nsec "$nsec_content" --content "$nostr_message"; then
-        echo "✅ Événement NOSTR publié avec succès"
+    # Exécuter le script strfry
+    if python3 "$nostr_script" --nsec "$nsec_content" --content "$nostr_message" --relay "ws://127.0.0.1:7777"; then
+        echo "✅ Événement NOSTR publié avec succès sur strfry"
         return 0
     else
-        echo "❌ Échec de la publication NOSTR"
+        echo "❌ Échec de la publication NOSTR sur strfry"
         return 1
     fi
 }
