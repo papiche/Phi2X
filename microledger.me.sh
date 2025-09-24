@@ -229,6 +229,88 @@ generate_index_html() {
         .nav-section-title { padding: 8px 12px; font-weight: bold; color: #58a6ff; border-top: 1px solid var(--border); margin-top: 4px; font-size: 0.9em; background: #161b22; }
         .nav-subsection a { padding-left: 24px; font-size: 0.9em; }
         .nav-subsection a:hover { background: #2d333b; }
+        
+        /* Footer profil utilisateur */
+        .footer { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            background: linear-gradient(135deg, #0d1117, #161b22); 
+            border-top: 1px solid var(--border); 
+            padding: 10px 20px; 
+            z-index: 1000; 
+            display: none;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+        }
+        .user-profile-footer { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+        }
+        .user-profile-info { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+        }
+        .user-avatar { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            border: 2px solid var(--blue); 
+            object-fit: cover; 
+        }
+        .user-avatar-placeholder { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            border: 2px solid var(--border); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background: var(--bg-secondary); 
+            font-size: 1.2em; 
+        }
+        .user-details { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 2px; 
+        }
+        .user-name { 
+            font-weight: bold; 
+            color: var(--blue); 
+            font-size: 0.9em; 
+        }
+        .user-pubkey { 
+            font-family: monospace; 
+            color: var(--fg-muted); 
+            font-size: 0.8em; 
+        }
+        .user-about { 
+            color: var(--fg-muted); 
+            font-size: 0.8em; 
+            max-width: 300px; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+        .disconnect-btn { 
+            background: var(--bg-secondary); 
+            border: 1px solid var(--border); 
+            color: var(--fg); 
+            padding: 6px 12px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 0.8em; 
+            transition: all 0.2s; 
+        }
+        .disconnect-btn:hover { 
+            background: var(--danger); 
+            border-color: var(--danger); 
+            color: white; 
+        }
         .nav-menu-btn { background: none; border: none; color: var(--blue); cursor: pointer; font-size: 0.8rem; padding: 2px 6px; border-radius: 3px; }
         .nav-menu-btn:hover { background: #30363d; }
         .connect-btn { background: linear-gradient(45deg, #9c27b0, #7b1fa2); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; text-decoration: none; transition: all 0.2s; }
@@ -238,7 +320,7 @@ generate_index_html() {
         .copy-btn:hover { background: linear-gradient(45deg, #ff5252, #f44336); text-decoration: none; color: white; }
         .copy-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         body { padding-top: 60px; }
-        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; padding-bottom: 80px; /* Espace pour le footer */ }
         .markdown-content { background: var(--bg); }
         .markdown-content h1 { color: var(--accent); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 30px; }
         .markdown-content h2 { color: var(--blue); margin-top: 40px; margin-bottom: 20px; }
@@ -704,17 +786,33 @@ generate_index_html() {
                 }
             }
             
+            // Fonction pour obtenir l'URL du relai basée sur l'URL IPFS actuelle
+            function getRelayURL() {
+                const currentUrl = new URL(window.location.href);
+                let relayName = currentUrl.hostname.replace('ipfs.', 'relay.');
+                
+                if (currentUrl.port === '8080' || currentUrl.hostname === '127.0.0.1' || currentUrl.hostname === 'localhost') {
+                    return 'ws://127.0.0.1:7777'; // Relai local par défaut
+                }
+                
+                return `wss://${relayName}`;
+            }
+            
             // Fonction pour effectuer l'authentification NIP42
             async function performNIP42Auth() {
                 try {
                     console.log('🔐 Début de l\'authentification NIP42...');
+                    
+                    // Obtenir l'URL du relai automatiquement
+                    const relayUrl = getRelayURL();
+                    console.log('🌐 URL du relai détectée:', relayUrl);
                     
                     // Créer un événement d'authentification NIP42 (kind 22242)
                     const authEvent = {
                         kind: 22242,
                         created_at: Math.floor(Date.now() / 1000),
                         tags: [
-                            ['relay', 'ws://127.0.0.1:7777'],
+                            ['relay', relayUrl],
                             ['challenge', 'auth_' + Date.now()]
                         ],
                         content: 'Authentication for UPlanet API access',
@@ -736,10 +834,12 @@ generate_index_html() {
                     console.log('📝 Événement d\'authentification signé:', signedEvent);
                     
                     // Publier l'événement sur le relai
-                    const published = await publishToRelay(signedEvent);
+                    const published = await publishToRelay(signedEvent, relayUrl);
                     
                     if (published) {
                         console.log('✅ Authentification NIP42 réussie');
+                        // Charger et afficher le profil utilisateur dans le footer
+                        await loadUserProfile();
                         return true;
                     } else {
                         console.error('❌ Échec de la publication de l\'événement d\'authentification');
@@ -753,10 +853,10 @@ generate_index_html() {
             }
             
             // Fonction pour publier un événement sur le relai
-            async function publishToRelay(event) {
+            async function publishToRelay(event, relayUrl) {
                 return new Promise((resolve) => {
                     try {
-                        const ws = new WebSocket('ws://127.0.0.1:7777');
+                        const ws = new WebSocket(relayUrl || 'ws://127.0.0.1:7777');
                         
                         ws.onopen = () => {
                             console.log('📡 Connexion au relai établie');
@@ -804,6 +904,139 @@ generate_index_html() {
                         resolve(false);
                     }
                 });
+            }
+            
+            // Fonction pour charger le profil utilisateur depuis Nostr
+            async function loadUserProfile() {
+                try {
+                    console.log('👤 Chargement du profil utilisateur...');
+                    const relayUrl = getRelayURL();
+                    
+                    // Créer une connexion WebSocket au relai
+                    const ws = new WebSocket(relayUrl);
+                    
+                    return new Promise((resolve) => {
+                        ws.onopen = () => {
+                            console.log('📡 Connexion au relai établie pour le profil');
+                            // Demander le profil utilisateur (kind 0)
+                            const request = JSON.stringify(['REQ', 'profile_' + Date.now(), {
+                                kinds: [0],
+                                authors: [userPublicKey],
+                                limit: 1
+                            }]);
+                            ws.send(request);
+                        };
+                        
+                        ws.onmessage = (event) => {
+                            const data = JSON.parse(event.data);
+                            
+                            if (data[0] === 'EVENT') {
+                                try {
+                                    const profileData = JSON.parse(data[2].content);
+                                    console.log('👤 Profil utilisateur reçu:', profileData);
+                                    displayUserProfile(profileData);
+                                    ws.close();
+                                    resolve(profileData);
+                                } catch (error) {
+                                    console.error('Erreur parsing profil:', error);
+                                    ws.close();
+                                    resolve(null);
+                                }
+                            } else if (data[0] === 'EOSE') {
+                                console.log('Fin de réception du profil');
+                                ws.close();
+                                resolve(null);
+                            }
+                        };
+                        
+                        ws.onerror = (error) => {
+                            console.error('Erreur WebSocket profil:', error);
+                            ws.close();
+                            resolve(null);
+                        };
+                        
+                        // Timeout après 5 secondes
+                        setTimeout(() => {
+                            if (ws.readyState === WebSocket.OPEN) {
+                                ws.close();
+                                resolve(null);
+                            }
+                        }, 5000);
+                    });
+                } catch (error) {
+                    console.error('Erreur lors du chargement du profil:', error);
+                    return null;
+                }
+            }
+            
+            // Fonction pour afficher le profil utilisateur dans le footer
+            function displayUserProfile(profileData) {
+                try {
+                    // Créer ou mettre à jour le footer
+                    let footer = document.querySelector('.footer');
+                    if (!footer) {
+                        footer = document.createElement('div');
+                        footer.className = 'footer';
+                        document.body.appendChild(footer);
+                    }
+                    
+                    // Construire le HTML du profil
+                    const name = profileData.name || profileData.display_name || 'Utilisateur Nostr';
+                    const picture = profileData.picture || '';
+                    const about = profileData.about || '';
+                    const pubkeyShort = userPublicKey.substring(0, 8) + '...' + userPublicKey.substring(-8);
+                    
+                    let profileHTML = `
+                        <div class="user-profile-footer">
+                            <div class="user-profile-info">
+                                ${picture ? `<img src="${picture}" alt="Profile" class="user-avatar">` : '<div class="user-avatar-placeholder">👤</div>'}
+                                <div class="user-details">
+                                    <div class="user-name">${name}</div>
+                                    <div class="user-pubkey">${pubkeyShort}</div>
+                                    ${about ? `<div class="user-about">${about.substring(0, 100)}${about.length > 100 ? '...' : ''}</div>` : ''}
+                                </div>
+                            </div>
+                            <div class="user-actions">
+                                <button onclick="disconnectNostr()" class="disconnect-btn">🚪 Déconnecter</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    footer.innerHTML = profileHTML;
+                    footer.style.display = 'block';
+                    
+                    console.log('✅ Profil utilisateur affiché dans le footer');
+                } catch (error) {
+                    console.error('Erreur lors de l\'affichage du profil:', error);
+                }
+            }
+            
+            // Fonction pour déconnecter l'utilisateur
+            function disconnectNostr() {
+                nostrConnected = false;
+                userPublicKey = null;
+                userPrivateKey = null;
+                
+                // Réinitialiser les boutons
+                const connectBtn = document.getElementById('connectBtn');
+                const copyBtn = document.getElementById('copyBtn');
+                
+                if (connectBtn) {
+                    connectBtn.textContent = '🔗 Connect';
+                    connectBtn.classList.remove('connected');
+                }
+                
+                if (copyBtn) {
+                    copyBtn.disabled = true;
+                }
+                
+                // Masquer le footer
+                const footer = document.querySelector('.footer');
+                if (footer) {
+                    footer.style.display = 'none';
+                }
+                
+                console.log('👋 Utilisateur déconnecté');
             }
             
             // Fonction pour copier le projet vers uDRIVE
