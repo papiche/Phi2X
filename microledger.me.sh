@@ -120,6 +120,8 @@ generate_index_html() {
     <script>
         marked.setOptions({ highlight: (code, lang) => lang && hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value, breaks: true, gfm: true });
         
+        let currentFile = '';
+        
         async function loadMarkdown(filename) {
             const content = document.getElementById('content');
             content.innerHTML = '<div style="text-align: center; padding: 60px;">⏳ Chargement de ' + filename + '...</div>';
@@ -128,12 +130,25 @@ generate_index_html() {
                 if (!response.ok) throw new Error(`Erreur ${response.status}`);
                 const markdown = await response.text();
                 content.innerHTML = '<div class="markdown-content">' + marked.parse(markdown) + '</div>';
+                
+                // Mettre à jour l'état actif
                 document.querySelectorAll('.file-list a').forEach(a => a.classList.remove('active'));
-                document.querySelector(`[onclick="loadMarkdown('${filename}')"]`).classList.add('active');
-                if (window.renderMathInElement) renderMathInElement(content, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });
+                document.querySelectorAll('.file-list a').forEach(a => {
+                    if (a.textContent === filename) a.classList.add('active');
+                });
+                
+                currentFile = filename;
+                if (window.renderMathInElement) {
+                    renderMathInElement(content, { 
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true}, 
+                            {left: '$', right: '$', display: false}
+                        ] 
+                    });
+                }
                 window.scrollTo(0, 0);
             } catch (error) {
-                content.innerHTML = `<div class="markdown-content"><h1>❌ Erreur</h1><p>Impossible de charger ${filename}</p></div>`;
+                content.innerHTML = `<div class="markdown-content"><h1>❌ Erreur</h1><p>Impossible de charger ${filename}</p><p>Détails: ${error.message}</p></div>`;
             }
         }
         
@@ -145,8 +160,11 @@ generate_index_html() {
                 const li = document.createElement('li');
                 const a = document.createElement('a');
                 a.href = '#';
-                a.onclick = () => loadMarkdown(file);
                 a.textContent = file;
+                a.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    loadMarkdown(file);
+                });
                 if (i === 0) a.classList.add('active');
                 li.appendChild(a);
                 fileList.appendChild(li);
