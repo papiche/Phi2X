@@ -61,11 +61,11 @@
                 <h1>📡 FRD</h1>
             </div>
             <div class="header-right">
-                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 17:12:06 UTC</span>
+                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 17:15:48 UTC</span>
                 <a href="/ipns/12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu" class="header-icon" title="IPFS Node: 12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu">🌐</a>
-                <a href="/ipfs/QmaztCAzAeFULXEswbc22vb5AGfnbMFfEDU9mJYPx3PqCf/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
+                <a href="/ipfs/QmYbvEej9aSEzVEkaNK1MsjDH2BwQXcdbZzDXGuuzKTn2J/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
                 <a href="/ipfs/QmfUjEtdMfyYyBaV2JEXVcuidSLiFZuLK5sAhACo93g5Pj/" class="header-icon" id="genesisBtn" title="Version Genesis">🌱</a>
-                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 26</span>
+                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 27</span>
             </div>
         </div>
     </div>
@@ -153,7 +153,14 @@
                             {left: '$', right: '$', display: false},
                             {left: '\\[', right: '\\]', display: true},
                             {left: '\\(', right: '\\)', display: false}
-                        ] 
+                        ],
+                        throwOnError: false,
+                        errorColor: '#cc0000',
+                        strict: false,
+                        trust: true,
+                        macros: {
+                            "\\sim": "\\thicksim"
+                        }
                     });
                 }
                 
@@ -215,7 +222,14 @@
                             {left: '$', right: '$', display: false},
                             {left: '\\[', right: '\\]', display: true},
                             {left: '\\(', right: '\\)', display: false}
-                        ] 
+                        ],
+                        throwOnError: false,
+                        errorColor: '#cc0000',
+                        strict: false,
+                        trust: true,
+                        macros: {
+                            "\\sim": "\\thicksim"
+                        }
                     });
                 }
                 

@@ -233,7 +233,14 @@ generate_index_html() {
                             {left: '$', right: '$', display: false},
                             {left: '\\[', right: '\\]', display: true},
                             {left: '\\(', right: '\\)', display: false}
-                        ] 
+                        ],
+                        throwOnError: false,
+                        errorColor: '#cc0000',
+                        strict: false,
+                        trust: true,
+                        macros: {
+                            "\\sim": "\\thicksim"
+                        }
                     });
                 }
                 
@@ -295,7 +302,14 @@ generate_index_html() {
                             {left: '$', right: '$', display: false},
                             {left: '\\[', right: '\\]', display: true},
                             {left: '\\(', right: '\\)', display: false}
-                        ] 
+                        ],
+                        throwOnError: false,
+                        errorColor: '#cc0000',
+                        strict: false,
+                        trust: true,
+                        macros: {
+                            "\\sim": "\\thicksim"
+                        }
                     });
                 }
                 
