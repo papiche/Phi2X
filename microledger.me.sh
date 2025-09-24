@@ -297,7 +297,36 @@ generate_index_html() {
             if (!window.location.hash) return;
             
             const maxRetries = 10;
-            const element = document.querySelector(window.location.hash);
+            let targetHash = window.location.hash;
+            
+            // Debug : afficher l'ancre recherchée
+            console.log(`🔍 Recherche ancre: "${targetHash}" (URL décodée: "${decodeURIComponent(targetHash)}")`);
+            
+            // Essayer d'abord avec l'ancre telle quelle
+            let element = null;
+            try {
+                element = document.querySelector(targetHash);
+            } catch (e) {
+                console.log(`❌ Erreur sélecteur CSS: ${e.message}`);
+                // Essayer avec l'ancre décodée
+                try {
+                    const decodedHash = decodeURIComponent(targetHash);
+                    console.log(`🔄 Tentative avec ancre décodée: "${decodedHash}"`);
+                    element = document.querySelector(decodedHash);
+                } catch (e2) {
+                    console.log(`❌ Erreur sélecteur décodé: ${e2.message}`);
+                    // Essayer de trouver par correspondance de texte
+                    const searchText = targetHash.replace('#', '').replace(/-/g, ' ').toLowerCase();
+                    console.log(`🔄 Recherche par texte: "${searchText}"`);
+                    document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(el => {
+                        const elText = el.textContent.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ');
+                        if (elText.includes(searchText) || searchText.includes(elText.substring(0, 10))) {
+                            element = el;
+                            console.log(`✅ Correspondance trouvée par texte: "${el.textContent.trim()}"`);
+                        }
+                    });
+                }
+            }
             
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth' });
@@ -307,15 +336,14 @@ generate_index_html() {
                     element.style.backgroundColor = '';
                 }, 3000);
                 
-                // Debug
-                console.log(`✅ Ancre trouvée: ${window.location.hash} -> "${element.textContent.trim().substring(0, 50)}..."`);
+                console.log(`✅ Ancre trouvée: ${targetHash} -> "${element.textContent.trim().substring(0, 50)}..."`);
             } else if (retryCount < maxRetries) {
                 // Retry avec délai croissant
                 const delay = 200 + (retryCount * 100);
-                console.log(`⏳ Ancre ${window.location.hash} non trouvée, retry ${retryCount + 1}/${maxRetries} dans ${delay}ms`);
+                console.log(`⏳ Ancre ${targetHash} non trouvée, retry ${retryCount + 1}/${maxRetries} dans ${delay}ms`);
                 setTimeout(() => handleAnchors(retryCount + 1), delay);
             } else {
-                console.log(`❌ Ancre ${window.location.hash} introuvable après ${maxRetries} tentatives`);
+                console.log(`❌ Ancre ${targetHash} introuvable après ${maxRetries} tentatives`);
                 // Afficher les ancres disponibles pour debug
                 console.log('🔍 Ancres disponibles:');
                 document.querySelectorAll('[id]').forEach(el => {

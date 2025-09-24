@@ -61,11 +61,11 @@
                 <h1>📡 FRD</h1>
             </div>
             <div class="header-right">
-                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 15:12:43 UTC</span>
+                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 15:17:50 UTC</span>
                 <a href="/ipns/12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu" class="header-icon" title="IPFS Node: 12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu">🌐</a>
-                <a href="/ipfs/QmdHdtzqGsJKz4Znpc2vZceWps8jT4AHSEP8zNPQyxWn9V/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
+                <a href="/ipfs/QmTENYfy2LzaWv3RxARw2d1oRTZb13TbX8i5bo419PaUSG/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
                 <a href="/ipfs/QmfUjEtdMfyYyBaV2JEXVcuidSLiFZuLK5sAhACo93g5Pj/" class="header-icon" id="genesisBtn" title="Version Genesis">🌱</a>
-                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 4</span>
+                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 5</span>
             </div>
         </div>
     </div>
@@ -78,7 +78,7 @@
         <div>🌟 FRD Knowledge Capsule - Distributed via IPFS+Git+Nostr</div>
         <div style="margin-top: 10px;" id="previous-version-link">
             <span>📜 Previous version: </span>
-            <a href="/ipfs/QmdHdtzqGsJKz4Znpc2vZceWps8jT4AHSEP8zNPQyxWn9V/" style="color: #58a6ff;">QmdHdtzqGsJKz4Znpc2vZceWps8jT4AHSEP8zNPQyxWn9V</a>
+            <a href="/ipfs/QmTENYfy2LzaWv3RxARw2d1oRTZb13TbX8i5bo419PaUSG/" style="color: #58a6ff;">QmTENYfy2LzaWv3RxARw2d1oRTZb13TbX8i5bo419PaUSG</a>
         </div>
     </div>
     <script>
@@ -234,7 +234,36 @@
             if (!window.location.hash) return;
             
             const maxRetries = 10;
-            const element = document.querySelector(window.location.hash);
+            let targetHash = window.location.hash;
+            
+            // Debug : afficher l'ancre recherchée
+            console.log(`🔍 Recherche ancre: "${targetHash}" (URL décodée: "${decodeURIComponent(targetHash)}")`);
+            
+            // Essayer d'abord avec l'ancre telle quelle
+            let element = null;
+            try {
+                element = document.querySelector(targetHash);
+            } catch (e) {
+                console.log(`❌ Erreur sélecteur CSS: ${e.message}`);
+                // Essayer avec l'ancre décodée
+                try {
+                    const decodedHash = decodeURIComponent(targetHash);
+                    console.log(`🔄 Tentative avec ancre décodée: "${decodedHash}"`);
+                    element = document.querySelector(decodedHash);
+                } catch (e2) {
+                    console.log(`❌ Erreur sélecteur décodé: ${e2.message}`);
+                    // Essayer de trouver par correspondance de texte
+                    const searchText = targetHash.replace('#', '').replace(/-/g, ' ').toLowerCase();
+                    console.log(`🔄 Recherche par texte: "${searchText}"`);
+                    document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(el => {
+                        const elText = el.textContent.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ');
+                        if (elText.includes(searchText) || searchText.includes(elText.substring(0, 10))) {
+                            element = el;
+                            console.log(`✅ Correspondance trouvée par texte: "${el.textContent.trim()}"`);
+                        }
+                    });
+                }
+            }
             
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth' });
@@ -244,15 +273,14 @@
                     element.style.backgroundColor = '';
                 }, 3000);
                 
-                // Debug
-                console.log(`✅ Ancre trouvée: ${window.location.hash} -> "${element.textContent.trim().substring(0, 50)}..."`);
+                console.log(`✅ Ancre trouvée: ${targetHash} -> "${element.textContent.trim().substring(0, 50)}..."`);
             } else if (retryCount < maxRetries) {
                 // Retry avec délai croissant
                 const delay = 200 + (retryCount * 100);
-                console.log(`⏳ Ancre ${window.location.hash} non trouvée, retry ${retryCount + 1}/${maxRetries} dans ${delay}ms`);
+                console.log(`⏳ Ancre ${targetHash} non trouvée, retry ${retryCount + 1}/${maxRetries} dans ${delay}ms`);
                 setTimeout(() => handleAnchors(retryCount + 1), delay);
             } else {
-                console.log(`❌ Ancre ${window.location.hash} introuvable après ${maxRetries} tentatives`);
+                console.log(`❌ Ancre ${targetHash} introuvable après ${maxRetries} tentatives`);
                 // Afficher les ancres disponibles pour debug
                 console.log('🔍 Ancres disponibles:');
                 document.querySelectorAll('[id]').forEach(el => {
