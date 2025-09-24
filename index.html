@@ -78,11 +78,11 @@
                 <h1>📡 FRD</h1>
             </div>
             <div class="header-right">
-                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 18:02:04 UTC</span>
+                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 18:03:02 UTC</span>
                 <a href="/ipns/12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu" class="header-icon" title="IPFS Node: 12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu">🌐</a>
-                <a href="/ipfs/QmVATbJCDx3MpAZYwaSV2K6JDCZfb7d228VWNbTthE7EMN/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
+                <a href="/ipfs/QmTsfEXhDEibVuv5Lq1Bwqmh2kWdfihMANbofUCm6SQiUT/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
                 <a href="/ipfs/QmYLkdv1RNBU4xnjkvm5q8WckHW4vSPyo6UCZRCTgMcYTU/" class="header-icon" id="genesisBtn" title="Version Genesis">🌱</a>
-                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 2</span>
+                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 3</span>
             </div>
         </div>
     </div>
@@ -101,20 +101,46 @@
                     gfm: true 
                 });
                 
-                // Liste des fichiers .md disponibles (sera peuplée dynamiquement)
-                const availableMarkdownFiles = [
-                    'README.md',
-                    'INTRODUCTION.md',
-                    'GLOSSAIRE.md',
-                    'Readme.gpt.md',
-                    'Readme.Deepseek.md',
-                    'Readme.Gemini.md',
-                    'README.Human_Galaxy_Expansion.md',
-                    'IPFS_GUIDE.md',
-                    'Experience/MoteurElectroAcoustique.md',
-                    'Experience/Ex.1.md',
-                    'Experience/Rpi/ESchema.md'
-                ];
+                // Liste des fichiers .md disponibles (détection automatique)
+                let availableMarkdownFiles = [];
+                
+                // Fonction pour détecter automatiquement les fichiers .md
+                async function discoverMarkdownFiles() {
+                    const knownFiles = [
+                        'README.md',
+                        'INTRODUCTION.md',
+                        'GLOSSAIRE.md',
+                        'Readme.gpt.md',
+                        'Readme.Deepseek.md',
+                        'Readme.Gemini.md',
+                        'README.Human_Galaxy_Expansion.md',
+                        'IPFS_GUIDE.md',
+                        'Experience/MoteurElectroAcoustique.md',
+                        'Experience/Ex.1.md',
+                        'Experience/Rpi/ESchema.md'
+                    ];
+                    
+                    availableMarkdownFiles = [];
+                    
+                    // Tester chaque fichier connu
+                    for (const file of knownFiles) {
+                        try {
+                            const response = await fetch(file, { method: 'HEAD' });
+                            if (response.ok) {
+                                availableMarkdownFiles.push(file);
+                            }
+                        } catch (e) {
+                            // Fichier non accessible, on l'ignore
+                        }
+                    }
+                    
+                    // S'assurer que README.md est en premier
+                    availableMarkdownFiles.sort((a, b) => {
+                        if (a === 'README.md') return -1;
+                        if (b === 'README.md') return 1;
+                        return a.localeCompare(b);
+                    });
+                }
                 
                 // Fonction pour basculer l'affichage du menu
                 function toggleNavMenu() {
@@ -132,9 +158,21 @@
                 });
                 
                 // Populer le menu de navigation
-                function populateNavMenu() {
+                async function populateNavMenu() {
+                    // D'abord découvrir les fichiers disponibles
+                    await discoverMarkdownFiles();
+                    
                     const dropdown = document.getElementById('navDropdown');
                     dropdown.innerHTML = '';
+                    
+                    if (availableMarkdownFiles.length === 0) {
+                        const noFiles = document.createElement('span');
+                        noFiles.textContent = '📄 Aucun fichier .md trouvé';
+                        noFiles.style.padding = '8px 12px';
+                        noFiles.style.color = '#8b949e';
+                        dropdown.appendChild(noFiles);
+                        return;
+                    }
                     
                     availableMarkdownFiles.forEach(file => {
                         const link = document.createElement('a');

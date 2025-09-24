@@ -192,20 +192,46 @@ generate_index_html() {
                     gfm: true 
                 });
                 
-                // Liste des fichiers .md disponibles (sera peuplée dynamiquement)
-                const availableMarkdownFiles = [
-                    'README.md',
-                    'INTRODUCTION.md',
-                    'GLOSSAIRE.md',
-                    'Readme.gpt.md',
-                    'Readme.Deepseek.md',
-                    'Readme.Gemini.md',
-                    'README.Human_Galaxy_Expansion.md',
-                    'IPFS_GUIDE.md',
-                    'Experience/MoteurElectroAcoustique.md',
-                    'Experience/Ex.1.md',
-                    'Experience/Rpi/ESchema.md'
-                ];
+                // Liste des fichiers .md disponibles (détection automatique)
+                let availableMarkdownFiles = [];
+                
+                // Fonction pour détecter automatiquement les fichiers .md
+                async function discoverMarkdownFiles() {
+                    const knownFiles = [
+                        'README.md',
+                        'INTRODUCTION.md',
+                        'GLOSSAIRE.md',
+                        'Readme.gpt.md',
+                        'Readme.Deepseek.md',
+                        'Readme.Gemini.md',
+                        'README.Human_Galaxy_Expansion.md',
+                        'IPFS_GUIDE.md',
+                        'Experience/MoteurElectroAcoustique.md',
+                        'Experience/Ex.1.md',
+                        'Experience/Rpi/ESchema.md'
+                    ];
+                    
+                    availableMarkdownFiles = [];
+                    
+                    // Tester chaque fichier connu
+                    for (const file of knownFiles) {
+                        try {
+                            const response = await fetch(file, { method: 'HEAD' });
+                            if (response.ok) {
+                                availableMarkdownFiles.push(file);
+                            }
+                        } catch (e) {
+                            // Fichier non accessible, on l'ignore
+                        }
+                    }
+                    
+                    // S'assurer que README.md est en premier
+                    availableMarkdownFiles.sort((a, b) => {
+                        if (a === 'README.md') return -1;
+                        if (b === 'README.md') return 1;
+                        return a.localeCompare(b);
+                    });
+                }
                 
                 // Fonction pour basculer l'affichage du menu
                 function toggleNavMenu() {
@@ -223,9 +249,21 @@ generate_index_html() {
                 });
                 
                 // Populer le menu de navigation
-                function populateNavMenu() {
+                async function populateNavMenu() {
+                    // D'abord découvrir les fichiers disponibles
+                    await discoverMarkdownFiles();
+                    
                     const dropdown = document.getElementById('navDropdown');
                     dropdown.innerHTML = '';
+                    
+                    if (availableMarkdownFiles.length === 0) {
+                        const noFiles = document.createElement('span');
+                        noFiles.textContent = '📄 Aucun fichier .md trouvé';
+                        noFiles.style.padding = '8px 12px';
+                        noFiles.style.color = '#8b949e';
+                        dropdown.appendChild(noFiles);
+                        return;
+                    }
                     
                     availableMarkdownFiles.forEach(file => {
                         const link = document.createElement('a');
