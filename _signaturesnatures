@@ -1,0 +1,4 @@
+# Signatures de la chaîne FRD
+# Format: TIMESTAMP|CID|SIGNER|ACTION
+2025-09-24 21:03:35 UTC|QmUNQHBA2ZE45Hc4KmKA6jHycQYSNRBDrGT9EZ47DG6x5q|frenault@linkeo.com|publish
+2025-09-24 21:03:42 UTC|QmUNQHBA2ZE45Hc4KmKA6jHycQYSNRBDrGT9EZ47DG6x5q|frenault@linkeo.com|copy

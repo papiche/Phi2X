@@ -268,11 +268,11 @@
                 <button id="copyBtn" class="copy-btn" onclick="copyToUDrive()" disabled>📋 Copier</button>
             </div>
             <div class="header-right">
-                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 20:54:54 UTC</span>
+                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 21:03:32 UTC</span>
                 <a href="/ipns/12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu" class="header-icon" title="IPFS Node: 12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu">🌐</a>
-                <a href="/ipfs/QmY1CRNUkTBLHSTEAPpbNJ2hUjj7mwbywK7dMyfcwxpZHJ/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
+                <a href="/ipfs/QmYQPef5VRxyam3HS4MUwGZXgJKXNtLfVSKdeiqbt9PQY1/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
                 <a href="/ipfs/QmRGzTfxiX1mKyBCj8dshzfJ3BVdAqxoW12gBNvPar5qvS/" class="header-icon" id="genesisBtn" title="Version Genesis">🌱</a>
-                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 2</span>
+                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 1</span>
                 <a href="#" onclick="showSignatures()" class="header-icon" id="signaturesBtn" title="Signatures de la chaîne">✍️</a>
             </div>
         </div>
@@ -1172,7 +1172,7 @@
                     console.log('👤 Chargement du profil du dernier signataire...');
                     
                     // Charger le fichier des signatures
-                    const response = await fetch('.chain.signatures');
+                    const response = await fetch('_signaturesnatures');
                     if (!response.ok) {
                         console.log('⚠️ Aucun fichier de signatures trouvé');
                         return;
@@ -1229,7 +1229,7 @@
             // Fonction pour afficher les signatures de la chaîne
             async function showSignatures() {
                 try {
-                    const response = await fetch('.chain.signatures');
+                    const response = await fetch('_signaturesnatures');
                     if (!response.ok) {
                         alert('Aucun fichier de signatures trouvé');
                         return;
