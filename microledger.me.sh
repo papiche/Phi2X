@@ -355,12 +355,15 @@ HTMLEOF
     
     # Remplacer le placeholder de l'ancien CID avec le paramètre passé
     if [[ "$OLD_CID_PARAM" == "genesis" ]]; then
-        # Cas genesis : masquer le bouton version précédente et modifier le footer
-        sed -i 's/<a href="\/ipfs\/OLD_CID_PLACEHOLDER\/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️<\/a>/<span class="header-icon" style="opacity: 0.3; cursor: not-allowed;" title="Genesis - Première version">🌱<\/span>/g' ${MY_PATH}/index.html
+        # Cas genesis : d'abord remplacer les placeholders, puis modifier le bouton
+        sed -i "s/OLD_CID_PLACEHOLDER/genesis/g" ${MY_PATH}/index.html
+        # Ensuite remplacer le lien genesis par l'icône 🌱
+        sed -i 's/<a href="\/ipfs\/genesis\/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️<\/a>/<span class="header-icon" style="opacity: 0.3; cursor: not-allowed;" title="Genesis - Première version">🌱<\/span>/g' ${MY_PATH}/index.html
+        # Modifier le footer
         sed -i '/<div style="margin-top: 10px;" id="previous-version-link">/,/<\/div>/{
             s/<div style="margin-top: 10px;" id="previous-version-link">/<div style="margin-top: 10px; color: #6e7681;">/
             s/<span>📜 Previous version: <\/span>/<span>🌱 Genesis version - First publication<\/span>/
-            s/<a href="\/ipfs\/OLD_CID_PLACEHOLDER\/" style="color: #58a6ff;">OLD_CID_PLACEHOLDER<\/a>//
+            s/<a href="\/ipfs\/genesis\/" style="color: #58a6ff;">genesis<\/a>//
         }' ${MY_PATH}/index.html
     else
         # Cas normal : remplacer par le CID précédent
