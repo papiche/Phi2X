@@ -15,6 +15,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; margin: 0; }
         .header { background: #161b22; border-bottom: 1px solid var(--border); padding: 15px 20px; text-align: center; }
+        .header-nav { display: flex; align-items: center; justify-content: flex-start; margin-bottom: 10px; }
         .header h1 { color: var(--accent); margin: 0; font-size: 1.5rem; }
         .header p { color: #8b949e; margin: 5px 0 0 0; font-size: 0.9rem; }
         .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
@@ -39,6 +40,10 @@
 </head>
 <body>
     <div class="header">
+        <div class="header-nav">
+            <button id="backBtn" onclick="loadReadme()" style="display: none; background: #21262d; color: var(--blue); border: 1px solid var(--border); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">← README</button>
+            <div id="breadcrumb" style="color: #8b949e; font-size: 0.9rem; margin-left: 10px;"></div>
+        </div>
         <h1>📡 FRD Knowledge Capsule</h1>
         <p>IPFS Evolutive Knowledge - Git Versioned Nostr Distribution</p>
     </div>
@@ -53,6 +58,20 @@
             breaks: true, 
             gfm: true 
         });
+        
+        // Fonction pour mettre à jour la navigation (breadcrumb et bouton retour)
+        function updateNavigation(filename, anchor) {
+            const backBtn = document.getElementById('backBtn');
+            const breadcrumb = document.getElementById('breadcrumb');
+            
+            if (filename === 'README.md') {
+                backBtn.style.display = 'none';
+                breadcrumb.textContent = anchor ? `README.md ${anchor}` : 'README.md';
+            } else {
+                backBtn.style.display = 'inline-block';
+                breadcrumb.textContent = anchor ? `${filename} ${anchor}` : filename;
+            }
+        }
         
         async function loadReadme() {
             const content = document.getElementById('content');
@@ -72,6 +91,9 @@
                 });
                 
                 content.innerHTML = html;
+                
+                // Mettre à jour la navigation
+                updateNavigation('README.md', '');
                 
                 // Rendu des formules mathématiques
                 if (window.renderMathInElement) {
@@ -112,8 +134,8 @@
                 
                 let html = marked.parse(markdown);
                 
-                // Ajouter un bouton retour
-                html = '<div style="margin-bottom: 20px;"><a href="#" onclick="loadReadme(); return false;" style="background: #21262d; padding: 8px 16px; border-radius: 6px; text-decoration: none; color: var(--blue);">← Retour au README</a></div>' + html;
+                // Mettre à jour la navigation
+                updateNavigation(filename, targetAnchor);
                 
                 // Transformer les liens .md avec gestion des ancres
                 html = html.replace(/href="([^"]+\.md)(#[^"]+)?"/g, function(match, file, anchor) {
