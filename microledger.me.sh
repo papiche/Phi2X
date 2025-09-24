@@ -55,7 +55,8 @@ init_capsule() {
 generate_index_html() {
     PROJECT_NAME=$(basename ${MY_PATH})
     GENERATION_DATE=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
-    IPFS_NODE_ID=$(ipfs id -f="<id>" 2>/dev/null || $IPFSNODEID)
+    IPFS_NODE_ID=$(ipfs id -f="<id>" 2>/dev/null || echo "unknown")
+    OLD_CID_PARAM=${1:-"genesis"}
     
     cat > ${MY_PATH}/index.html << 'HTMLEOF'
 <!DOCTYPE html>
@@ -335,9 +336,8 @@ HTMLEOF
     sed -i "s/GENERATION_DATE_PLACEHOLDER/$GENERATION_DATE/g" ${MY_PATH}/index.html
     sed -i "s/IPFS_NODE_ID_PLACEHOLDER/$IPFS_NODE_ID/g" ${MY_PATH}/index.html
     
-    # Remplacer le placeholder de l'ancien CID (sera fait plus tard dans le script)
-    OLD_CID=$(cat ${MY_PATH}/.chain 2>/dev/null || echo "genesis")
-    sed -i "s/OLD_CID_PLACEHOLDER/$OLD_CID/g" ${MY_PATH}/index.html
+    # Remplacer le placeholder de l'ancien CID avec le paramètre passé
+    sed -i "s/OLD_CID_PLACEHOLDER/$OLD_CID_PARAM/g" ${MY_PATH}/index.html
 }
 
 OLD=$(cat ${MY_PATH}/.chain 2>/dev/null)
@@ -364,7 +364,7 @@ echo "## INDEX.HTML PRE-GENERATION"
 echo "🌐 Génération de l'index.html..."
 # Supprimer l'ancien index.html s'il existe pour forcer la régénération
 [[ -f ${MY_PATH}/index.html ]] && rm ${MY_PATH}/index.html
-generate_index_html
+generate_index_html "${OLD:-genesis}"
 
 IPFSME=$(ipfs add -rwHq --ignore=.git --ignore-rules-path=.gitignore ${MY_PATH}/* | tail -n 1)
 
