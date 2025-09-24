@@ -119,7 +119,7 @@ generate_index_html() {
     </div>
     <div class="footer" style="border-top: 1px solid var(--border); padding: 20px; text-align: center; font-size: 0.8rem; color: #6e7681; margin-top: 40px;">
         <div>🌟 FRD Knowledge Capsule - Distributed via IPFS+Git+Nostr</div>
-        <div style="margin-top: 10px;">
+        <div style="margin-top: 10px;" id="previous-version-link">
             <span>📜 Previous version: </span>
             <a href="/ipfs/OLD_CID_PLACEHOLDER/" style="color: #58a6ff;">OLD_CID_PLACEHOLDER</a>
         </div>
@@ -337,7 +337,13 @@ HTMLEOF
     sed -i "s/IPFS_NODE_ID_PLACEHOLDER/$IPFS_NODE_ID/g" ${MY_PATH}/index.html
     
     # Remplacer le placeholder de l'ancien CID avec le paramètre passé
-    sed -i "s/OLD_CID_PLACEHOLDER/$OLD_CID_PARAM/g" ${MY_PATH}/index.html
+    if [[ "$OLD_CID_PARAM" == "genesis" ]]; then
+        # Cas genesis : masquer le lien vers la version précédente
+        sed -i 's/<div style="margin-top: 10px;" id="previous-version-link">.*<\/div>/<div style="margin-top: 10px; color: #6e7681;"><span>🌱 Genesis version - First publication<\/span><\/div>/g' ${MY_PATH}/index.html
+    else
+        # Cas normal : remplacer par le CID précédent
+        sed -i "s/OLD_CID_PLACEHOLDER/$OLD_CID_PARAM/g" ${MY_PATH}/index.html
+    fi
 }
 
 OLD=$(cat ${MY_PATH}/.chain 2>/dev/null)
@@ -377,11 +383,16 @@ echo ${IPFSME} > ${MY_PATH}/.chain
 echo ${MOATS} > ${MY_PATH}/.moats
 
 echo "## README UPGRADE ${OLD}~${IPFSME}"
-sed -i "s~${OLD}~${IPFSME}~g" ${MY_PATH}/README.md
+# Éviter les erreurs sed si OLD est vide
+if [[ -n "${OLD}" ]]; then
+    sed -i "s~${OLD}~${IPFSME}~g" ${MY_PATH}/README.md
+fi
 
 echo "## INDEX.HTML UPDATE"
-# Mise à jour des liens IPFS dans index.html
-sed -i "s~${OLD}~${IPFSME}~g" ${MY_PATH}/index.html
+# Mise à jour des liens IPFS dans index.html (éviter erreurs sed si OLD est vide)
+if [[ -n "${OLD}" ]]; then
+    sed -i "s~${OLD}~${IPFSME}~g" ${MY_PATH}/index.html
+fi
 echo "✅ index.html mis à jour avec le nouveau CID IPFS"
 
 echo "## AUTO GIT"

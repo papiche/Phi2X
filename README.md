@@ -472,3 +472,7 @@ Pour questions, discussions philosophiques ou collaborations scientifiques, n'h�
 **Phi2X** - Vers une physique de l'interférence consciente 🌀✨
 ### - (^‿‿^) - 
 http://127.0.0.1:8080/ipfs/QmfMaX4AFyXPvJUpGjJqoVmrbYHGfr3BgrQZnqPzgcXXfQ
+### - (^‿‿^) - 
+http://127.0.0.1:8080/ipfs/QmTwMNBUJU3G4JZjyafoDyf5Boq9ibjAb3DcrLEPERhGpf
+### - (^‿‿^) - 
+http://127.0.0.1:8080/ipfs/QmP5dTzokhy7JKkQ99fzbguj3GgNPmoELHiT1nUkV6SAJN
