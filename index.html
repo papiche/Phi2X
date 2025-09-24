@@ -83,6 +83,14 @@
                 
                 // Gérer les ancres après le chargement
                 handleAnchors();
+                
+                // Debug : afficher les ancres disponibles dans la console
+                if (window.location.search.includes('debug=anchors')) {
+                    console.log('=== ANCRES DISPONIBLES ===');
+                    document.querySelectorAll('[id]').forEach(el => {
+                        console.log(`#${el.id} - "${el.textContent.trim().substring(0, 50)}..."`);
+                    });
+                }
             } catch (error) {
                 content.innerHTML = `<h1>❌ Erreur</h1><p>Impossible de charger README.md</p><p>Détails: ${error.message}</p>`;
             }
