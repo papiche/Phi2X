@@ -258,11 +258,12 @@
                 <button id="copyBtn" class="copy-btn" onclick="copyToUDrive()" disabled>📋 Copier</button>
             </div>
             <div class="header-right">
-                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 19:57:08 UTC</span>
+                <span style="font-size: 0.7rem; color: #6e7681;">2025-09-24 20:04:22 UTC</span>
                 <a href="/ipns/12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu" class="header-icon" title="IPFS Node: 12D3KooWHTSu2e7shxtoNmCkLV1Nax1MDtnaJfwBng8tSX9DKtxu">🌐</a>
-                <a href="/ipfs/QmVCKXA1q1kBFDgTLyHinHkgarLMvRS3CtW25iC6RBAVsE/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
+                <a href="/ipfs/QmaVCEL1YVtyoKgytX2iAcxPwmbA7AT7aSMQgDS6wtTMQa/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
                 <a href="/ipfs/QmT6gZgaNhJR5ae81J2L1kUQKTMt5Gino3Hx1NyTudC85K/" class="header-icon" id="genesisBtn" title="Version Genesis">🌱</a>
-                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 8</span>
+                <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 9</span>
+                <a href="#" onclick="showSignatures()" class="header-icon" id="signaturesBtn" title="Signatures de la chaîne">✍️</a>
             </div>
         </div>
     </div>
@@ -1115,6 +1116,99 @@
             function getProjectName() {
                 const title = document.title;
                 return title.replace(/[^a-zA-Z0-9\s]/g, '').trim() || 'Projet-FRD';
+            }
+            
+            // Fonction pour afficher les signatures de la chaîne
+            async function showSignatures() {
+                try {
+                    const response = await fetch('.chain.signatures');
+                    if (!response.ok) {
+                        alert('Aucun fichier de signatures trouvé');
+                        return;
+                    }
+                    
+                    const signaturesText = await response.text();
+                    const lines = signaturesText.split('\n').filter(line => line.trim() && !line.startsWith('#'));
+                    
+                    if (lines.length === 0) {
+                        alert('Aucune signature trouvée');
+                        return;
+                    }
+                    
+                    // Créer une modal pour afficher les signatures
+                    const modal = document.createElement('div');
+                    modal.style.cssText = `
+                        position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+                        background: rgba(0,0,0,0.8); z-index: 2000; 
+                        display: flex; align-items: center; justify-content: center;
+                        padding: 20px;
+                    `;
+                    
+                    const content = document.createElement('div');
+                    content.style.cssText = `
+                        background: var(--bg-gradient-start); 
+                        border: 1px solid var(--border-dynamic); 
+                        border-radius: 8px; 
+                        padding: 20px; 
+                        max-width: 80%; 
+                        max-height: 80%; 
+                        overflow-y: auto;
+                        color: var(--fg);
+                    `;
+                    
+                    let html = '<h2 style="color: var(--accent-dynamic); margin-bottom: 20px;">✍️ Signatures de la Chaîne FRD</h2>';
+                    html += '<div style="font-family: monospace; font-size: 0.9em;">';
+                    
+                    lines.reverse().forEach(line => {
+                        const [timestamp, cid, signer, action] = line.split('|');
+                        const actionIcon = action === 'publish' ? '📡' : '📋';
+                        const actionText = action === 'publish' ? 'Publication' : 'Copie';
+                        const shortCid = cid ? cid.substring(0, 12) + '...' : 'N/A';
+                        
+                        html += `
+                            <div style="
+                                border: 1px solid var(--border-dynamic); 
+                                border-radius: 6px; 
+                                padding: 12px; 
+                                margin-bottom: 10px; 
+                                background: rgba(0,0,0,0.2);
+                            ">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <strong style="color: var(--accent-dynamic);">${actionIcon} ${actionText}</strong>
+                                        <div style="color: #8b949e; font-size: 0.8em; margin-top: 4px;">
+                                            👨‍✈️ ${signer}<br>
+                                            📅 ${timestamp}<br>
+                                            💾 ${shortCid}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                    html += '<div style="text-align: center; margin-top: 20px;">';
+                    html += '<button onclick="this.closest(\'.modal\').remove()" style="background: var(--accent-dynamic); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Fermer</button>';
+                    html += '</div>';
+                    
+                    content.innerHTML = html;
+                    modal.appendChild(content);
+                    modal.className = 'modal';
+                    
+                    // Fermer en cliquant à l'extérieur
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            modal.remove();
+                        }
+                    });
+                    
+                    document.body.appendChild(modal);
+                    
+                } catch (error) {
+                    console.error('Erreur lors du chargement des signatures:', error);
+                    alert('Erreur lors du chargement des signatures: ' + error.message);
+                }
             }
             
             // Initialiser Mermaid

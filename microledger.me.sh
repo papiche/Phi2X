@@ -68,6 +68,308 @@ init_capsule() {
     fi
 }
 
+# === FONCTIONS ASTROPORT.ONE INTEGRATION ===
+
+# Fonction pour détecter les MULTIPASS disponibles
+detect_multipass() {
+    echo "🔍 Détection des MULTIPASS disponibles..."
+    
+    local multipass_list=()
+    local zen_dir="$HOME/.zen"
+    
+    # Vérifier si le répertoire .zen existe
+    if [[ ! -d "$zen_dir" ]]; then
+        echo "⚠️ Répertoire ~/.zen non trouvé. Astroport.ONE n'est pas installé."
+        return 1
+    fi
+    
+    # Chercher les MULTIPASS dans ~/.zen/game/nostr/
+    local nostr_dir="$zen_dir/game/nostr"
+    if [[ -d "$nostr_dir" ]]; then
+        while IFS= read -r -d '' email_dir; do
+            local email=$(basename "$email_dir")
+            local nsec_file="$email_dir/.secret.nostr"
+            local npub_file="$email_dir/NPUB"
+            
+            if [[ -f "$nsec_file" && -f "$npub_file" ]]; then
+                multipass_list+=("$email")
+                echo "  📧 $email"
+            fi
+        done < <(find "$nostr_dir" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+    fi
+    
+    # Détecter le capitaine par défaut
+    local captain_email=""
+    local captain_file="$zen_dir/game/nostr/CAPTAINEMAIL"
+    if [[ -f "$captain_file" ]]; then
+        captain_email=$(cat "$captain_file" 2>/dev/null | tr -d '\n')
+        echo "👨‍✈️ Capitaine détecté: $captain_email"
+    fi
+    
+    if [[ ${#multipass_list[@]} -eq 0 ]]; then
+        echo "❌ Aucun MULTIPASS trouvé dans ~/.zen/game/nostr/"
+        return 1
+    fi
+    
+    echo "✅ ${#multipass_list[@]} MULTIPASS détecté(s)"
+    
+    # Exporter les variables pour utilisation globale
+    export DETECTED_MULTIPASS=("${multipass_list[@]}")
+    export CAPTAIN_EMAIL="$captain_email"
+    
+    return 0
+}
+
+# Fonction pour sélectionner un MULTIPASS
+select_multipass() {
+    local selected_email=""
+    
+    # Détecter les MULTIPASS disponibles
+    if ! detect_multipass; then
+        echo "❌ Impossible de détecter les MULTIPASS"
+        return 1
+    fi
+    
+    # Si un seul MULTIPASS, le sélectionner automatiquement
+    if [[ ${#DETECTED_MULTIPASS[@]} -eq 1 ]]; then
+        selected_email="${DETECTED_MULTIPASS[0]}"
+        echo "🎯 MULTIPASS unique sélectionné: $selected_email"
+    # Si le capitaine est défini et existe dans la liste, le proposer par défaut
+    elif [[ -n "$CAPTAIN_EMAIL" ]]; then
+        echo ""
+        echo "🔐 Sélection du signataire MULTIPASS:"
+        echo "0) $CAPTAIN_EMAIL (Capitaine - par défaut)"
+        
+        local i=1
+        for email in "${DETECTED_MULTIPASS[@]}"; do
+            if [[ "$email" != "$CAPTAIN_EMAIL" ]]; then
+                echo "$i) $email"
+                ((i++))
+            fi
+        done
+        
+        echo ""
+        read -p "Choisir le signataire (0 pour capitaine, Entrée pour défaut): " choice
+        
+        if [[ -z "$choice" || "$choice" == "0" ]]; then
+            selected_email="$CAPTAIN_EMAIL"
+        else
+            # Reconstruire la liste sans le capitaine pour l'indexation
+            local other_multipass=()
+            for email in "${DETECTED_MULTIPASS[@]}"; do
+                if [[ "$email" != "$CAPTAIN_EMAIL" ]]; then
+                    other_multipass+=("$email")
+                fi
+            done
+            
+            if [[ "$choice" -gt 0 && "$choice" -le ${#other_multipass[@]} ]]; then
+                selected_email="${other_multipass[$((choice-1))]}"
+            else
+                echo "⚠️ Choix invalide, utilisation du capitaine par défaut"
+                selected_email="$CAPTAIN_EMAIL"
+            fi
+        fi
+    else
+        # Pas de capitaine défini, proposer la liste complète
+        echo ""
+        echo "🔐 Sélection du signataire MULTIPASS:"
+        for i in "${!DETECTED_MULTIPASS[@]}"; do
+            echo "$i) ${DETECTED_MULTIPASS[$i]}"
+        done
+        
+        echo ""
+        read -p "Choisir le signataire (0-$((${#DETECTED_MULTIPASS[@]}-1))): " choice
+        
+        if [[ "$choice" -ge 0 && "$choice" -lt ${#DETECTED_MULTIPASS[@]} ]]; then
+            selected_email="${DETECTED_MULTIPASS[$choice]}"
+        else
+            echo "⚠️ Choix invalide, utilisation du premier MULTIPASS"
+            selected_email="${DETECTED_MULTIPASS[0]}"
+        fi
+    fi
+    
+    echo "✅ MULTIPASS sélectionné: $selected_email"
+    export SELECTED_MULTIPASS="$selected_email"
+    
+    # Récupérer les clés pour ce MULTIPASS
+    local zen_dir="$HOME/.zen"
+    local multipass_dir="$zen_dir/game/nostr/$selected_email"
+    
+    if [[ -f "$multipass_dir/.secret.nostr" ]]; then
+        export MULTIPASS_NSEC_FILE="$multipass_dir/.secret.nostr"
+        echo "🔑 Clé privée: $MULTIPASS_NSEC_FILE"
+    fi
+    
+    if [[ -f "$multipass_dir/NPUB" ]]; then
+        export MULTIPASS_NPUB_FILE="$multipass_dir/NPUB"
+        echo "🔑 Clé publique: $MULTIPASS_NPUB_FILE"
+    fi
+    
+    return 0
+}
+
+# Fonction pour envoyer l'événement NOSTR via nostr_send_event.py
+send_nostr_capsule_event() {
+    local cid="$1"
+    local project_name="$2"
+    local evolution_count="$3"
+    
+    if [[ -z "$SELECTED_MULTIPASS" || -z "$MULTIPASS_NSEC_FILE" ]]; then
+        echo "❌ MULTIPASS non sélectionné ou clés manquantes"
+        return 1
+    fi
+    
+    # Vérifier si nostr_send_event.py est disponible
+    local nostr_script=""
+    local possible_paths=(
+        "$HOME/.zen/Astroport.ONE/tools/nostr_send_event.py"
+        "./tools/nostr_send_event.py"
+        "../Astroport.ONE/tools/nostr_send_event.py"
+        "../tools/nostr_send_event.py"
+        "./nostr_send_event.py"
+    )
+    
+    for path in "${possible_paths[@]}"; do
+        if [[ -f "$path" ]]; then
+            nostr_script="$path"
+            break
+        fi
+    done
+    
+    if [[ -z "$nostr_script" ]]; then
+        echo "❌ Script nostr_send_event.py non trouvé"
+        echo "   Chemins vérifiés: ${possible_paths[*]}"
+        return 1
+    fi
+    
+    echo "📡 Envoi de l'événement NOSTR via $nostr_script"
+    
+    # Lire la clé nsec
+    local nsec_content=""
+    if [[ -f "$MULTIPASS_NSEC_FILE" ]]; then
+        nsec_content=$(cat "$MULTIPASS_NSEC_FILE" 2>/dev/null)
+    else
+        echo "❌ Impossible de lire la clé privée: $MULTIPASS_NSEC_FILE"
+        return 1
+    fi
+    
+    # Préparer le message NOSTR
+    local nostr_message="📡 FRD Knowledge Capsule Published: ${project_name}
+
+🌐 IPFS: http://127.0.0.1:8080/ipfs/${cid}/
+📖 Docs: http://127.0.0.1:8080/ipfs/${cid}/index.html
+🔄 Evolution: #${evolution_count}
+👨‍✈️ Signé par: ${SELECTED_MULTIPASS}
+
+#frd #FRD #ipfs #knowledge #git #nostr #multipass"
+    
+    # Créer un fichier temporaire pour l'automatisation
+    local temp_input=$(mktemp)
+    cat > "$temp_input" << EOF
+${nsec_content}
+o
+n
+1
+${nostr_message}
+n
+q
+EOF
+    
+    echo "📤 Publication de la capsule sur NOSTR..."
+    echo "   Signataire: $SELECTED_MULTIPASS"
+    echo "   CID: $cid"
+    echo "   Évolution: #$evolution_count"
+    
+    # Exécuter le script avec l'input automatisé
+    if python3 "$nostr_script" < "$temp_input"; then
+        echo "✅ Événement NOSTR publié avec succès"
+        rm -f "$temp_input"
+        return 0
+    else
+        echo "❌ Échec de la publication NOSTR"
+        rm -f "$temp_input"
+        return 1
+    fi
+}
+
+# Fonction pour ajouter une signature à la chaîne
+add_signature_to_chain() {
+    local cid="$1"
+    local signer_email="$2"
+    local action="$3"  # "publish" ou "copy"
+    local timestamp=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+    
+    local signatures_file="${MY_PATH}/.chain.signatures"
+    
+    # Créer le fichier de signatures s'il n'existe pas
+    if [[ ! -f "$signatures_file" ]]; then
+        echo "# Signatures de la chaîne FRD" > "$signatures_file"
+        echo "# Format: TIMESTAMP|CID|SIGNER|ACTION" >> "$signatures_file"
+    fi
+    
+    # Ajouter la signature
+    echo "${timestamp}|${cid}|${signer_email}|${action}" >> "$signatures_file"
+    
+    echo "✍️ Signature ajoutée: $signer_email ($action) - $timestamp"
+}
+
+# Fonction pour copier automatiquement dans l'uDRIVE du signataire
+auto_copy_to_udrive() {
+    local cid="$1"
+    local signer_email="$2"
+    
+    echo "📋 Copie automatique dans l'uDRIVE du signataire..."
+    
+    # Vérifier si l'API UPlanet est accessible
+    local api_url="http://127.0.0.1:54321"
+    if ! curl -s --connect-timeout 5 "$api_url/health" >/dev/null 2>&1; then
+        echo "⚠️ API UPlanet non accessible sur $api_url"
+        echo "   La copie automatique sera ignorée"
+        return 1
+    fi
+    
+    # Obtenir la clé publique du signataire
+    local npub_content=""
+    if [[ -f "$MULTIPASS_NPUB_FILE" ]]; then
+        npub_content=$(cat "$MULTIPASS_NPUB_FILE" 2>/dev/null)
+    else
+        echo "❌ Impossible de lire la clé publique: $MULTIPASS_NPUB_FILE"
+        return 1
+    fi
+    
+    # Préparer les données pour l'API
+    local project_name=$(basename ${MY_PATH})
+    local copy_data=$(cat << EOF
+{
+    "project_url": "${cid}",
+    "npub": "${npub_content}",
+    "project_name": "${project_name}_FRD_Capsule"
+}
+EOF
+)
+    
+    echo "📤 Envoi de la requête de copie à l'API UPlanet..."
+    
+    # Envoyer la requête à l'API
+    local response=$(curl -s -X POST \
+        -H "Content-Type: application/json" \
+        -d "$copy_data" \
+        "$api_url/api/copy_project" 2>/dev/null)
+    
+    if [[ $? -eq 0 ]]; then
+        echo "✅ Copie automatique réussie dans l'uDRIVE de $signer_email"
+        
+        # Ajouter la signature de copie
+        add_signature_to_chain "$cid" "$signer_email" "copy"
+        
+        return 0
+    else
+        echo "⚠️ Échec de la copie automatique"
+        echo "   Réponse: $response"
+        return 1
+    fi
+}
+
 # Génération dynamique de l'index.html
 generate_index_html() {
     PROJECT_NAME=$(basename ${MY_PATH})
@@ -458,6 +760,7 @@ generate_index_html() {
                 <a href="/ipfs/OLD_CID_PLACEHOLDER/" class="header-icon" id="prevVersionBtn" title="Version précédente">⏮️</a>
                 <a href="/ipfs/GENESIS_CID_PLACEHOLDER/" class="header-icon" id="genesisBtn" title="Version Genesis">🌱</a>
                 <span class="header-icon" id="evolutionCounter" title="Évolutions depuis Genesis">🔄 EVOLUTION_COUNT_PLACEHOLDER</span>
+                <a href="#" onclick="showSignatures()" class="header-icon" id="signaturesBtn" title="Signatures de la chaîne">✍️</a>
             </div>
         </div>
     </div>
@@ -1312,6 +1615,99 @@ generate_index_html() {
                 return title.replace(/[^a-zA-Z0-9\s]/g, '').trim() || 'Projet-FRD';
             }
             
+            // Fonction pour afficher les signatures de la chaîne
+            async function showSignatures() {
+                try {
+                    const response = await fetch('.chain.signatures');
+                    if (!response.ok) {
+                        alert('Aucun fichier de signatures trouvé');
+                        return;
+                    }
+                    
+                    const signaturesText = await response.text();
+                    const lines = signaturesText.split('\n').filter(line => line.trim() && !line.startsWith('#'));
+                    
+                    if (lines.length === 0) {
+                        alert('Aucune signature trouvée');
+                        return;
+                    }
+                    
+                    // Créer une modal pour afficher les signatures
+                    const modal = document.createElement('div');
+                    modal.style.cssText = `
+                        position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+                        background: rgba(0,0,0,0.8); z-index: 2000; 
+                        display: flex; align-items: center; justify-content: center;
+                        padding: 20px;
+                    `;
+                    
+                    const content = document.createElement('div');
+                    content.style.cssText = `
+                        background: var(--bg-gradient-start); 
+                        border: 1px solid var(--border-dynamic); 
+                        border-radius: 8px; 
+                        padding: 20px; 
+                        max-width: 80%; 
+                        max-height: 80%; 
+                        overflow-y: auto;
+                        color: var(--fg);
+                    `;
+                    
+                    let html = '<h2 style="color: var(--accent-dynamic); margin-bottom: 20px;">✍️ Signatures de la Chaîne FRD</h2>';
+                    html += '<div style="font-family: monospace; font-size: 0.9em;">';
+                    
+                    lines.reverse().forEach(line => {
+                        const [timestamp, cid, signer, action] = line.split('|');
+                        const actionIcon = action === 'publish' ? '📡' : '📋';
+                        const actionText = action === 'publish' ? 'Publication' : 'Copie';
+                        const shortCid = cid ? cid.substring(0, 12) + '...' : 'N/A';
+                        
+                        html += `
+                            <div style="
+                                border: 1px solid var(--border-dynamic); 
+                                border-radius: 6px; 
+                                padding: 12px; 
+                                margin-bottom: 10px; 
+                                background: rgba(0,0,0,0.2);
+                            ">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <strong style="color: var(--accent-dynamic);">${actionIcon} ${actionText}</strong>
+                                        <div style="color: #8b949e; font-size: 0.8em; margin-top: 4px;">
+                                            👨‍✈️ ${signer}<br>
+                                            📅 ${timestamp}<br>
+                                            💾 ${shortCid}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                    html += '<div style="text-align: center; margin-top: 20px;">';
+                    html += '<button onclick="this.closest(\'.modal\').remove()" style="background: var(--accent-dynamic); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Fermer</button>';
+                    html += '</div>';
+                    
+                    content.innerHTML = html;
+                    modal.appendChild(content);
+                    modal.className = 'modal';
+                    
+                    // Fermer en cliquant à l'extérieur
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            modal.remove();
+                        }
+                    });
+                    
+                    document.body.appendChild(modal);
+                    
+                } catch (error) {
+                    console.error('Erreur lors du chargement des signatures:', error);
+                    alert('Erreur lors du chargement des signatures: ' + error.message);
+                }
+            }
+            
             // Initialiser Mermaid
             function initializeMermaid() {
                 if (typeof mermaid !== 'undefined') {
@@ -1543,6 +1939,28 @@ echo "## INDEX.HTML UPDATE"
 # L'index.html est déjà généré avec les bons CIDs, pas besoin de mise à jour supplémentaire
 echo "✅ index.html généré avec les métadonnées à jour"
 
+echo "## MULTIPASS SIGNATURE & NOSTR PUBLICATION"
+# Sélectionner le MULTIPASS signataire
+if select_multipass; then
+    # Ajouter la signature de publication
+    add_signature_to_chain "${IPFSME}" "${SELECTED_MULTIPASS}" "publish"
+    
+    # Envoyer l'événement NOSTR
+    PROJECT_NAME=$(basename ${MY_PATH})
+    CURRENT_EVOLUTION_COUNT=$(cat ${MY_PATH}/.chain.n 2>/dev/null || echo "0")
+    
+    if send_nostr_capsule_event "${IPFSME}" "${PROJECT_NAME}" "${CURRENT_EVOLUTION_COUNT}"; then
+        echo "📡 Événement NOSTR publié avec succès"
+        
+        # Copier automatiquement dans l'uDRIVE du signataire
+        auto_copy_to_udrive "${IPFSME}" "${SELECTED_MULTIPASS}"
+    else
+        echo "⚠️ Échec de la publication NOSTR, mais la capsule IPFS est créée"
+    fi
+else
+    echo "⚠️ Aucun MULTIPASS sélectionné, publication sans signature NOSTR"
+fi
+
 echo "## AUTO GIT"
 echo '# ENTER COMMENT FOR YOUR COMMIT :'
 git add .
@@ -1568,7 +1986,29 @@ echo "🔗 Accès:"
 echo "   🌐 Portail : http://127.0.0.1:8080/ipfs/${IPFSME}/"
 echo "   📖 Docs    : http://127.0.0.1:8080/ipfs/${IPFSME}/index.html"
 echo ""
-echo "📡 Message Nostr à publier:"
+
+# Afficher les informations de signature si disponibles
+if [[ -n "$SELECTED_MULTIPASS" ]]; then
+    echo "✍️ Signature:"
+    echo "   👨‍✈️ Signataire : $SELECTED_MULTIPASS"
+    echo "   📡 NOSTR       : Publié"
+    echo "   📋 uDRIVE      : Copié automatiquement"
+    echo ""
+fi
+
+# Afficher les signatures existantes
+if [[ -f "${MY_PATH}/.chain.signatures" ]]; then
+    local sig_count=$(grep -v "^#" "${MY_PATH}/.chain.signatures" 2>/dev/null | wc -l)
+    if [[ $sig_count -gt 0 ]]; then
+        echo "📜 Historique des signatures ($sig_count):"
+        tail -n 5 "${MY_PATH}/.chain.signatures" | grep -v "^#" | while IFS='|' read -r timestamp cid signer action; do
+            echo "   $timestamp - $signer ($action)"
+        done
+        echo ""
+    fi
+fi
+
+echo "📡 Message Nostr publié:"
 echo "---"
 echo "${NOSTR_MSG}"
 echo "---"
