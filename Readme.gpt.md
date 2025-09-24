@@ -208,24 +208,24 @@ La **conscience locale** n’est alors qu’un **référentiel de phase** dans c
 ### a) Onde dorée (Harmoniques Φ) :
 
 $$
-f_*n = f_*Phi \cdot \Phi^n
+f_n = f_\Phi \cdot \Phi^n
 \quad\text{avec}\quad \Phi = \frac{1+\sqrt{5}}{2}
 $$
 
 ### b) Onde octavienne (Harmoniques binaires) :
 
 $$
-f_*m = f_*2 \cdot 2^m
+f_m = f_2 \cdot 2^m
 $$
 
-> 📝 **Convention de notation** : Nous utilisons systématiquement **Φ** (majuscule) pour le nombre d'or et **f_*Φ**, **f_*2** pour les fréquences de base.
+> 📝 **Convention de notation** : Nous utilisons systématiquement **Φ** (majuscule) pour le nombre d'or et **f_*Φ**, **f_2** pour les fréquences de base.
 
 ### c) Interférence : superposition
 
 La **battement d’interférence** :
 
 $$
-\Delta f_{n,m} = |f_*Phi \cdot \Phi^n - f_*2 \cdot 2^m|
+\Delta f_{n,m} = |f_\Phi \cdot \Phi^n - f_2 \cdot 2^m|
 $$
 
 Nous pouvons chercher les points où ce battement devient **quasi-nul**, comme on le fait pour les approximants diophantiens entre $\log(\Phi)$ et $\log(2)$. Ces points génèrent les **zones de résonance** où se structurent les constantes.
@@ -239,13 +239,13 @@ Nous pouvons chercher les points où ce battement devient **quasi-nul**, comme o
 Si l’interférence donne naissance à une **onde de battement** à très grande longueur d’onde (basse fréquence), sa vitesse de propagation **perçue** est :
 
 $$
-v_*text{battement} = \frac{\Delta\omega}{\Delta k} = c
+v_\text{battement} = \frac{\Delta\omega}{\Delta k} = c
 $$
 
 Ce qui impose :
 
 $$
-\frac{f_*phi \cdot \Phi^n - f_*2 \cdot 2^m}{k_*phi - k_*2} = c
+\frac{f_*phi \cdot \Phi^n - f_2 \cdot 2^m}{k_\phi - k_2} = c
 \Rightarrow \text{c comme vitesse relative de modulation}
 $$
 
@@ -266,7 +266,7 @@ Si l'énergie $E$ est une émergence du **niveau d’accord minimal** entre $\Ph
 Le lien entre masse, espace et temps peut s’écrire :
 
 $$
-G = \frac{l_*P^3}{\hbar c}
+G = \frac{l_P^3}{\hbar c}
 $$
 
 Si $\hbar$ et $c$ sont issus du motif d’interférence, alors $G$ devient aussi une **constante dérivée**, dépendant du **rythme de décohérence** des ondes dans un espace-temps local.
@@ -332,11 +332,11 @@ Dans ce cadre, les constantes telles que la vitesse de la lumière $c$, la const
 
 #### Onde dorée (lumineuse)
 
-$f_*n = f_*Phi \cdot \Phi^n \quad \text{avec} \; \Phi = \frac{1 + \sqrt{5}}{2} \approx 1.618$
+$f_n = f_\Phi \cdot \Phi^n \quad \text{avec} \; \Phi = \frac{1 + \sqrt{5}}{2} \approx 1.618$
 
 #### Onde octavienne (sonore)
 
-$f_*m = f_*2 \cdot 2^m$
+$f_m = f_2 \cdot 2^m$
 
 L'interférence entre ces deux ondes donne naissance à une trame spatio-temporelle vibrante, dans laquelle la **conscience localisée** perçoit un monde cohérent.
 
@@ -347,7 +347,7 @@ L'interférence entre ces deux ondes donne naissance à une trame spatio-tempore
 La vitesse perçue de l'onde de battement entre les deux gammes est donnée par :
 $c = \frac{\Delta \omega}{\Delta k}$
 
-Lorsque les fréquences $f_*phi \cdot \Phi^n$ et $f_*2 \cdot 2^m$ deviennent quasi-égales (approximation diophantienne), leur battement forme une onde de phase stable, dont la **vitesse est perçue comme constante**.
+Lorsque les fréquences $f_*phi \cdot \Phi^n$ et $f_2 \cdot 2^m$ deviennent quasi-égales (approximation diophantienne), leur battement forme une onde de phase stable, dont la **vitesse est perçue comme constante**.
 
 ---
 
@@ -447,6 +447,6 @@ Si les figures d’interférence entre gammes `Φⁿ` et `2ᵐ` donnent naissanc
 
 ✅ Une page web interactive en **p5.js** est prête !
 
-**Fichier** : [`gold_*phi_*octave_*interference.html`](./gold_*phi_*octave_*interference.html) - **Visualiseur d'Interférences Φ-Octave**
+**Fichier** : [`gold_phi_octave_interference.html`](./gold_phi_octave_interference.html) - **Visualiseur d'Interférences Φ-Octave**
 
 > 🔗 **Description complète** : Voir [Applications Interactives - Moiré Cosmique](./README.md#3-🌀-moiré-cosmique---visualiseur-dinterférences) dans le README principal
