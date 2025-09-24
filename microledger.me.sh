@@ -145,11 +145,28 @@ generate_index_html() {
         </div>
     </div>
     <script>
-        marked.setOptions({ 
-            highlight: (code, lang) => lang && hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value, 
-            breaks: true, 
-            gfm: true 
-        });
+            // Configuration de marked avec génération automatique d'IDs
+            marked.use({
+                renderer: {
+                    heading(text, level) {
+                        // Générer un ID à partir du texte du titre
+                        const id = text
+                            .toLowerCase()
+                            .replace(/[^\w\s-]/g, '') // Supprimer caractères spéciaux
+                            .replace(/\s+/g, '-')     // Remplacer espaces par tirets
+                            .replace(/-+/g, '-')      // Éviter tirets multiples
+                            .replace(/^-|-$/g, '');   // Supprimer tirets en début/fin
+                        
+                        return `<h${level} id="${id}">${text}</h${level}>`;
+                    }
+                }
+            });
+            
+            marked.setOptions({ 
+                highlight: (code, lang) => lang && hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value, 
+                breaks: true, 
+                gfm: true 
+            });
         
         // Fonction pour mettre à jour la navigation (breadcrumb et bouton retour)
         function updateNavigation(filename, anchor) {
@@ -320,9 +337,15 @@ generate_index_html() {
                     console.log(`🔄 Recherche par texte: "${searchText}"`);
                     document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(el => {
                         const elText = el.textContent.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ');
-                        if (elText.includes(searchText) || searchText.includes(elText.substring(0, 10))) {
+                        const elId = el.id ? el.id.toLowerCase() : '';
+                        
+                        // Correspondance par texte ou par ID généré
+                        if (elText.includes(searchText) || 
+                            searchText.includes(elText.substring(0, 10)) ||
+                            elId.includes(searchText.replace(/\s+/g, '-')) ||
+                            searchText.replace(/\s+/g, '-').includes(elId)) {
                             element = el;
-                            console.log(`✅ Correspondance trouvée par texte: "${el.textContent.trim()}"`);
+                            console.log(`✅ Correspondance trouvée: "${el.textContent.trim()}" (ID: ${el.id})`);
                         }
                     });
                 }

@@ -10,11 +10,11 @@
 
 ## 📋 **Table des Matières**
 
-1. [🧮 Fondements Mathématiques](#-fondements-mathématiques)
-2. [⚡ Émergence des Constantes Physiques](#-émergence-des-constantes-physiques)
-3. [🚀 Paradoxe des Jumeaux Revisité](#-paradoxe-des-jumeaux-revisité)
-4. [💻 Simulations Numériques](#-simulations-numériques)
-5. [🔬 Validations Expérimentales](#-validations-expérimentales)
+1. [🧮 Fondements Mathématiques](#fondements-mathématiques)
+2. [⚡ Émergence des Constantes Physiques](#émergence-des-constantes-physiques)
+3. [🚀 Paradoxe des Jumeaux Revisité](#paradoxe-des-jumeaux-revisité)
+4. [💻 Simulations Numériques](#simulations-numériques-validées)
+5. [🔬 Validations Expérimentales](#validations-expérimentales)
 
 ---
 
