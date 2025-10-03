@@ -8,7 +8,7 @@
 - 🟡 **Onde lumineuse** (harmoniques du nombre d'or Φ ≈ 1,618)
 - 🔵 **Onde sonore** (harmoniques d'octaves binaires ×2)
 
-**Résultat stupéfiant** : Cette théorie prédit les constantes physiques avec une précision de **94-98%** !
+**Hypothèse intéressante** : Cette théorie propose que les constantes physiques pourraient émerger d'interférences harmoniques.
 
 ## 🧭 Guide de Navigation
 
@@ -77,12 +77,12 @@ fₘ = f₀ × 2ᵐ
 
 **Tableau récapitulatif des prédictions** :
 
-| Constante | Formule Phi2X | Précision | Statut | Signification |
-|-----------|---------------|-----------|---------|---------------|
-| **α** (structure fine) | `1/(4π × Φ⁵)` | **98.3%** | ✅ Validé | Intensité électromagnétique |
-| **G** (gravitation) | `(g×R_T^2)/(M_T) × (f_Φ/f_2)` | **94.0%** | ✅ Validé | Force gravitationnelle |
-| **c** (lumière) | `g × T_année × facteur_Φ` | **96.8%** | ✅ Validé | Limite de condensation |
-| **h** (Planck) | `E_conscience × t_Planck × Φⁿ` | **Variable** | 🔄 En cours | Quantum de conscience |
+| Constante | Formule Phi2X | Statut | Signification |
+|-----------|---------------|---------|---------------|
+| **α** (structure fine) | `1/(4π × Φ⁵)` | 🔄 À valider | Intensité électromagnétique |
+| **G** (gravitation) | `(g×R_T^2)/(M_T) × (f_Φ/f_2)` | 🔄 À valider | Force gravitationnelle |
+| **c** (lumière) | `g × T_année × facteur_Φ` | 🔄 À valider | Limite de condensation |
+| **h** (Planck) | `E_conscience × t_Planck × Φⁿ` | 🔄 En cours | Quantum de conscience |
 
 > 🔬 **Révolution scientifique** : Aucune autre théorie unifiée n'atteint cette précision sur les constantes !
 > 
@@ -433,14 +433,14 @@ Le modèle fait plusieurs prédictions vérifiables :
 
 ### Résultats de Validation
 
-| Constante | Formule Phi2X | Précision | Statut |
-|-----------|---------------|-----------|---------|
-| **α** (structure fine) | `1/(4π × Φ⁵)` | **98.3%** | ✅ Validé |
-| **G** (gravitation) | `(g×R_T^2)/(M_T) × (f_Φ/f_2)` | **94.0%** | ✅ Validé |
-| **c** (lumière) | `g × T_année × facteur_Φ` | **96.8%** | ✅ Validé |
-| **h** (Planck) | `E_conscience × t_Planck × Φⁿ` | **Variable** | 🔄 En cours |
+| Constante | Formule Phi2X | Statut |
+|-----------|---------------|---------|
+| **α** (structure fine) | `1/(4π × Φ⁵)` | 🔄 À valider |
+| **G** (gravitation) | `(g×R_T^2)/(M_T) × (f_Φ/f_2)` | 🔄 À valider |
+| **c** (lumière) | `g × T_année × facteur_Φ` | 🔄 À valider |
+| **h** (Planck) | `E_conscience × t_Planck × Φⁿ` | 🔄 En cours |
 
-**Conclusion :** La théorie Phi2X prédit avec une précision remarquable les constantes fondamentales, validant l'hypothèse d'interférence harmonique universelle.
+**Conclusion :** La théorie Phi2X propose des formules intéressantes pour les constantes fondamentales, nécessitant une validation expérimentale pour confirmer l'hypothèse d'interférence harmonique universelle.
 
 ### Expériences Proposées
 

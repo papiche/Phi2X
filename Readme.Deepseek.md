@@ -69,25 +69,25 @@ Où :
 
 > 🎯 **Hypothèse révolutionnaire** : Les constantes ne sont pas fondamentales mais émergent des rapports harmoniques Φ-octave
 
-### 📊 **Résultats de Validation**
+### 📊 **Propositions Théoriques**
 
-| Constante | Formule Phi2X | Valeur Calculée | Valeur Réelle | Précision |
-|-----------|---------------|-----------------|---------------|-----------|
-| **α** (structure fine) | `1/(4π×Φ⁵)` | 0.007175 | 0.007297 | **98.3%** ✅ |
-| **c** (vitesse lumière) | `g×T_année` | 3.10×10⁸ m/s | 3.00×10⁸ m/s | **96.8%** ✅ |
-| **G** (gravitation) | `(g×R_T²)/(M_T) × (f_Φ/f_2)` | 6.27×10⁻¹¹ | 6.67×10⁻¹¹ | **94.0%** ✅ |
+| Constante | Formule Phi2X | Valeur Calculée | Valeur Réelle | Statut |
+|-----------|---------------|-----------------|---------------|---------|
+| **α** (structure fine) | `1/(4π×Φ⁵)` | 0.007175 | 0.007297 | 🔄 À valider |
+| **c** (vitesse lumière) | `g×T_année` | 3.10×10⁸ m/s | 3.00×10⁸ m/s | 🔄 À valider |
+| **G** (gravitation) | `(g×R_T²)/(M_T) × (f_Φ/f_2)` | 6.27×10⁻¹¹ | 6.67×10⁻¹¹ | 🔄 À valider |
 
 ### 🔍 **Analyse Détaillée**
 
-#### ✅ **Constante de Structure Fine α**
+#### 🔄 **Constante de Structure Fine α**
 ```math
 α = 1/(4π × Φ⁵) ≈ 1/139.4 ≈ 0.007175
 ```
-**Interprétation** : α émerge du rapport géométrique Φ⁵, suggérant une origine harmonique de l'électromagnétisme.
+**Interprétation** : Hypothèse que α pourrait émerger du rapport géométrique Φ⁵.
 
-**Validation** : Erreur de seulement **1.7%** - Excellente précision !
+**Statut** : Proposition théorique nécessitant validation expérimentale.
 
-#### ✅ **Vitesse de la Lumière c**
+#### 🔄 **Vitesse de la Lumière c**
 ```math
 c ≈ g × T_année × facteur_harmonique
 ```
@@ -96,7 +96,9 @@ Où :
 - `T_année = 31557600 s` (durée année sidérale)
 - `g × T_année = 3.10×10⁸ m/s ≈ c`
 
-**Interprétation** : La vitesse de la lumière émerge de la dynamique terrestre dans le champ d'interférence cosmique.
+**Interprétation** : Hypothèse que la vitesse de la lumière pourrait émerger de la dynamique terrestre dans le champ d'interférence cosmique.
+
+**Statut** : Proposition théorique nécessitant validation expérimentale.
 
 ### 🧠 **Théorie de la Relativité Conscientielle**
 
@@ -863,9 +865,9 @@ g = 9.81                    # Accélération gravitationnelle (m/s²)
 T_year = 31557600           # Année sidérale (s)
 
 def validate_constants():
-    """Valide les constantes physiques émergentes"""
+    """Calcule les constantes selon les formules Phi2X"""
     
-    print("=== VALIDATION DES CONSTANTES PHYSIQUES ===")
+    print("=== CALCULS THÉORIQUES PHI2X ===")
     
     # Constante de structure fine
     alpha_calc = 1 / (4 * np.pi * (phi ** 5))
@@ -875,7 +877,7 @@ def validate_constants():
     print(f"\n1. CONSTANTE DE STRUCTURE FINE:")
     print(f"   α = 1/(4π×Φ⁵) = {alpha_calc:.6f}")
     print(f"   α réel = {alpha_real:.6f}")
-    print(f"   Précision: {100-error_alpha:.1f}% ✅")
+    print(f"   Écart: {error_alpha:.1f}% (à valider expérimentalement)")
     
     # Vitesse de la lumière
     c_calc = g * T_year
@@ -884,7 +886,7 @@ def validate_constants():
     print(f"\n2. VITESSE DE LA LUMIÈRE:")
     print(f"   c ≈ g×T_année = {c_calc:.2e} m/s")
     print(f"   c réel = {c:.2e} m/s")
-    print(f"   Précision: {100-error_c:.1f}% ✅")
+    print(f"   Écart: {error_c:.1f}% (proposition théorique)")
     
     return alpha_calc, c_calc
 
@@ -916,22 +918,22 @@ if __name__ == "__main__":
 
 **Sortie typique** :
 ```
-=== VALIDATION DES CONSTANTES PHYSIQUES ===
+=== CALCULS THÉORIQUES PHI2X ===
 
 1. CONSTANTE DE STRUCTURE FINE:
    α = 1/(4π×Φ⁵) = 0.007175
    α réel = 0.007297
-   Précision: 98.3% ✅
+   Écart: 1.7% (à valider expérimentalement)
 
 2. VITESSE DE LA LUMIÈRE:
    c ≈ g×T_année = 3.10e+08 m/s
    c réel = 3.00e+08 m/s
-   Précision: 96.8% ✅
+   Écart: 3.2% (proposition théorique)
 
 === PARADOXE DES JUMEAUX (v = 0.9c) ===
 Dilatation relativiste: γ = 2.294
 Prédiction Φ^1.5: 2.058
-Écart: 10.3% (acceptable)
+Écart: 10.3% (modèle à affiner)
 ```
 
 ---
@@ -977,18 +979,19 @@ Prédiction Φ^1.5: 2.058
 
 ## 🎯 **Conclusions et Perspectives**
 
-### ✅ **Validations Réussies**
+### ✅ **Propositions Cohérentes**
 
-1. **Constante de structure fine α** : Précision de **98.3%**
-2. **Vitesse de la lumière c** : Précision de **96.8%**
-3. **Harmoniques Φ-octave** : Résonance parfaite à f₀
-4. **Simulations numériques** : Cohérence avec les prédictions
+1. **Constante de structure fine α** : Formule cohérente avec Φ⁵
+2. **Vitesse de la lumière c** : Relation avec g et T_année
+3. **Harmoniques Φ-octave** : Cadre théorique unifié
+4. **Simulations numériques** : Cohérence interne du modèle
 
-### 🔄 **Améliorations Nécessaires**
+### 🔄 **Validation Nécessaire**
 
-1. **Constante gravitationnelle G** : Reformulation requise (erreur 76.4%)
-2. **Dilatation temporelle** : Affinage du modèle (écart 11.5%)
-3. **Validation expérimentale** : Tests en laboratoire nécessaires
+1. **Vérification expérimentale** : Tests en laboratoire requis
+2. **Constante gravitationnelle G** : Reformulation du modèle nécessaire  
+3. **Dilatation temporelle** : Affinage des paramètres
+4. **Reproductibilité** : Confirmation par d'autres équipes
 
 ### 🚀 **Perspectives d'Avenir**
 

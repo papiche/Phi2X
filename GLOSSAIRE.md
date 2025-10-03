@@ -80,8 +80,8 @@
 **Signification** : Mesure l'intensité des interactions électromagnétiques
 
 **Formule Phi2X** : α ≈ 1/(4π × Φ⁵)
-- **Précision** : 98.3% (erreur de seulement 1.7%)
-- **Interprétation** : L'électromagnétisme émerge de la géométrie pentagonale (Φ⁵)
+- **Statut** : Proposition théorique à valider
+- **Interprétation** : Hypothèse que l'électromagnétisme pourrait émerger de la géométrie pentagonale (Φ⁵)
 
 > ⚡ **Importance** : Si α était différent de quelques %, les atomes ne pourraient pas exister !
 
@@ -91,8 +91,8 @@
 **Signification** : Détermine l'intensité de la force gravitationnelle
 
 **Formule Phi2X** : G ≈ (g × R_T²)/(M_T) × (f_Φ/f_2)
-- **Précision** : 94.0% (erreur de 6%)
-- **Interprétation** : La gravité émerge de l'interférence entre ondes Φ et octave 2
+- **Statut** : Proposition théorique (validation expérimentale requise)
+- **Interprétation** : Hypothèse que la gravité pourrait émerger de l'interférence entre ondes Φ et octave
 
 > 🌍 **Révolution** : G n'est plus une constante absolue mais émerge de l'harmonie cosmique locale !
 
@@ -237,10 +237,10 @@ t'_i = t × (1 + β_i × 2ᵐ) × synchronisation_eau_i
 - **φ** (minuscule) : Phase ou angle
 - **f_Φ** : Fréquences basées sur Φ
 - **f_2** : Fréquences octave (×2)
-- **f_eau** : Fréquence de résonance de l'eau (429,62 Hz)
+- **f_eau** : Fréquence de résonance de l'eau (429,62 Hz) - paramètre expérimental
 - **α** : Constante de structure fine
 - **G** : Constante gravitationnelle
-- **facteur_eau** : Coefficient d'amplification possible par l'eau
+- **facteur_eau** : Coefficient d'amplification hypothétique par l'eau
 
 ### Unités
 - **Hz** : Hertz (fréquence)

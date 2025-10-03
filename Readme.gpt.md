@@ -329,11 +329,14 @@ Ainsi, $G$ est une **projection métrique** de cette stabilité harmonique sur u
 
 ---
 
-### 5. Synthèse : Équation symbolique
+### 5. Synthèse : Équations proposées
 
-$\boxed{ c = \frac{\lambda_*0 \cdot \Phi \cdot f_0'}{\sqrt{\ln 2}} }$
+**Hypothèse pour c** :
+$$\boxed{ c \approx g \times T_{année} \times facteur_{harmonique} }$$
 
-Cette équation fait émerger $c$ d'une **longueur d'onde de référence** ($\lambda_*0$), une **fréquence sonore fondamentale** ($f_0'$), et deux constantes structurelles : $\Phi$ et $\ln 2$.
+Cette équation propose que c émerge d'une **accélération gravitationnelle** (g), d'une **période temporelle** (T_année), et d'un **facteur de correction harmonique** lié aux interférences Φ-octave.
+
+**Note** : Cette formulation diffère des approches purement géométriques et nécessite une validation expérimentale.
 
 ---
 

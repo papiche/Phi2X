@@ -34,7 +34,7 @@ Voici une expérience **simple et accessible** pour visualiser comment des ondes
 
 #### **Étape 1 : Générer des Oscillations Lumineuses en Φ**
 - Fixez le laser sur le support vibrant (haut-parleur).
-- Utilisez le générateur pour faire vibrer le laser à **f₀ = 33,17 Hz** (base Φ), puis ses harmoniques : 53,66 Hz, 86,83 Hz, etc.
+- Utilisez le générateur pour faire vibrer le laser à **f₀ = 33,17 Hz** (base Φ), puis ses harmoniques : 53,66 Hz, 86,76 Hz, etc.
 - **Variante intéressante** : Testez aussi **431,21 Hz** (13 × 33,17 Hz, proche de 429,62 Hz)
 - Le faisceau laser oscillant créera des motifs mouvants sur la surface de l'eau
 

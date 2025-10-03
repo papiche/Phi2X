@@ -126,9 +126,9 @@ C'est ici que la magie opère. L'Arduino va scanner les harmoniques des deux ond
 D'après notre analyse, les fréquences harmoniques sont :
 
 ```cpp
-// Fréquences Φⁿ (Hz): 50.0, 80.9, 130.9, 211.8, 342.7, 554.5, 897.2, 1451.7, 2348.9, 3800.7
-// Fréquences 2ᵐ (Hz): 50.0, 100.0, 200.0, 400.0, 800.0, 1600.0, 3200.0, 6400.0, 12800.0, 25600.0
-// Résonance parfaite: f₀ = 50 Hz (Φ⁰ = 2⁰)
+// Fréquences Φⁿ calculées avec BASE_FREQ_PHI = 33.17 Hz
+// Fréquences 2ᵐ calculées avec BASE_FREQ_OCTAVE = 31.32 Hz
+// Note: Ces valeurs correspondent aux fréquences harmoniques théoriques Phi2X
 ```
 
 ### 📝 **Code Complet et Commenté**
@@ -144,9 +144,10 @@ D'après notre analyse, les fréquences harmoniques sont :
 
 #include <math.h>
 
-// === CONSTANTES PHYSIQUES ===
+// === CONSTANTES PHYSIQUES HARMONISÉES ===
 const float PHI = 1.61803398875;          // Nombre d'or
-const float BASE_FREQ = 50.0;             // Fréquence fondamentale (Hz)
+const float BASE_FREQ_PHI = 33.17;        // Fréquence fondamentale Φ (Hz)
+const float BASE_FREQ_OCTAVE = 31.32;     // Fréquence fondamentale octave (Hz)
 const int HARMONICS_COUNT = 10;           // Nombre d'harmoniques testées
 
 // === BROCHES ARDUINO ===

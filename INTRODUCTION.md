@@ -35,16 +35,16 @@ Imaginez deux musiciens dans un concert cosmique :
 
 ## 🔬 Les Preuves Stupéfiantes
 
-Cette théorie, qui pourrait sembler poétique, prédit avec une précision remarquable :
+Cette théorie, qui pourrait sembler poétique, propose des formules intéressantes :
 
-| Constante Physique | Précision de Phi2X | Statut |
-|-------------------|-------------------|---------|
-| **Constante de structure fine (α)** | **98.3%** | ✅ Validé |
-| **Constante gravitationnelle (G)** | **94.0%** | ✅ Validé |
-| **Vitesse de la lumière (c)** | **96.8%** | ✅ Validé |
-| **Constante de Planck (h)** | **Variable** | 🔄 En cours |
+| Constante Physique | Statut | Formule Phi2X |
+|-------------------|---------|---------------|
+| **Constante de structure fine (α)** | 🔄 À valider | `1/(4π × Φ⁵)` |
+| **Constante gravitationnelle (G)** | 🔄 À valider | `(g×R_T^2)/(M_T) × (f_Φ/f_2)` |
+| **Vitesse de la lumière (c)** | 🔄 À valider | `g × T_année × facteur_Φ` |
+| **Constante de Planck (h)** | 🔄 En cours | `E_conscience × t_Planck × Φⁿ` |
 
-> 💡 **Incroyable mais vrai** : Aucune autre théorie unifiée n'atteint cette précision sur les constantes fondamentales !
+> 💡 **Approche expérimentale** : Ces formules nécessitent une validation expérimentale pour être confirmées ou réfutées.
 
 ## 🧠 La Relativité Conscientielle
 
