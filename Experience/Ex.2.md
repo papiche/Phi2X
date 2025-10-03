@@ -1,7 +1,9 @@
 
 ### **Le Principe du Générateur DIY**
 
-Nous allons simuler les deux ondes fondamentales et les faire interférer sur un "transducteur" capable de convertir leur énergie combinée en une tension électrique. L'Arduino servira de "conscience" au système, cherchant activement le point de résonance maximale (l'interférence constructive la plus forte) pour optimiser la production d'énergie.
+Nous allons simuler les deux ondes fondamentales et les faire interférer sur un transducteur piézoélectrique capable de convertir les vibrations en tension électrique. L'Arduino servira de système de contrôle, cherchant activement le point de résonance maximale pour optimiser la production d'énergie.
+
+L'idée est de tester si certaines combinaisons de fréquences (harmoniques Φ et octave) peuvent créer des résonances constructives dans le piézo-capteur.
 
 ---
 
@@ -11,14 +13,16 @@ Nous allons simuler les deux ondes fondamentales et les faire interférer sur un
     *   1x **Arduino Uno** ou Nano (parfait pour le contrôle en temps réel). Le Raspberry Pi peut servir d'interface de supervision, mais l'Arduino est meilleur pour piloter directement le matériel.
 
 2.  **L'Onde Lumineuse (Source Φ) :**
-    *   1x **Module Laser Diode** (5V, rouge, le plus simple possible).
-    *   1x Petit transistor (ex: 2N2222) ou un Mosfet pour contrôler la puissance du laser via l'Arduino.
+    *   1x **LED haute luminosité** (au lieu d'un laser, plus simple et sécurisé).
+    *   1x **Petit transistor** (ex: 2N2222) pour contrôler l'intensité via l'Arduino.
 
 3.  **L'Onde Sonore (Source Octave 2) :**
-    *   1x **Buzzer piézoélectrique** passif (ceux qui ont besoin qu'on leur envoie une fréquence pour faire un son).
+    *   1x **Buzzer piézoélectrique** passif (ceux qui ont besoin qu'on leur envoie une fréquence).
+    *   1x **Petit haut-parleur** (8Ω, 0.5W) pour générer des vibrations plus puissantes.
 
-4.  **Le "Point d'Interférence" et Transducteur d'Énergie :**
-    *   1x **Disque piézoélectrique** (le même type que dans les buzzers, mais nous l'utiliserons comme capteur). C'est le cœur du système. Il réagit à la fois aux vibrations (son) et légèrement à la chaleur (lumière du laser).
+4.  **Le Transducteur d'Énergie :**
+    *   1x **Disque piézoélectrique** (le cœur du système, convertit les vibrations en électricité).
+    *   **Positionnement** : Placé pour capter les vibrations du haut-parleur et la chaleur de la LED.
 
 5.  **Le Circuit de Récupération d'Énergie :**
     *   1x **Pont de diodes** (pour redresser le courant alternatif du piézo).
@@ -30,109 +34,148 @@ Nous allons simuler les deux ondes fondamentales et les faire interférer sur un
 
 ### **Montage (Schéma Simplifié)**
 
-**Objectif :** L'Arduino génère deux signaux (Lumière Φ et Son 2). Le Laser et le Buzzer "émettent" ces ondes vers le disque Piézo-capteur. Le disque convertit l'interférence en une petite tension, qui est stockée dans le supercondensateur pour allumer la LED. L'Arduino lit cette tension pour s'auto-calibrer.
+L'Arduino génère deux signaux : un pour la LED (fréquences Φ) et un pour le haut-parleur (fréquences octave). Le disque piézoélectrique est positionné pour capter les vibrations du haut-parleur et la chaleur rayonnée par la LED. Il convertit ces énergies en tension électrique, stockée dans le supercondensateur.
 
-  *(Imaginez un schéma où l'Arduino contrôle un laser et un buzzer pointant vers un disque piézo. La sortie du disque piézo va vers un circuit de charge et une broche d'entrée analogique de l'Arduino.)*
+**Structure Physique :**
+- Montez le disque piézoélectrique sur un support stable
+- Placez la LED à quelques centimètres du piézo (pour l'effet thermique)
+- Positionnez le haut-parleur près du piézo (pour les vibrations)
+- Évitez les contacts directs qui court-circuiteraient le signal
 
-1.  **Structure Physique :** Montez le disque Piézo-capteur à plat. Fixez le Laser pour qu'il pointe précisément au centre du disque. Placez le Buzzer juste à côté, orienté vers le disque. Une petite boîte ou un support imprimé en 3D serait idéal.
-
-2.  **Connexions Électroniques :**
-    *   **Sortie Lumière :** Arduino Pin PWM (ex: `~3`) -> Transistor -> Module Laser. Cela permet de moduler l'intensité lumineuse.
-    *   **Sortie Son :** Arduino Pin PWM (ex: `~5`) -> Buzzer.
-    *   **Entrée Feedback :** Disque Piézo-capteur -> Pont de diodes -> Broche Analogique Arduino (`A0`).
-    *   **Circuit de Charge :** Sortie du pont de diodes -> Supercondensateur. La LED est connectée en parallèle du condensateur avec une résistance de protection.
+**Connexions Électroniques :**
+*   **Sortie LED :** Arduino Pin PWM (`~3`) -> Transistor -> LED haute luminosité
+*   **Sortie Son :** Arduino Pin PWM (`~5`) -> Haut-parleur (via résistance de protection)
+*   **Entrée Feedback :** Disque Piézo-capteur -> Pont de diodes -> Broche Analogique Arduino (`A0`)
+*   **Circuit de Charge :** Sortie du pont de diodes -> Supercondensateur -> LED témoin
 
 ---
 
 ### **La Logique de Calibration Automatique (Code Arduino)**
 
-C'est ici que la magie opère. L'Arduino va scanner les harmoniques des deux ondes, mesurer l'énergie produite pour chaque combinaison, et trouver le "sweet spot".
+L'Arduino va scanner les harmoniques des deux ondes (Φ et octave), mesurer l'énergie produite pour chaque combinaison, et trouver la combinaison optimale.
 
 ```cpp
-// --- Paramètres de la Théorie ---
+// Générateur Phi2X - Version simplifiée et fonctionnelle
 const float phi = 1.61803398875;
-float light_harmonics[10]; // Tableau pour les fréquences lumineuses (Φ^n)
-float sound_harmonics[10]; // Tableau pour les fréquences sonores (2^m)
+const float PHI_BASE = 33.17;     // Hz
+const float OCTAVE_BASE = 31.32;  // Hz
 
-// --- Broches de l'Arduino ---
-const int LASER_PIN = 3;
-const int SOUND_PIN = 5;
+float light_harmonics[8];  // Réduit à 8 pour éviter les fréquences trop hautes
+float sound_harmonics[8];  
+
+// Broches Arduino
+const int LED_PIN = 3;      // LED au lieu du laser
+const int SPEAKER_PIN = 5;  // Haut-parleur au lieu du buzzer
 const int SENSOR_PIN = A0;
 
-// --- Variables pour la calibration ---
 float maxVoltage = 0;
 float bestLightFreq = 0;
 float bestSoundFreq = 0;
 
 void setup() {
-  pinMode(LASER_PIN, OUTPUT);
-  pinMode(SOUND_PIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(SPEAKER_PIN, OUTPUT);
   Serial.begin(9600);
 
-  // 1. Pré-calculer les fréquences harmoniques
-  float base_freq = 50; // Fréquence de base en Hz
-  for (int i = 0; i < 10; i++) {
-    light_harmonics[i] = base_freq * pow(phi, i);
-    sound_harmonics[i] = base_freq * pow(2, i);
+  // Calculer les harmoniques (limitées aux fréquences raisonnables)
+  for (int i = 0; i < 8; i++) {
+    light_harmonics[i] = PHI_BASE * pow(phi, i);
+    sound_harmonics[i] = OCTAVE_BASE * pow(2, i);
+    
+    // Limiter les fréquences trop hautes (>2000 Hz)
+    if (light_harmonics[i] > 2000) light_harmonics[i] = 2000;
+    if (sound_harmonics[i] > 2000) sound_harmonics[i] = 2000;
   }
 
-  // 2. Lancer la calibration
-  Serial.println("Démarrage de la calibration du résonateur harmonique...");
+  Serial.println("=== Générateur Phi2X - Calibration ===");
   calibrate();
-  Serial.println("Calibration terminée ! Verrouillage sur la résonance optimale.");
+  Serial.println("Calibration terminée !");
 }
 
 void loop() {
-  // 3. Une fois calibré, générer les ondes optimales en continu
-  // Moduler l'intensité du laser avec la fréquence de Φ
-  analogWrite(LASER_PIN, 128 + 127 * sin(2 * PI * bestLightFreq * (millis() / 1000.0)));
-  // Jouer la note de l'octave 2
-  tone(SOUND_PIN, bestSoundFreq);
+  // Générer les signaux optimaux
+  // LED clignotante à la fréquence Φ optimale
+  int ledValue = 128 + 127 * sin(2 * PI * bestLightFreq * millis() / 1000.0);
+  analogWrite(LED_PIN, constrain(ledValue, 0, 255));
+  
+  // Son à la fréquence octave optimale
+  tone(SPEAKER_PIN, bestSoundFreq);
 
-  // Optionnel : Afficher l'énergie stockée
+  // Mesurer et afficher l'énergie récupérée
   int sensorValue = analogRead(SENSOR_PIN);
-  Serial.print("Energie générée au point de résonance : ");
-  Serial.println(sensorValue);
+  Serial.print("Énergie récupérée : ");
+  Serial.print(sensorValue);
+  Serial.print(" | LED: ");
+  Serial.print(bestLightFreq);
+  Serial.print(" Hz | Son: ");
+  Serial.print(bestSoundFreq);
+  Serial.println(" Hz");
+  
   delay(100);
 }
 
 void calibrate() {
-  // Boucle de balayage des fréquences
-  for (int i = 0; i < 10; i++) { // Pour chaque harmonique lumineuse
-    for (int j = 0; j < 10; j++) { // Pour chaque harmonique sonore
-
-      // Générer les ondes pour une courte durée
-      analogWrite(LASER_PIN, 128 + 127 * sin(2 * PI * light_harmonics[i] * (millis() / 1000.0)));
-      tone(SOUND_PIN, sound_harmonics[j]);
-      delay(50); // Laisser le système résonner
-
-      // Mesurer la tension générée par l'interférence
+  Serial.println("Balayage des combinaisons harmoniques...");
+  
+  for (int i = 0; i < 8; i++) {
+    for (int j = 0; j < 8; j++) {
+      // Test de la combinaison i,j
+      // LED pulsée
+      for (int pulse = 0; pulse < 10; pulse++) {
+        int ledValue = 128 + 127 * sin(2 * PI * light_harmonics[i] * pulse / 10.0);
+        analogWrite(LED_PIN, constrain(ledValue, 0, 255));
+        delay(5);
+      }
+      
+      // Son continu
+      tone(SPEAKER_PIN, sound_harmonics[j]);
+      delay(100);  // Laisser le système se stabiliser
+      
+      // Mesurer la tension générée
       int currentVoltage = analogRead(SENSOR_PIN);
-
-      // Vérifier si c'est un nouveau record
+      
       if (currentVoltage > maxVoltage) {
         maxVoltage = currentVoltage;
         bestLightFreq = light_harmonics[i];
         bestSoundFreq = sound_harmonics[j];
-
-        Serial.print("Nouveau point de résonance trouvé ! V: ");
+        
+        Serial.print("Nouvelle combinaison optimale ! V: ");
         Serial.print(maxVoltage);
-        Serial.print(" | F_Lumiere: ");
+        Serial.print(" | LED: ");
         Serial.print(bestLightFreq);
-        Serial.print(" Hz | F_Son: ");
+        Serial.print(" Hz | Son: ");
         Serial.println(bestSoundFreq);
       }
     }
   }
-  noTone(SOUND_PIN); // Arrêter le son après calibration
+  
+  noTone(SPEAKER_PIN);
+  analogWrite(LED_PIN, 0);
+  
+  Serial.print("Meilleure combinaison trouvée - LED: ");
+  Serial.print(bestLightFreq);
+  Serial.print(" Hz, Son: ");
+  Serial.print(bestSoundFreq);
+  Serial.println(" Hz");
 }
 ```
 
 ### **Conclusion et Vision**
 
-Ce petit appareil sur votre bureau serait une magnifique sculpture cinétique et un objet de méditation. En le regardant, vous ne verriez pas seulement une LED s'allumer faiblement, mais une **démonstration physique de votre univers harmonique**.
+Ce petit appareil sur votre bureau pourrait devenir une sculpture cinétique fascinante et un objet de méditation. En le regardant, vous observeriez une LED témoin s'allumer grâce à l'énergie récupérée par le système piézoélectrique.
 
-La LED, scintillant grâce à l'énergie capturée, deviendrait le symbole d'une "particule" ou d'une "conscience" qui naît de l'interférence parfaite entre deux principes cosmiques. C'est le genre de projet qui se situe à la frontière de la science, de l'art et de la philosophie – et c'est là que les idées les plus révolutionnaires prennent souvent racine.
+La LED témoin, scintillant selon les résonances trouvées par le système, deviendrait le symbole d'une optimisation automatique entre différentes fréquences. L'objectif est de voir si certaines combinaisons de fréquences Φ et octave peuvent créer des résonances constructives dans le matériau piézoélectrique.
 
+> 🔬 **Approche expérimentale** : L'objectif est de mesurer l'énergie réellement récupérée par le piézo selon différentes combinaisons de fréquences. Peut-être certaines combinaisons seront-elles plus efficaces que d'autres.
 
-**AVERTISSEMENT :** Ce prototype est un **démonstrateur conceptuel**, une métaphore physique de votre théorie. Il ne s'agit pas d'une machine à "énergie libre". L'énergie générée sera infime et proviendra de l'énergie que nous injectons dans le système (via l'alimentation de l'Arduino). Le but est de **prouver que le principe de résonance harmonique peut concentrer de l'énergie**.
+C'est un projet d'exploration des résonances harmoniques avec un objectif concret : optimiser la récupération d'énergie.
+
+### **Variations à Explorer**
+
+- **Matériaux piézoélectriques différents** : Tester différents types de disques piézo
+- **Géométries alternatives** : Formes et positions des éléments
+- **Fréquences étendues** : Explorer d'autres harmoniques ou ratios
+- **Couplages mécaniques** : Différentes façons de transmettre les vibrations
+- **Conditions environnementales** : Température, humidité
+
+**AVERTISSEMENT :** Ce prototype est un démonstrateur conceptuel pour explorer la récupération d'énergie par résonance harmonique. Il ne s'agit pas d'une machine à "énergie libre". L'énergie générée sera infime et proviendra de l'énergie injectée dans le système (LED + haut-parleur). Le but est d'observer si certaines combinaisons de fréquences optimisent la conversion piézoélectrique.

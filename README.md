@@ -90,12 +90,22 @@ fₘ = f₀ × 2ᵐ
 
 #### 🔍 Détail des Constantes Validées
 
-#### Explication de la Nouvelle Formule Gravitationnelle
+#### 🌊 Découverte : Résonance de l'Eau à 429,62 Hz
 
-La formule révisée pour G repose sur l'**interférence constructive** entre les ondes fondamentales :
+Les travaux du Professeur Marc Henry révèlent que l'eau résonne naturellement à **429,62 Hz**. Cette fréquence établit des connexions intéressantes avec les harmoniques Phi2X :
+
+- **429,62 Hz ≈ 13 × f_Φ** (13 × 33,17 Hz = 431,21 Hz)
+- **429,62 Hz ≈ 55 × 7,83 Hz** (55ème harmonique de Schumann)
+- **Le nombre 13** appartient à la suite de Fibonacci, renforçant le lien avec Φ
+
+> 💧 **Hypothèse à explorer** : L'eau pourrait agir comme médiateur harmonique entre les ondes Φ et octave. Cette piste mérite d'être testée expérimentalement pour comprendre son rôle dans les phénomènes de résonance.
+
+#### Formule Gravitationnelle Révisée
+
+Une version enrichie de la formule pourrait intégrer l'influence de l'eau :
 
 ```
-G = (g × R_T^2) / (M_T) × (f_Φ/f_2)
+G = (g × R_T^2) / (M_T) × (f_Φ/f_2) × facteur_eau
 ```
 
 **Où :**
@@ -104,12 +114,16 @@ G = (g × R_T^2) / (M_T) × (f_Φ/f_2)
 - `M_T = 5.972×10^24 kg` : masse de la Terre
 - `f_Φ = 33.17 Hz` : fréquence de résonance de l'onde lumineuse (Φ³ × 7.83 Hz)
 - `f_2 = 31.32 Hz` : fréquence de résonance de l'onde sonore (2^2 × 7.83 Hz)
+- `facteur_eau = 429.62/431.21 ≈ 0.996` : correction possible par la résonance de l'eau
 
 **Interprétation physique :**
-1. La gravité émerge de l'**interférence entre ondes Φ et octave 2**
-2. Le rapport `f_Φ/f_2 ≈ 1.059` représente le **couplage harmonique** optimal
-3. Cette formule prédit G avec une précision de **94%**, validant la théorie d'interférence
-4. G n'est plus une constante absolue mais **émerge de l'harmonie cosmique locale**
+1. La gravité émerge de l'interférence entre ondes Φ et octave 2
+2. Le rapport `f_Φ/f_2 ≈ 1.059` représente le couplage harmonique optimal
+3. L'eau (429,62 Hz) pourrait stabiliser cette interférence par sa résonance naturelle
+4. Cette formule prédit G avec une précision de 94%, ce qui encourage à poursuivre l'exploration
+5. G pourrait ne pas être une constante absolue mais émerger de l'harmonie cosmique locale
+
+> 🔬 **Invitation à l'expérimentation** : Ces corrélations numériques sont intrigantes mais demandent une validation expérimentale. Les expériences proposées dans ce projet visent à tester ces hypothèses de manière accessible.
 
 #### Explications Détaillées des Autres Constantes
 
@@ -126,10 +140,13 @@ G = (g × R_T^2) / (M_T) × (f_Φ/f_2)
 - **Interprétation** : c est la **limite de condensation** de la lumière infinie par la conscience
 
 **Constante de Planck h (Quantum de Conscience)**
-- **Formule** : `h ∝ E_conscience × t_Planck × Φⁿ`
+- **Formule proposée** : `h ∝ E_conscience × t_Planck × Φⁿ × résonance_eau`
 - **E_conscience** : Énergie métabolique du cerveau (≈20W)
-- **Mécanisme** : h représente le **quantum minimal** d'information que peut traiter une conscience
-- **Interprétation** : L'action quantique émerge de la **capacité de traitement conscientiel**
+- **Rôle de l'eau cérébrale** : 75% du cerveau, résonance potentielle à 429,62 Hz
+- **Mécanisme** : h pourrait représenter le quantum minimal d'information traitable par une conscience
+- **Interprétation** : L'action quantique pourrait émerger de la capacité de traitement conscientiel
+
+> 🧪 **Pistes d'expérimentation** : Ces formulations restent spéculatives et nécessitent des tests pour être validées ou réfutées.
 
 > 🔗 **Notation unifiée** : Dans tous les documents Phi2X, nous utilisons :
 > - **Φ** (majuscule) pour le nombre d'or
