@@ -208,57 +208,78 @@ select_multipass() {
     return 0
 }
 
-# Fonction pour envoyer l'événement NOSTR via script automatisé
+# Function to send NOSTR event via automated script
 send_nostr_capsule_event() {
     local cid="$1"
     local project_name="$2"
     local evolution_count="$3"
     
     if [[ -z "$SELECTED_MULTIPASS" || -z "$MULTIPASS_NSEC_FILE" ]]; then
-        echo "❌ MULTIPASS non sélectionné ou clés manquantes"
+        echo "❌ MULTIPASS not selected or keys missing"
         return 1
     fi
     
-    # Vérifier si le script strfry est disponible
-    local nostr_script="${MY_PATH}/frd/nostr_strfry_send.py"
+    # Check if the unified nostr_send_note.py script is available
+    local nostr_script="$HOME/.zen/Astroport.ONE/tools/nostr_send_note.py"
     if [[ ! -f "$nostr_script" ]]; then
-        echo "❌ Script nostr_strfry_send.py non trouvé: $nostr_script"
+        # Fallback to local script if exists
+        nostr_script="${MY_PATH}/frd/nostr_strfry_send.py"
+        if [[ ! -f "$nostr_script" ]]; then
+            echo "❌ No Nostr sending script found"
+            return 1
+        fi
+    fi
+    
+    if [[ ! -f "$MULTIPASS_NSEC_FILE" ]]; then
+        echo "❌ Cannot read private key: $MULTIPASS_NSEC_FILE"
         return 1
     fi
     
-    echo "📡 Envoi de l'événement NOSTR vers relais multiples"
+    echo "📡 Sending NOSTR event to multiple relays"
     
-    # Lire la clé nsec
-    local nsec_content=""
-    if [[ -f "$MULTIPASS_NSEC_FILE" ]]; then
-        nsec_content=$(cat "$MULTIPASS_NSEC_FILE" 2>/dev/null)
-    else
-        echo "❌ Impossible de lire la clé privée: $MULTIPASS_NSEC_FILE"
-        return 1
-    fi
-    
-    # Préparer le message NOSTR
+    # Prepare the NOSTR message
     local nostr_message="📡 FRD Knowledge Capsule Published: ${project_name}
 
 🌐 IPFS: http://127.0.0.1:8080/ipfs/${cid}/
 📖 Docs: http://127.0.0.1:8080/ipfs/${cid}/index.html
 🔄 Evolution: #${evolution_count}
-👨‍✈️ Signé par: ${SELECTED_MULTIPASS}
+👨‍✈️ Signed by: ${SELECTED_MULTIPASS}
 
 #frd #FRD #ipfs #knowledge #git #nostr #multipass"
     
-    echo "📤 Publication de la capsule sur NOSTR..."
-    echo "   Signataire: $SELECTED_MULTIPASS"
+    echo "📤 Publishing capsule on NOSTR..."
+    echo "   Signer: $SELECTED_MULTIPASS"
     echo "   CID: $cid"
-    echo "   Évolution: #$evolution_count"
+    echo "   Evolution: #$evolution_count"
     
-    # Exécuter le script pour publication multi-relais
-    if python3 "$nostr_script" --nsec "$nsec_content" --content "$nostr_message" --relay "ws://127.0.0.1:7777"; then
-        echo "✅ Événement NOSTR publié avec succès sur les relais"
-        return 0
+    # Prepare tags for FRD
+    local tags_json='[["t","frd"],["t","FRD"],["t","ipfs"],["t","knowledge"],["t","multipass"],["t","astroport"]]'
+    
+    # Execute script for multi-relay publication
+    # Check if using unified script or legacy script
+    if [[ "$nostr_script" == *"nostr_send_note.py" ]]; then
+        # Use new unified API with keyfile
+        if python3 "$nostr_script" \
+            --keyfile "$MULTIPASS_NSEC_FILE" \
+            --content "$nostr_message" \
+            --tags "$tags_json" \
+            --relays "ws://127.0.0.1:7777,wss://relay.copylaradio.com"; then
+            echo "✅ NOSTR event published successfully on relays"
+            return 0
+        else
+            echo "❌ Failed to publish NOSTR on relays"
+            return 1
+        fi
     else
-        echo "❌ Échec de la publication NOSTR sur les relais"
-        return 1
+        # Use legacy API (for backwards compatibility)
+        local nsec_content=$(cat "$MULTIPASS_NSEC_FILE" 2>/dev/null)
+        if python3 "$nostr_script" --nsec "$nsec_content" --content "$nostr_message" --relay "ws://127.0.0.1:7777"; then
+            echo "✅ NOSTR event published successfully on relays"
+            return 0
+        else
+            echo "❌ Failed to publish NOSTR on relays"
+            return 1
+        fi
     fi
 }
 
