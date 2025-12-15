@@ -324,63 +324,6 @@ add_signature_to_chain() {
     echo "✍️ Signature ajoutée: $signer_email ($action) - $timestamp"
 }
 
-# Fonction pour copier automatiquement dans l'uDRIVE du signataire
-auto_copy_to_udrive() {
-    local cid="$1"
-    local signer_email="$2"
-    
-    echo "📋 Copie automatique dans l'uDRIVE du signataire..."
-    
-    # Vérifier si l'API UPlanet est accessible
-    local api_url="http://127.0.0.1:54321"
-    if ! curl -s --connect-timeout 5 "$api_url/health" >/dev/null 2>&1; then
-        echo "⚠️ API UPlanet non accessible sur $api_url"
-        echo "   La copie automatique sera ignorée"
-        return 1
-    fi
-    
-    # Obtenir la clé publique du signataire
-    local npub_content=""
-    if [[ -f "$MULTIPASS_NPUB_FILE" ]]; then
-        npub_content=$(cat "$MULTIPASS_NPUB_FILE" 2>/dev/null)
-    else
-        echo "❌ Impossible de lire la clé publique: $MULTIPASS_NPUB_FILE"
-        return 1
-    fi
-    
-    # Préparer les données pour l'API
-    local project_name=$(basename ${MY_PATH})
-    local copy_data=$(cat << EOF
-{
-    "project_url": "${cid}",
-    "npub": "${npub_content}",
-    "project_name": "${project_name}_FRD_Capsule"
-}
-EOF
-)
-    
-    echo "📤 Envoi de la requête de copie à l'API UPlanet..."
-    
-    # Envoyer la requête à l'API
-    local response=$(curl -s -X POST \
-        -H "Content-Type: application/json" \
-        -d "$copy_data" \
-        "$api_url/api/copy_project" 2>/dev/null)
-    
-    if [[ $? -eq 0 ]]; then
-        echo "✅ Copie automatique réussie dans l'uDRIVE de $signer_email"
-        
-        # Ajouter la signature de copie
-        add_signature_to_chain "$cid" "$signer_email" "copy"
-        
-        return 0
-    else
-        echo "⚠️ Échec de la copie automatique"
-        echo "   Réponse: $response"
-        return 1
-    fi
-}
-
 # Génération dynamique de l'index.html
 generate_index_html() {
     PROJECT_NAME=$(basename ${MY_PATH})
@@ -748,27 +691,6 @@ generate_index_html() {
         .connect-btn.connected { 
             background: linear-gradient(45deg, hsl(120, 70%, 50%), hsl(120, 70%, 40%)); 
         }
-        .copy-btn { 
-            background: linear-gradient(45deg, hsl(calc(var(--primary-hue) + 120), 70%, 60%), hsl(calc(var(--primary-hue) + 120), 70%, 50%)); 
-            color: white; 
-            border: none; 
-            padding: 4px 8px; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            font-size: 0.8rem; 
-            text-decoration: none; 
-            transition: all 0.3s ease; 
-            margin-left: 8px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .copy-btn:hover { 
-            background: linear-gradient(45deg, hsl(calc(var(--primary-hue) + 120), 70%, 50%), hsl(calc(var(--primary-hue) + 120), 70%, 40%)); 
-            text-decoration: none; 
-            color: white; 
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
-        .copy-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         body { padding-top: 60px; }
         .container { max-width: 1000px; margin: 0 auto; padding: 20px; padding-bottom: 80px; /* Espace pour le footer */ }
         .markdown-content { background: var(--bg); }
@@ -812,7 +734,6 @@ generate_index_html() {
             </div>
             <div class="header-center">
                 <button id="connectBtn" class="connect-btn" onclick="connectToNostr()">🔗 Connect</button>
-                <button id="copyBtn" class="copy-btn" onclick="copyToUDrive()" disabled>📋 Copier</button>
             </div>
             <div class="header-right">
                 <span style="font-size: 0.7rem; color: #6e7681;">GENERATION_DATE_PLACEHOLDER</span>
@@ -1234,7 +1155,6 @@ generate_index_html() {
             // Fonction pour se connecter à Nostr
             async function connectToNostr() {
                 const connectBtn = document.getElementById('connectBtn');
-                const copyBtn = document.getElementById('copyBtn');
                 
                 try {
                     connectBtn.textContent = '🔄 Connexion...';
@@ -1253,7 +1173,6 @@ generate_index_html() {
                             nostrConnected = true;
                             connectBtn.textContent = '✅ Connecté';
                             connectBtn.classList.add('connected');
-                            copyBtn.disabled = false;
                             console.log('Connecté et authentifié avec la clé publique:', userPublicKey);
                         } else {
                             throw new Error('Échec de l\'authentification NIP42');
@@ -1275,7 +1194,6 @@ generate_index_html() {
                                     nostrConnected = true;
                                     connectBtn.textContent = '✅ Connecté';
                                     connectBtn.classList.add('connected');
-                                    copyBtn.disabled = false;
                                     console.log('Connecté et authentifié avec la clé publique:', userPublicKey);
                                 } else {
                                     throw new Error('Échec de l\'authentification NIP42');
@@ -1656,15 +1574,10 @@ generate_index_html() {
                 
                 // Réinitialiser les boutons
                 const connectBtn = document.getElementById('connectBtn');
-                const copyBtn = document.getElementById('copyBtn');
                 
                 if (connectBtn) {
                     connectBtn.textContent = '🔗 Connect';
                     connectBtn.classList.remove('connected');
-                }
-                
-                if (copyBtn) {
-                    copyBtn.disabled = true;
                 }
                 
                 // Masquer le footer
@@ -1674,129 +1587,6 @@ generate_index_html() {
                 }
                 
                 console.log('👋 Utilisateur déconnecté');
-            }
-            
-            // Fonction pour copier le projet vers uDRIVE
-            async function copyToUDrive() {
-                if (!nostrConnected || !userPublicKey) {
-                    alert('Veuillez vous connecter à Nostr d\'abord');
-                    return;
-                }
-                
-                const copyBtn = document.getElementById('copyBtn');
-                const originalText = copyBtn.textContent;
-                
-                try {
-                    copyBtn.textContent = '⏳ Copie...';
-                    copyBtn.disabled = true;
-                    
-                    // Détecter l'URL de l'API UPlanet
-                    const currentURL = new URL(window.location.href);
-                    const hostname = currentURL.hostname;
-                    const protocol = currentURL.protocol;
-                    let port = currentURL.port;
-                    
-                    if (port === "8080") {
-                        port = "54321";
-                    }
-                    
-                    const uHost = hostname.replace("ipfs", "u");
-                    const apiUrl = protocol + "//" + uHost + (port ? ":" + port : "");
-                    
-                    console.log('API UPlanet détectée:', apiUrl);
-                    
-                    // Obtenir le CID actuel du projet
-                    const currentCID = getCurrentProjectCID();
-                    if (!currentCID) {
-                        throw new Error('Impossible de déterminer le CID du projet');
-                    }
-                    
-                    console.log('CID du projet à copier:', currentCID);
-                    
-                    // Préparer les données pour l'API
-                    const copyData = {
-                        project_url: currentCID,
-                        npub: userPublicKey,
-                        project_name: getProjectName()
-                    };
-                    
-                    console.log('Données de copie:', copyData);
-                    
-                    // Appeler l'API de copie
-                    const response = await fetch(apiUrl + '/api/copy_project', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(copyData)
-                    });
-                    
-                    if (!response.ok) {
-                        let errorMessage = `Erreur HTTP ${response.status}`;
-                        try {
-                            const errorData = await response.json();
-                            if (errorData.detail) {
-                                if (typeof errorData.detail === 'string') {
-                                    errorMessage = errorData.detail;
-                                } else if (errorData.detail.message) {
-                                    errorMessage = errorData.detail.message;
-                                } else {
-                                    errorMessage = JSON.stringify(errorData.detail);
-                                }
-                            }
-                        } catch (e) {
-                            // Si ce n'est pas du JSON, essayer de lire comme texte
-                            try {
-                                const textError = await response.text();
-                                if (textError) errorMessage = textError;
-                            } catch (e2) {
-                                errorMessage = `Erreur HTTP ${response.status}: ${response.statusText}`;
-                            }
-                        }
-                        throw new Error(errorMessage);
-                    }
-                    
-                    const result = await response.json();
-                    console.log('Résultat de la copie:', result);
-                    
-                    copyBtn.textContent = '✅ Copié!';
-                    
-                    // Rediriger vers le nouveau CID si disponible
-                    if (result.new_cid) {
-                        setTimeout(() => {
-                            const newUrl = protocol + "//" + hostname + (currentURL.port ? ":" + currentURL.port : "") + "/ipfs/" + result.new_cid + "/";
-                            console.log('Redirection vers:', newUrl);
-                            window.location.href = newUrl;
-                        }, 1500);
-                    } else {
-                        setTimeout(() => {
-                            copyBtn.textContent = originalText;
-                            copyBtn.disabled = false;
-                        }, 2000);
-                    }
-                    
-                } catch (error) {
-                    console.error('Erreur de copie:', error);
-                    copyBtn.textContent = '❌ Erreur';
-                    setTimeout(() => {
-                        copyBtn.textContent = originalText;
-                        copyBtn.disabled = false;
-                    }, 2000);
-                    alert('Erreur de copie: ' + error.message);
-                }
-            }
-            
-            // Fonction utilitaire pour obtenir le CID actuel
-            function getCurrentProjectCID() {
-                const url = window.location.href;
-                const ipfsMatch = url.match(/\/ipfs\/([a-zA-Z0-9]+)/);
-                return ipfsMatch ? ipfsMatch[1] : null;
-            }
-            
-            // Fonction utilitaire pour obtenir le nom du projet
-            function getProjectName() {
-                const title = document.title;
-                return title.replace(/[^a-zA-Z0-9\s]/g, '').trim() || 'Projet-FRD';
             }
             
             // Fonction pour charger le profil du dernier signataire
@@ -2216,9 +2006,6 @@ if select_multipass; then
     
     if send_nostr_capsule_event "${IPFSME}" "${PROJECT_NAME}" "${CURRENT_EVOLUTION_COUNT}"; then
         echo "📡 Événement NOSTR publié avec succès"
-        
-        # Copier automatiquement dans l'uDRIVE du signataire
-        auto_copy_to_udrive "${IPFSME}" "${SELECTED_MULTIPASS}"
     else
         echo "⚠️ Échec de la publication NOSTR, mais la capsule IPFS est créée"
     fi
